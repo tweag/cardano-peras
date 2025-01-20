@@ -1,3 +1,22 @@
+## Peras design document
+
+The WIP Peras design document is available [here as a PDF](https://tweag.github.io/cardano-peras/peras-design.pdf).
+
+### Building
+
+You can build via Nix:
+
+```console
+nix build
+```
+
+Or in the Nix shell (enter via `nix develop` or [nix-direnv](https://github.com/nix-community/nix-direnv)) for a more interactive experience:
+
+```console
+cd ./design
+latexmk peras-design.tex
+```
+
 ## Resources
 
 Resources on Peras, recommended to look at in roughly this order:

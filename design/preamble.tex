@@ -1,0 +1,65 @@
+\documentclass[10pt]{twaudit}
+%% The draft option disables microtype and displays overful hboxes in the
+% text, plus it's faster to compile
+
+\usepackage{enumitem}
+\setlist[enumerate, 2]{label = \roman*.}
+
+%% for llparenthesis and rrparenthesis
+\usepackage{stmaryrd}
+
+\usepackage{verbatim}
+
+\usepackage{multirow}
+
+%% For figures that wrap around text instead of floating around
+\usepackage{wrapfig}
+
+%% For drawings
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing, shapes}
+
+%% For in-document notes between ourselves
+\usepackage[textwidth=8em, obeyFinal]{todonotes}
+\newcommand\niols[1]{\todo[color=red!30]{#1 [Niols]}}
+
+%% Since not all reports might contain code, we also bring minted separately.
+\usepackage{minted}
+\usemintedstyle{bw}
+\setminted{fontsize=\footnotesize}
+\setmintedinline{fontsize=\normalsize}
+\newcommand{\hs}[1]{\mintinline{haskell}{#1}}
+\newcommand{\txt}[1]{\mintinline{text}{#1}}
+
+\newcommand{\asc}{\ensuremath{f}}
+\renewcommand{\k}{\ensuremath{\mathit{k}}}
+\newcommand{\sgen}{\ensuremath{s_\mathit{gen}}}
+\newcommand{\scg}{\ensuremath{s_{cg}}}
+
+%% Use this for variable names in math mode longer than 1 character
+\newcommand{\mi}[1]{\mathit{#1}}
+
+%% A hack to fix the rendering of \Longrightarrow
+\renewcommand\Longrightarrow{%
+ \mathrel{%
+  \mbox{\fontfamily{cmr}\fontencoding{OT1}\selectfont=}}%
+ \joinrel\Rightarrow}
+
+%% What's the client name? Make sure to always call with empty list of arguments
+% to perserve spacing.
+\TWASetClient{IOG}
+\TWASetProduct{Peras}
+\TWASetDate{WIP \today}
+\title{Core \TWAProductOrClient{} Design}
+\author{Modus Create Peras Team}
+
+% Configure texttt with hyphenation
+%
+% hyphenation seems to be disabled for words with underscores or hyphens though.
+%
+% It is also disabled in the arguments of the \paragraph command.
+\DeclareTextFontCommand{\mytexttt}{\ttfamily\hyphenchar\font=45\relax}
+
+\hyphenation{mer-kle-i-sa-tion}
+
+\setcounter{tocdepth}{1}
