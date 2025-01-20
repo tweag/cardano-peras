@@ -18,7 +18,7 @@ jobs:
     - name: Build PDF
       run: |
         nix build -L
-        cp -r --no-preserve=mode,ownership result/ site
+        cp -r --no-preserve=mode,ownership result/ dist
 
     - name: Upload artifacts
       if: github.ref == 'refs/heads/main'
