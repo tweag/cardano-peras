@@ -60,6 +60,12 @@ let
       xstring
       ;
   };
+  py = pkgs.python3.withPackages (ps: [
+    ps.ipython
+    ps.scipy
+    ps.matplotlib
+    ps.pygments
+  ]);
 in
 pkgs.stdenv.mkDerivation {
   name = "main";
@@ -73,7 +79,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.fontconfig
     texlive
     pkgs.biber
-    pkgs.python3Packages.pygments
+    py
     pkgs.ripgrep
     pkgs.which
   ];
