@@ -10,21 +10,23 @@ let
       amsmath
       appendix
       bera
+      biblatex
       booktabs
       caption
       catchfile
       ccaption
       cleveref
-      euenc
+      csquotes
       enumitem
       etoolbox
+      euenc
       everysel
+      fancyvrb
       filehook
-      framed
       float
       fontspec
+      framed
       fvextra
-      fancyvrb
       graphics
       latexmk
       lazylist
@@ -32,8 +34,8 @@ let
       lineno
       listings
       microtype
-      multirow
       minted
+      multirow
       newtxsf
       pgf
       pgfopts
@@ -41,10 +43,11 @@ let
       quotchap
       ragged2e
       scheme-basic
-      stmaryrd
       setspace
+      stmaryrd
       subfig
       tabulary
+      tcolorbox
       titlesec
       titling
       tocloft
@@ -53,8 +56,8 @@ let
       upquote
       wrapfig
       xcolor
-      xstring
       xetex
+      xstring
       ;
   };
 in
@@ -69,6 +72,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.haskellPackages.lhs2tex
     pkgs.fontconfig
     texlive
+    pkgs.biber
     pkgs.python3Packages.pygments
     pkgs.ripgrep
     pkgs.which

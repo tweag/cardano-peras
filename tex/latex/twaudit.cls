@@ -332,8 +332,6 @@ I'll pass it to '\TWA@Base' just in case.}
 \linespread{1.05}
 %% \setlength{\parskip}{1em}
 
-\usepackage[numbers,square]{natbib}
-
 \usepackage[shortlabels]{enumitem}
 \setlist[enumerate]{label=\alph*)}
 

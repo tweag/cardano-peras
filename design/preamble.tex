@@ -5,6 +5,8 @@
 \usepackage{enumitem}
 \setlist[enumerate, 2]{label = \roman*.}
 
+\usepackage{csquotes}
+
 %% for llparenthesis and rrparenthesis
 \usepackage{stmaryrd}
 
@@ -19,6 +21,8 @@
 \usepackage{tikz}
 \usetikzlibrary{decorations.pathreplacing, shapes}
 
+\usepackage{tcolorbox}
+
 %% For in-document notes between ourselves
 \usepackage[textwidth=8em, obeyFinal]{todonotes}
 \newcommand\niols[1]{\todo[color=red!30]{#1 [Niols]}}
@@ -31,13 +35,41 @@
 \newcommand{\hs}[1]{\mintinline{haskell}{#1}}
 \newcommand{\txt}[1]{\mintinline{text}{#1}}
 
-\newcommand{\asc}{\ensuremath{f}}
-\renewcommand{\k}{\ensuremath{\mathit{k}}}
-\newcommand{\sgen}{\ensuremath{s_\mathit{gen}}}
-\newcommand{\scg}{\ensuremath{s_{cg}}}
-
 %% Use this for variable names in math mode longer than 1 character
-\newcommand{\mi}[1]{\mathit{#1}}
+\newcommand{\mi}[1]{\mathtt{#1}}
+
+\newcommand{\asc}{\ensuremath{\mi{asc}}}
+\newcommand{\kcg}{\ensuremath{\mi{kcg}}}
+\newcommand{\sgen}{\ensuremath{s_{\mi{gen}}}}
+\newcommand{\scg}{\ensuremath{s_{\mathit{cg}}}}
+
+\newcommand{\perasRoundSlots}{\ensuremath{\mi{perasRoundSlots}}} % also known as U
+\newcommand{\perasBlockMinSlots}{\ensuremath{\mi{perasBlockMinSlots}}} % also known as L / "block selection offset"
+\newcommand{\perasCertMaxSlots}{\ensuremath{\mi{perasCertMaxSlots}}} % also known as A / "certificate expiration"
+\newcommand{\perasIgnoranceRounds}{\ensuremath{\mi{perasIgnoranceRounds}}} % also known as R
+\newcommand{\perasCooldownRounds}{\ensuremath{\mi{perasCooldownRounds}}} % also known as K
+\newcommand{\perasBoost}{\ensuremath{\mi{perasBoost}}} % also known as B
+\newcommand{\perasQuorum}{\ensuremath{\mi{perasQuorum}}} % also known as τ
+\newcommand{\perasN}{\ensuremath{\mi{perasN}}} % also known as N / committee size
+\newcommand{\perasDelta}{\ensuremath{\mi{perasDelta}}}
+\newcommand{\peras}{\ensuremath{\mi{peras}}}
+
+\newcommand{\cert}{\ensuremath{\mi{cert}}}
+\DeclareMathOperator{\round}{round}
+
+%% A common macro for consistent style of all properties
+\newcommand\property[1]{\textsc{#1}}
+
+%% Praos/Genesis properties
+\newcommand\praosCommonPrefixName{\property{Praos Common Prefix}}
+\newcommand\chainGrowthName{\property{Chain Growth}}
+\newcommand\limitOfPatienceName{\property{Limit of Patience}}
+\newcommand\lengthOfCompetingChainsName{\property{Length of Competing Chains}}
+\newcommand\densityOfCompetingChainsName{\property{Density of Competing Chains}}
+\newcommand\densityOfCompetingChains{\hyperref[property:density-of-competing-chains]\densityOfCompetingChainsName}
+\newcommand\weightedDensityOfCompetingChainsName{\property{Weighted Density of Competing Chains}}
+\newcommand\weightedDensityOfCompetingChains{\hyperref[property:weighted-density-of-competing-chains]\weightedDensityOfCompetingChainsName}
+\newcommand\honestAvailabilityName{\property{Honest Availability}}
 
 %% A hack to fix the rendering of \Longrightarrow
 \renewcommand\Longrightarrow{%
@@ -63,3 +95,6 @@
 \hyphenation{mer-kle-i-sa-tion}
 
 \setcounter{tocdepth}{1}
+
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+\addbibresource{bib.bib}
