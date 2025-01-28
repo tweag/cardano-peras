@@ -39,9 +39,11 @@ We can calculate a lower bound on the probability that an adversary has such a c
 \end{enumerate}
 Condition~\ref{enumi:honest vote splitting:a} guarantees that $V_C\neq V_D$, and condition~\ref{enumi:honest vote splitting:b} makes sure that $D$ is preferrable to $C$.
 
-\begin{lemma}
+We stress that this is not the only scenario where the attack can be executed; for example, we have not considered tiebreakers and honest short forks.
+
+\begin{lemma}\label{lemma:honest vote splitting prob}
   For an adversary with stake $\alpha$ the probability that the events~\ref{enumi:honest vote splitting:a} and~\ref{enumi:honest vote splitting:b} occur before some Peras round is given by \[ P(H\le A) \cdot P(A' \ge 1) \]
-  where $H\sim\operatorname{Binom}(L,\phi(1-\alpha))$, $A\sim\operatorname{Binom}(L,\phi(\alpha))$, $A' \sim \operatorname{Binom}(H',\phi(\alpha))$, $H' \sim \operatorname{Geom}(\phi(1-\alpha))$, and where $L= \perasBlockMinSlots$ and $\phi(\sigma) = 1-{(1-\asc)}^\sigma$ \parencite[(1)]{david2018ouroboros}.
+  where $H\sim\operatorname{Binom}(L,\phi(1-\alpha))$, $A\sim\operatorname{Binom}(L,\phi(\alpha))$, $A' \sim \operatorname{Binom}(H',\phi(\alpha))$, $H' \sim \operatorname{Geom}(\phi(1-\alpha))$\footnote{Here, we use the convention of counting the number of failures until the first success.}, and where $L= \perasBlockMinSlots$ and $\phi(\sigma) = 1-{(1-\asc)}^\sigma$ \parencite[(1)]{david2018ouroboros}.
 \end{lemma}
 \begin{proof}
   Note that~\ref{enumi:honest vote splitting:a} and~\ref{enumi:honest vote splitting:b} are independent as they refer to disjoint sets of slots.
@@ -52,8 +54,18 @@ Condition~\ref{enumi:honest vote splitting:a} guarantees that $V_C\neq V_D$, and
   Thus, $P(\enquote{\ref{enumi:honest vote splitting:b}}) = P(A'\ge 1)$.
 \end{proof}
 
-\medskip
-We stress that this is not the only scenario where the attack can be executed; for example, we have not considered tiebreakers and honest short forks.
+In \cref{lemma:honest vote splitting prob}, we assume that the gap $H'$, i.e.\ the length of the interval $(h,s-\perasBlockMinSlots)$, is sampled geometrically due to the leader schedule.
+However, it can also be instructive to set it to a concrete value (letting $H'$ have a one-point distribution), especially if an adversary could force a long gap in some other way.
+
+\begin{figure}[h]
+  % see honest-vote-splitting.py
+  \includegraphics[width=0.95\textwidth]{./appendix/plot-honest-vote-splitting.png}
+  \centering
+  \caption{Probabilities (lower bounds) for \cref{lemma:honest vote splitting prob} for realistic parameters. The right plot assumes a slot length of one second and $\perasRoundSlots = 90$.}\label{fig:honest vote splitting prob}
+\end{figure}
+We plot the propabilities of \cref{lemma:honest vote splitting prob} for realistic parameters in \cref{fig:honest vote splitting prob}.
+We observe that for small values for \perasBlockMinSlots{}, even relatively weak adversaries can execute a vote splitting attack rather frequently.
+This is relevant in particular as it allows them to trigger a cooldown phase.
 
 \section{Attacks on a variant of the block creation rule}
 
