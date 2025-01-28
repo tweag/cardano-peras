@@ -25,8 +25,8 @@ Write $\operatorname{tip}(C)$ for the tip of a chain $C$, and $\operatorname{tru
 
 Concretely, consider the voting phase at the beginning of round $r$ starting in slot $s$, with all honest nodes having selected chain $C$ just before.
 
-Suppose that the adversary with stake $\alpha$ has a chain $D$ that is preferrable to $C$, and $V_C \neq V_D$ where \[V_c = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,c))\] for $c\in\{C,D\}$.
-If the adversary now diffuses $D$ to only a subset of the honest nodes right before $r$ starts, these nodes will vote for $V_D$, while the rest will vote for $V_D$.
+Suppose that the adversary with stake $\alpha$ has a chain $D$ that is preferrable to $C$, and $V_C \neq V_D$ where \[V_x = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,x))\] for $x\in\{C,D\}$.
+If the adversary now diffuses $D$ to only a subset of the honest nodes right before $r$ starts (such that the remaining honest nodes only receive $D$ after $r$ began), these nodes will vote for $V_D$, while the rest will vote for $V_C$.
 \todo{Add some TikZ drawings}
 
 We can calculate a lower bound on the probability that an adversary has such a chain $D$ by considering a particular outcome of the leader schedule that guarantees the existence of $D$ when the adversary simply abstains while honest chain is growing before round $r$.
@@ -149,8 +149,7 @@ Let us consider concretely how and under what conditions an attacker can execute
   For example, for $\perasRoundSlots = 90$ and $\alpha=0.4$, this evaluates to $55.09\%$.
 
   The number of successive successful rounds is hence geometrically distributed.
-  Note that all blocks added to the chain in the meantime are adversarial, hence impacting chain quality.
-  \footnote{However, such reductions in chain quality are not necessarily too unexpected in the presence of such strong adversaries, and the situation might overall still be better than with pure Praos.}
+  Note that all blocks added to the chain in the meantime are adversarial, hence impacting chain quality.\footnote{However, such reductions in chain quality are not necessarily too unexpected in the presence of such strong adversaries, and the situation might overall still be better than with pure Praos.}
 \end{enumerate}
 
 \todo{More concrete calculations? Markov chain model to estimate the density?}
