@@ -1,16 +1,18 @@
 \chapter{Attack scenarios}\label{chap:attack scenarios}
 
-The goal of this \namecref{chap:attack scenarios} is to give an overview how various aspects of the Peras rules/requirements are necessicated by concrete attacks that could occur otherwise.
+The goal of this \namecref{chap:attack scenarios} is to give an overview of various attacks on Peras, which either motivate a Peras certain rule/requirement or highlight what we can expect from sufficiently strong attacker within our margin of security.
 \todo{Figure out if/in what capacity this should end up in the final version}
 
 \section{Simple attacks}
 
 \subsection{Abstaining during voting}\label{sec:abstaining during voting}
 
-An adversary with $\alpha$ stake will have $\alpha\cdot\perasN$ votes on average, so if they simply abstain, the honest nodes will likely fail to reach quorum even when they all vote for the same block when \[ \alpha \ge 1-\frac\perasQuorum\perasN = 0.25 \; \]
-Therefore, Peras doesn't provide fast settlement in the presence of an adversary with $\alpha\ge 25\%$.
+An adversary with $\alpha$ stake will have $\alpha\cdot\perasN$ votes on average, so if they simply abstain, the honest nodes will likely fail to reach quorum even when they all vote for the same block when \[ \alpha \ge 1-\frac\perasQuorum\perasN = 0.25 \]
+for $\perasQuorum = 3/4 \cdot \perasN$. Therefore, Peras doesn't provide fast settlement in the presence of an adversary with $\alpha\ge 25\%$, which is expected.
 
 As usual, this is assuming full honest participation; smaller participation levels can only tolerate proportionally weaker adversaries.
+
+Additionally, this attack (and others that are about preventing a quorum) gets more effective if the cryptographic scheme used for certificates requires even more than $\perasQuorum$ many votes to certify a quorum, which is for example the case for ALBA due to its $n_p/n_f$ parameters \parencite{chaidos2024approximate}.
 
 \subsection{Honest vote splitting}\label{sec:honest vote splitting}
 
@@ -23,13 +25,13 @@ Future versions of Peras will improve on this front by adding a dedicated \emph{
 
 Write $\operatorname{tip}(C)$ for the tip of a chain $C$, and $\operatorname{trunc}(s,C)$ for the prefix of $C$ up until (but excluding) slot $s$.
 
-Concretely, consider the voting phase at the beginning of round $r$ starting in slot $s$, with all honest nodes having selected chain $C$ just before.
+Concretely, consider the voting phase at the beginning of round $r$ starting in slot $s$, with all honest nodes having selected chain $C_1$ just before.
 
-Suppose that the adversary with stake $\alpha$ has a chain $D$ that is preferrable to $C$, and $V_C \neq V_D$ where \[V_x = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,x))\] for $x\in\{C,D\}$.
-If the adversary now diffuses $D$ to only a subset of the honest nodes right before $r$ starts (such that the remaining honest nodes only receive $D$ after $r$ began), these nodes will vote for $V_D$, while the rest will vote for $V_C$.
+Suppose that the adversary with stake $\alpha$ has a chain $C_2$ that is preferrable to $C_1$, and $D_1 \neq D_2$ where \[D_i = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,C_i))\] for $i\in\{1,2\}$.
+If the adversary now diffuses $C_2$ to only a subset of the honest nodes right before $r$ starts (such that the remaining honest nodes only receive $C_2$ after $r$ began), these nodes will vote for $D_2$, while the rest will vote for $D_1$.
 \todo{Add some TikZ drawings}
 
-We can calculate a lower bound on the probability that an adversary has such a chain $D$ by considering a particular outcome of the leader schedule that guarantees the existence of $D$ when the adversary simply abstains while honest chain is growing before round $r$.
+We can calculate a lower bound on the probability that an adversary has such a chain $C_2$ by considering a particular outcome of the leader schedule that guarantees the existence of $C_2$ when the adversary simply abstains while honest chain is growing before round $r$.
 
 \begin{enumerate}
 \item\label{enumi:honest vote splitting:a}
@@ -37,7 +39,7 @@ We can calculate a lower bound on the probability that an adversary has such a c
 \item\label{enumi:honest vote splitting:b}
   There are at not more honest than adversarial active slots in the interval $[s-\perasBlockMinSlots, s)$.
 \end{enumerate}
-Condition~\ref{enumi:honest vote splitting:a} guarantees that $V_C\neq V_D$, and condition~\ref{enumi:honest vote splitting:b} makes sure that $D$ is preferrable to $C$.
+Condition~\ref{enumi:honest vote splitting:a} guarantees that $D_1\neq D_2$, and condition~\ref{enumi:honest vote splitting:b} makes sure that $C_2$ is preferrable to $C_1$.
 
 We stress that this is not the only scenario where the attack can be executed; for example, we have not considered tiebreakers and honest short forks.
 
