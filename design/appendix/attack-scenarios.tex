@@ -177,6 +177,43 @@ However, this complexity is necessary, as \cref{sec:density reduction via boost-
 Concretely, the adversary can use the attack to let the honest chain to have less than $\phi(\alpha) \cdot \sgen$ blocks (i.e.\ the average number of blocks on a chain they can create completely by themselves) in a window of $\sgen$ slots, despite having higher weight.
 Once successful, the adversary can cause syncing nodes to commit to the adversarial chain permanently, violating safety.
 
+\subsection{Spamming equivocating votes}
+
+The adversary can equivocate any of their seats in the voting committee of a Peras round by creating more than one vote for each seat, voting for different blocks.
+An adversary with $\alpha<1/2$ stake can not use this to cause a quorum for different blocks in the same round due to the choice of $\perasQuorum = 3/4$ and a quorum intersection argument.
+
+However, in a naive implementation, the adversary can use equivocating to cause unbounded additional network traffic for honest nodes.
+We now describe how this can be avoided; specifically, honest nodes will only ever download at most one vote (or alternatively, a bounded amount of votes) per voting committee seat per round.
+
+An honest node downloads votes from its peers in two stages:
+\begin{enumerate}
+\item\label{enumi:equivocation:step 1}
+  In the first stage, it requests and downloads \emph{vote IDs} from its peers.
+
+  The vote ID must be chosen as to uniquely identify a voting committee seat in a particular round.
+  Concretely, it can be represented as the round number and a proof of eligibility, which might be the stake pool identity or a VRF proof.
+\item\label{enumi:equivocation:step 2}
+  In the second stage, the node downloads votes corresponding to all vote IDs \emph{without duplicates}.
+  Upon receiving a vote, it is checked that the vote matches the supplied vote ID.\@
+
+  This way, observing equivocating votes is impossible.
+\end{enumerate}
+As an optimization (for example to reduce the impact of slow peers), the same vote ID could also be requested from multiple peers (bounded by a small constant) in~\ref{enumi:equivocation:step 2}.
+While possible and sound, it is not necessary to discard equivocating votes received this way.
+
+Additionally, this approach requires standalone diffusion of certificates.
+To see why, consider two honest nodes $H_1,H_2$ and an adversarial node $A$ which are pairwise connected.
+Suppose that we are in round $r$, both $H_1$ and $H_2$ are only one vote short of a quorum for the block $B$ for round $r$, and all honest votes for round $r$ have already been diffused.
+Now the adversary sends $H_1$ and $H_2$ a new vote ID $\mi{vid}$, and then equivocates $\mi{vid}$ to send a vote $v_B$ for $B$ to $A$, but a vote $v_{B'}$ for a block $B' \neq B$ to $A'$.
+Now $A$ sees a quorum for $B$ in round $r$, creating a certificate, while $A'$ does not.
+The vote diffusion mechanism described above causes $A'$ to not request a vote for $\mi{vid}$ from $A$, because $A'$ already has received $v_{B'}$.\footnote{Potentially, if $A'$ implements the optimization mentioned above, i.e.\ to download votes for the same vote id from multiple peers opportunistically, they might download $v_B$ from $A$, but this is not something we can rely on in general.}
+Overall, the honest nodes $A$ and $A'$ now disagree whether round $r$ was successful, which they would not have if they exchanged all equivocating votes.
+
+However, by letting nodes also exchange \emph{certificates} in addition to votes, this scenario can be avoided.
+Concretely, $A'$ would ask $A$ for a certificate for round $r$, and then download the certificate for $B$.
+It does not matter that the certificate was built using an equivocating vote; in general, depending on the cryptographic scheme used for building certificates, it can even be impossible to detect this.
+By construction, there can be at most one certificate per round, so there is no risk of equivocating certificates.
+
 
 
 %%% Local Variables:
