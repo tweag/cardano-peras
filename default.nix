@@ -44,6 +44,7 @@ let
       ragged2e
       scheme-basic
       setspace
+      siunitx
       stmaryrd
       subfig
       tabulary
