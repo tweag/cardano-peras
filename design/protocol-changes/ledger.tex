@@ -1,0 +1,48 @@
+\section{Changes to the Ledger}
+
+The Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
+
+Concretely, we propose the following checks for a block body $B$ containing a certificate \cert{}:
+\begin{enumerate}
+\item
+  The certificate \cert{} must be valid.
+\item
+  The round of \cert{} must be strictly greater than the round than the previous certificate on chain.
+\item
+  The size of the certificate must be bounded.
+  Concretely, we propose a protocol parameter \perasCertSizeLimit{} for the size of a certificate, and potentially (if the size of the certificate can be large, say $\ge\SI{5}{\kilo\byte}$), let the size of the certificate count towards the maximum transaction size of a block.
+\end{enumerate}
+The only change to the ledger state is the addition of the round number of the last certificate on chain.
+
+\subsection{Analysis}
+Note that these rules allow the adversary to needlessly include certificates in chain even if there is no current/upcoming cooldown period.
+This does not impact the purpose of on-chain certificates:
+If the system does enter a cooldown (via honest nodes stopping to vote), the adversary will run out of certificates to include on chain due to the monotonicity property of round numbers.
+
+Moreover, this monotonicity property also ensures that the adversary can (on average) only include one certificate per Peras round.
+This means that, on average (assuming no cooldown periods), an attacker with sufficient stake to be elected at least once per round on average\footnote{Concretely, this is satisfied for an adversary with stake $\alpha$ if $\phi(\alpha)\cdot\perasRoundSlots \ge 1$, so for $\alpha \ge 21.8\%$ if $f=1/20$ and $\perasRoundSlots=90$.} can include
+\[\frac \perasCertSizeLimit \perasRoundSlots\,\unit{B/\slot}\]
+without anyone paying for the associated cost of bandwidth/storage.
+However,
+
+For comparison, the fee for including $\perasCertSizeLimit$ bytes on the chain as part of a transaction is given by $\mi{minfeeA}\cdot \perasCertSizeLimit$.
+For realistic values on the conservative end (using $\mi{minfeeA} = 44$ and $\mi{minfeeB} = 155381$ on Cardano mainnet as of epoch 537\footnote{See e.g.\ \url{https://cexplorer.io/params}.}, $\perasRoundSlots=90$ and $\perasCertSizeLimit = \SI{50}{kB}$), this would correspond to a cost of
+\[ \frac{\mi{minfeeA\cdot \perasCertSizeLimit + \mi{minfeeB}}}{\perasRoundSlots} = \SI{26170.9}{\lovelace/\slot} \approx \SI{94.22}{\ADA/h} \]
+assuming a slot length of one second.
+
+For context, note that implementing Peras also entails diffusing \perasN{} votes per round (and the total size of the votes is significantly large than \perasCertSizeLimit{}), and the bandwidth induced by this is also currently not planned to be compensated/incentivized.
+\todo{Link to section where we talk about lack of incentivization.}
+
+\subsection{Alternatives}
+If this cost is considered to be unacceptable, a drastic measure would be to require pools to pay a comparable fee when they include a certificate in a block (which is a rare thing for honest nodes).
+However, such a fee for pools is unprecedented, and raises various unresolved questions regarding incentives and what to do when honest pools run out of funds to pay this new fee.
+
+Another option would be to modify the Peras protocol to reliably determine whether an honest node could have included a certificate into a particular block.
+However, we are not aware of an easy way to do this.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:

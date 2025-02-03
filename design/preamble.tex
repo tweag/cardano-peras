@@ -7,6 +7,11 @@
 
 \usepackage{csquotes}
 
+\usepackage{siunitx}
+\DeclareSIUnit{\slot}{\text{slot}}
+\DeclareSIUnit{\lovelace}{\text{lovelace}}
+\DeclareSIUnit{\ADA}{\text{ADA}}
+
 %% for llparenthesis and rrparenthesis
 \usepackage{stmaryrd}
 
@@ -52,7 +57,8 @@
 \newcommand{\perasQuorum}{\ensuremath{\mi{perasQuorum}}} % also known as τ
 \newcommand{\perasN}{\ensuremath{\mi{perasN}}} % also known as N / committee size
 \newcommand{\perasDelta}{\ensuremath{\mi{perasDelta}}}
-\newcommand{\peras}{\ensuremath{\mi{peras}}}
+
+\newcommand{\perasCertSizeLimit}{\ensuremath{\mi{perasCertSizeLimit}}}
 
 \newcommand{\cert}{\ensuremath{\mi{cert}}}
 \DeclareMathOperator{\round}{round}
@@ -96,5 +102,5 @@
 
 \setcounter{tocdepth}{1}
 
-\usepackage[backend=biber,style=alphabetic]{biblatex}
+\usepackage[backend=biber,style=alphabetic,maxbibnames=99]{biblatex}
 \addbibresource{bib.bib}
