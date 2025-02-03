@@ -183,6 +183,9 @@ The adversary can equivocate any of their seats in the voting committee of a Per
 An adversary with $\alpha<1/2$ stake can not use this to cause a quorum for different blocks in the same round due to the choice of $\perasQuorum = 3/4$ and a quorum intersection argument.
 
 However, in a naive implementation, the adversary can use equivocating votes to cause unbounded additional network traffic for honest nodes.
+Most directly, they can send many equivocating votes to any of their peers individually.
+If this is disallowed (by requiring nodes to only forward the first vote per voting committee seat per round), the adversary can diffuse different equivocating votes to different peers, such that nodes still download many different equivocating votes from their peers.
+
 We now describe how this can be avoided; specifically, honest nodes will only ever download at most one vote (or alternatively, a bounded amount of votes) per voting committee seat per round.
 
 An honest node downloads votes from its peers in two stages:
