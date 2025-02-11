@@ -45,7 +45,7 @@
 
 \begin{tikzpicture}[->,shorten >=1pt,auto,node distance=4.5cm, semithick]
   \tikzstyle{every state}=[fill=red,draw=none,text=white]
-  \node[state, myblue, initial] (I) at (-4,  0) {\StInit};
+  \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
   \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
   \node[state]                   (B) at ( 9, -4) {\StDone};
   \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
@@ -64,9 +64,9 @@
 \begin{figure}[h]
   \begin{center}
     \begin{tabular}{l|l}
-      \header{state}      & \header{agency} \\\hline
-      \StInit             & \Server \\
-      \StIdle             & \Client \\
+      \header{state}       & \header{agency} \\\hline
+      \StInit              & \Client \\
+      \StIdle              & \Client \\
       \StObjIdsBlocking    & \Server \\
       \StObjIdsNonBlocking & \Server \\
       \StObjs              & \Server \\
@@ -75,41 +75,70 @@
   \end{center}
 \end{figure}
 
-\paragraph{Protocol messages}
+\subsection{Parameters}
+
+\newcommand\argfont[1]{\textbf{\texttt{\textit{#1}}}}
+
 \begin{description}
-\item [\MsgInit] initial message of the protocol
-\item [\MsgRequestObjIdsNB{} {\boldmath $(ack,req)$}]
-      The client asks for new object ids and acknowledges old ids.
+\item [\argfont{object}] The abstract type of objects diffused by the protocol.
+\item [\argfont{id}] Identifier that uniquely identifies an object.
+\item [\argfont{objectMetadata}] Additional information that is returned by the
+  server when querying for new object ids. For instance, the size of the object.
+\item [\argfont{initialPayload}] An abstract payload that helps initialise the
+  state of the server. For instance, a slot number before which the client does
+  not care about the objects.
+  \niols{eg. for Cert-Diffusion it would be a round number, for Vote-Diffusion it would be unit}
+\end{description}
+
+\subsection{Protocol messages}
+
+\begin{description}
+\item [\MsgInit{} {\((\argfont{initialPayload})\)}]
+      Initial message of the protocol, with its payload.
+
+\item [\MsgRequestObjIdsNB{} {$(\argfont{ack},\argfont{req})$}]
+      The client asks for up to \argfont{req} new object ids and acknowledges \argfont{ack} old ids.
       The server immediately replies (possibly with an empty list).
-\item [\MsgRequestObjIdsB{} {\boldmath $(ack,req)$}]
-      The client asks for new object ids and acknowledges old ids.
+
+\item [\MsgRequestObjIdsB{} {$(\argfont{ack},\argfont{req})$}]
+      The client asks for up to \argfont{req} new object ids and acknowledges \argfont{ack} old ids.
       The server will block until new objects are available.
-\item [\MsgReplyObjIds{} {\boldmath ($\langle (id, size) \rangle$) }]
-      The server replies with a list of available objects.
-      The list contains pairs of object ids and the corresponding size of the object in bytes.
-      In the blocking case, the reply is guaranteed to contain at least one object.
+
+\item [\MsgReplyObjIds{} {($[(\argfont{id}, \argfont{objectMetadata})]$)}]
+      The server replies with a list of available objects, represented by their ids.
+      The list contains pairs of object ids and some metadata about them.
+      In the blocking case, the reply is guaranteed to contain at least one object id.
       In the non-blocking case, the reply may contain an empty list.
-\item [\MsgRequestObjs{} {\boldmath ($\langle ids \rangle$)}]
-      The client requests objects by sending a list of object-ids.
-\item [\MsgReplyObjs{} {\boldmath ($\langle txs \rangle$})]
-      The server replies with a list of objects.
+
+\item [\MsgRequestObjs{} {($[\argfont{id}]$)}]
+      The client requests objects by sending a list of object ids.
+      The total size of the corresponding objects MUST not be bigger than the size limit in bytes.
+      \niols{Or maybe a bit less; should we take into account the size of the boilerplate?}
+
+\item [\MsgReplyObjs{} {($[\argfont{object}]$})]
+      The server replies with the list of all the objects that were requested.
+      \niols{Maybe sometimes it is not possible to derive an \argfont{id} from
+        an \argfont{object}? eg. with certificates that could be just a hash? In
+        those cases, wouldn't we want to return a list of pairs \((\argfont{id},
+        \argfont{object})\)?}
+
 \item [\MsgDone]
       The server terminates the mini protocol.
 \end{description}
 
 \begin{table}[h]
   \begin{tabular}{l|l|l|l}
-    \header{from state} & \header{message}    & \header{parameters}           & \header{to state}   \\\hline
-    \StInit             & \MsgInit            &                               & \StIdle             \\
-    \StIdle             & \MsgRequestObjIdsNB  & $ack$,$req$                   & \StObjIdsNonBlocking \\
-    \StIdle             & \MsgRequestObjIdsB   & $ack$,$req$                   & \StObjIdsBlocking    \\
-    \StObjIdsNonBlocking & \MsgReplyObjIds      & $\langle (id, size) \rangle$  & \StIdle             \\
-    \StObjIdsBlocking    & \MsgReplyObjIds      & $\langle (id, size) \rangle$  & \StIdle             \\
-    \StIdle             & \MsgRequestObjs      & $\langle ids \rangle$         & \StObjs              \\
-    \StObjs              & \MsgReplyObjs        & $\langle txs \rangle$         & \StIdle             \\
-    \StIdle             & \MsgDone            &                               & \StDone             \\
+    \header{from state}  & \header{message}    & \header{parameters}          & \header{to state}   \\\hline
+    \StInit              & \MsgInit            &                              & \StIdle             \\
+    \StIdle              & \MsgRequestObjIdsNB & \argfont{ack}, \argfont{req} & \StObjIdsNonBlocking \\
+    \StIdle              & \MsgRequestObjIdsB  & \argfont{ack}, \argfont{req} & \StObjIdsBlocking    \\
+    \StObjIdsNonBlocking & \MsgReplyObjIds     & $[(\argfont{id}, \argfont{objectMetadata})]$ & \StIdle \\
+    \StObjIdsBlocking    & \MsgReplyObjIds     & $[(\argfont{id}, \argfont{objectMetadata})]$ & \StIdle \\
+    \StIdle              & \MsgRequestObjs     & $[\argfont{id}]$             & \StObjs              \\
+    \StObjs              & \MsgReplyObjs       & $[\argfont{object}]$         & \StIdle             \\
+    \StIdle              & \MsgDone            &                              & \StDone             \\
   \end{tabular}
-  \caption{Object diffusion mini-protocol (version 2) messages.}
+  \caption{Object diffusion mini-protocol messages.}
 \end{table}
 
 \subsection{Size limits per state}
