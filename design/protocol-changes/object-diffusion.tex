@@ -1,4 +1,5 @@
 \section{Object diffusion mini-protocol}
+\label{object-diffusion-protocol}
 
 \definecolor{mygreen}{rgb}{0.109804,0.698039,0.341176}
 \definecolor{myblue}{rgb}{0.360784,0.423529,255}
@@ -30,16 +31,16 @@
 \newcommand{\StIdle}{\state{StIdle}}
 \newcommand{\StBusy}{\state{StBusy}}
 \newcommand{\StDone}{\state{StDone}}
-\newcommand{\StTxIdsBlocking}    {\state{StTxIdsBlocking}}
-\newcommand{\StTxIdsNonBlocking} {\state{StTxIdsNonBlocking}}
-\newcommand{\StTxs}              {\state{StTxs}}
+\newcommand{\StObjIdsBlocking}    {\state{StObjIdsBlocking}}
+\newcommand{\StObjIdsNonBlocking} {\state{StObjIdsNonBlocking}}
+\newcommand{\StObjs}              {\state{StObjs}}
 
 \newcommand{\MsgInit}            {\msg{MsgInit}}
-\newcommand{\MsgRequestTxIdsNB}  {\msg{MsgRequestTxIdsNonBlocking}}
-\newcommand{\MsgRequestTxIdsB}   {\msg{MsgRequestTxIdsBlocking}}
-\newcommand{\MsgReplyTxIds}      {\msg{MsgReplyTxIds}}
-\newcommand{\MsgRequestTxs}      {\msg{MsgRequestTxs}}
-\newcommand{\MsgReplyTxs}        {\msg{MsgReplyTxs}}
+\newcommand{\MsgRequestObjIdsNB}  {\msg{MsgRequestObjIdsNonBlocking}}
+\newcommand{\MsgRequestObjIdsB}   {\msg{MsgRequestObjIdsBlocking}}
+\newcommand{\MsgReplyObjIds}      {\msg{MsgReplyObjIds}}
+\newcommand{\MsgRequestObjs}      {\msg{MsgRequestObjs}}
+\newcommand{\MsgReplyObjs}        {\msg{MsgReplyObjs}}
 \newcommand{\MsgDone}{\msg{MsgDone}}
 
 \begin{tikzpicture}[->,shorten >=1pt,auto,node distance=4.5cm, semithick]
@@ -47,17 +48,17 @@
   \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
   \node[state, myblue]           (A) at ( 0,  0) {\StIdle};
   \node[state]                   (B) at ( 9, -4) {\StDone};
-  \node[state, mygreen]          (C) at ( 4, -4) {\StTxIdsBlocking};
-  \node[state, mygreen]          (D) at (-4, -4) {\StTxIdsNonBlocking};
-  \node[state, mygreen]          (E) at ( 0,  4) {\StTxs};
+  \node[state, mygreen]          (C) at ( 4, -4) {\StObjIdsBlocking};
+  \node[state, mygreen]          (D) at (-4, -4) {\StObjIdsNonBlocking};
+  \node[state, mygreen]          (E) at ( 0,  4) {\StObjs};
   \draw (I)  edge[above]                    node[above]{\MsgInit}                                                (A);
   \draw (C)  edge[above]                    node[below]{\MsgDone}                                                (B);
-  \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestTxIdsB}               (C);
-  \draw (C)  edge[right, bend left=15]      node[fill = white, anchor = center, above = 2pt]{\MsgReplyTxIds}     (A);
-  \draw (D)  edge[right, bend left=45]      node[fill = white, anchor = center]{\MsgReplyTxIds}                  (A);
-  \draw (A)  edge[right, bend left=15]      node[fill = white, anchor = center, below = 2pt]{\MsgRequestTxIdsNB} (D);
-  \draw (A)  edge[left, bend right=45]      node[fill = white, anchor = center, above = 2pt]{\MsgRequestTxs}     (E);
-  \draw (E)  edge[right,bend right=45]      node[fill = white, anchor = center, below = 2pt]{\MsgReplyTxs}       (A);
+  \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestObjIdsB}               (C);
+  \draw (C)  edge[right, bend left=15]      node[fill = white, anchor = center, above = 2pt]{\MsgReplyObjIds}     (A);
+  \draw (D)  edge[right, bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
+  \draw (A)  edge[right, bend left=15]      node[fill = white, anchor = center, below = 2pt]{\MsgRequestObjIdsNB} (D);
+  \draw (A)  edge[left, bend right=45]      node[fill = white, anchor = center, above = 2pt]{\MsgRequestObjs}     (E);
+  \draw (E)  edge[right,bend right=45]      node[fill = white, anchor = center, below = 2pt]{\MsgReplyObjs}       (A);
 \end{tikzpicture}
 
 \begin{figure}[h]
@@ -66,32 +67,32 @@
       \header{state}      & \header{agency} \\\hline
       \StInit             & \Client \\
       \StIdle             & \Server \\
-      \StTxIdsBlocking    & \Client \\
-      \StTxIdsNonBlocking & \Client \\
-      \StTxs              & \Client \\
+      \StObjIdsBlocking    & \Client \\
+      \StObjIdsNonBlocking & \Client \\
+      \StObjs              & \Client \\
     \end{tabular}
-    \caption{Tx-Submission state agencies}
+    \caption{Object diffusion state agencies}
   \end{center}
 \end{figure}
 
 \paragraph{Protocol messages}
 \begin{description}
 \item [\MsgInit] initial message of the protocol
-\item [\MsgRequestTxIdsNB{} {\boldmath $(ack,req)$}]
-      The server asks for new transaction ids and acknowledges old ids.
+\item [\MsgRequestObjIdsNB{} {\boldmath $(ack,req)$}]
+      The server asks for new object ids and acknowledges old ids.
       The client immediately replies (possibly with an empty list).
-\item [\MsgRequestTxIdsB{} {\boldmath $(ack,req)$}]
-      The server asks for new transaction ids and acknowledges old ids.
-      The client will block until new transactions are available.
-\item [\MsgReplyTxIds{} {\boldmath ($\langle (id, size) \rangle$) }]
-      The client replies with a list of available transactions.
-      The list contains pairs of transaction ids and the corresponding size of the transaction in bytes.
-      In the blocking case, the reply is guaranteed to contain at least one transaction.
+\item [\MsgRequestObjIdsB{} {\boldmath $(ack,req)$}]
+      The server asks for new object ids and acknowledges old ids.
+      The client will block until new objects are available.
+\item [\MsgReplyObjIds{} {\boldmath ($\langle (id, size) \rangle$) }]
+      The client replies with a list of available objects.
+      The list contains pairs of object ids and the corresponding size of the object in bytes.
+      In the blocking case, the reply is guaranteed to contain at least one object.
       In the non-blocking case, the reply may contain an empty list.
-\item [\MsgRequestTxs{} {\boldmath ($\langle ids \rangle$)}]
-      The server requests transactions by sending a list of transaction-ids.
-\item [\MsgReplyTxs{} {\boldmath ($\langle txs \rangle$})]
-      The client replies with a list of transactions.
+\item [\MsgRequestObjs{} {\boldmath ($\langle ids \rangle$)}]
+      The server requests objects by sending a list of object-ids.
+\item [\MsgReplyObjs{} {\boldmath ($\langle txs \rangle$})]
+      The client replies with a list of objects.
 \item [\MsgDone]
       The client terminates the mini protocol.
 \end{description}
@@ -100,20 +101,20 @@
   \begin{tabular}{l|l|l|l}
     \header{from state} & \header{message}    & \header{parameters}           & \header{to state}   \\\hline
     \StInit             & \MsgInit            &                               & \StIdle             \\
-    \StIdle             & \MsgRequestTxIdsNB  & $ack$,$req$                   & \StTxIdsNonBlocking \\
-    \StIdle             & \MsgRequestTxIdsB   & $ack$,$req$                   & \StTxIdsBlocking    \\
-    \StTxIdsNonBlocking & \MsgReplyTxIds      & $\langle (id, size) \rangle$  & \StIdle             \\
-    \StTxIdsBlocking    & \MsgReplyTxIds      & $\langle (id, size) \rangle$  & \StIdle             \\
-    \StIdle             & \MsgRequestTxs      & $\langle ids \rangle$         & \StTxs              \\
-    \StTxs              & \MsgReplyTxs        & $\langle txs \rangle$         & \StIdle             \\
+    \StIdle             & \MsgRequestObjIdsNB  & $ack$,$req$                   & \StObjIdsNonBlocking \\
+    \StIdle             & \MsgRequestObjIdsB   & $ack$,$req$                   & \StObjIdsBlocking    \\
+    \StObjIdsNonBlocking & \MsgReplyObjIds      & $\langle (id, size) \rangle$  & \StIdle             \\
+    \StObjIdsBlocking    & \MsgReplyObjIds      & $\langle (id, size) \rangle$  & \StIdle             \\
+    \StIdle             & \MsgRequestObjs      & $\langle ids \rangle$         & \StObjs              \\
+    \StObjs              & \MsgReplyObjs        & $\langle txs \rangle$         & \StIdle             \\
     \StIdle             & \MsgDone            &                               & \StDone             \\
   \end{tabular}
-  \caption{Tx-Submission mini-protocol (version 2) messages.}
+  \caption{Object diffusion mini-protocol (version 2) messages.}
 \end{table}
 
 \subsection{Size limits per state}
 
-Table~\ref{table:tx-submission-size-limits} specifies how many bytes can be sent
+Table~\ref{table:object-diffusion-size-limits} specifies how many bytes can be sent
 in a given state; indirectly, this limits the payload size of each message.  If
 a space limit is violated, the connection SHOULD be torn down.
 
@@ -123,18 +124,18 @@ a space limit is violated, the connection SHOULD be torn down.
       \header{state}      & \header{size limit in bytes} \\\hline
       \StInit             & \texttt{5760} \\
       \StIdle             & \texttt{5760} \\
-      \StTxIdsBlocking    & \texttt{2500000} \\
-      \StTxIdsNonBlocking & \texttt{2500000} \\
-      \StTxs              & \texttt{2500000} \\
+      \StObjIdsBlocking    & \texttt{2500000} \\
+      \StObjIdsNonBlocking & \texttt{2500000} \\
+      \StObjs              & \texttt{2500000} \\
     \end{tabular}
     \caption{size limits per state}
-    \label{table:tx-submission-size-limits}
+    \label{table:object-diffusion-size-limits}
   \end{center}
 \end{table}
 
 \subsection{Timeouts per state}
 
-The table~\ref{table:tx-submission-timeouts} specifies message timeouts in
+The table~\ref{table:object-diffusion-timeouts} specifies message timeouts in
 a given state.  If a timeout is violated, the connection SHOULD be torn down.
 
 \begin{table}[h]
@@ -143,16 +144,17 @@ a given state.  If a timeout is violated, the connection SHOULD be torn down.
       \header{state}      & \header{timeout} \\\hline
       \StInit             & - \\
       \StIdle             & - \\
-      \StTxIdsBlocking    & - \\
-      \StTxIdsNonBlocking & \texttt{10}s \\
-      \StTxs              & \texttt{10}s \\
+      \StObjIdsBlocking    & - \\
+      \StObjIdsNonBlocking & \texttt{10}s \\
+      \StObjs              & \texttt{10}s \\
     \end{tabular}
     \caption{timeouts per state}
-    \label{table:tx-submission-timeouts}
+    \label{table:object-diffusion-timeouts}
   \end{center}
 \end{table}
 
-\subsection{CDDL encoding specification}\label{tx-submission2-cddl}
+\subsection{CDDL encoding specification}
+\label{object-diffusion-cddl}
 
 \lstset{
   xleftmargin=2pt,
