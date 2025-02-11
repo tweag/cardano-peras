@@ -1,0 +1,56 @@
+2.2.1
+StTxIdsBlocking
+MsgDone
+StDone
+One vs two protocols
+Pro of one protocol:
+• some optimisations such as someone asking for votes and getting a cert instead
+• only one protocol to understand and maintain
+• no need for synchronisation between the two protocols (eg. if we get a cert we don’t need to ask
+for votes anymore)
+4Pro of two protocols:
+• each protocol conceptually simpler
+• can reuse a generalised version of Tx-Submission for vote diffusion
+• can maybe even reuse it for cert diffusion
+Leaning towards two protocols when seeing this list.
+2.2.2
+Generic object diffusion mini-protocol
+This is a generalisation of the Tx-Submission mini-protocol (see https://ouroboros-network.cardano.
+intersectmbo.org/pdfs/network-spec/network-spec.pdf#section.3.9) to allow a peer to sync some
+queues of objects from all its upstream peers. All the peers are asking for object ids, but only one peer
+is asked for an actual object.
+Works exactly the same except we generalise over the type of objects, the type of ids, and the type of
+id+size, which can be id for some protocols where the object size is predictable. The rest works exactly
+the same.
+Potentially we want to allow a payload on MsgInit such that the peer can start syncing from a specific
+point, eg. a slot.
+2.2.3
+Vote diffusion mini-protocol
+• Instance of the generic object diffusion mini-protocol where id = id’ = voteId, and obj = vote.
+• The size of a vote is constant so we do not need to transmit the size.
+• Probably we only start it once we’re caught-up (or almost caught-up?).
+• Probably we don’t need an initial payload; worst case we waste a bit of network once we reach
+almost caught-up.
+• We want to avoid missing a quorum when almost caught-up and when we put something in our
+immutable DB.
+• We want to download all the votes because there could be votes equivocation.
+2.2.4
+Certificate diffusion mini-protocol
+• We can assume that there is only one block that reaches quorum per round. In particular, if we
+have a cert for a round, we do not care at all about any other cert in the same round.
+• Probably useless when caught-up. We might want to keep it running just for the awkward situa-
+tion where we really didn’t get all the votes but there is a cert. Most of the time, we should get all
+the votes, realise there is a quorum, and therefore know to ignore the certs that peer tell us about.
+• What about reusing the generic object diffusion mini-protocol?
+– id = id’ = roundNumber
+– obj = cert
+– an initial payload telling the peer from which round number we want to start.
+5– While syncing, we want to know for sure that a round has no certificates, because that
+influences the GDD. So we need a way to be sure that it isn’t going to come later. Probably
+we can just solve this by making it mandatory to have round numbers in increasing order
+for the historical chain. (For caught-up nodes, certs might arrive in another order)
+– The information of round numbers can be made much more compact than a list of Word16,
+because we just need a bitset. We could ask for a range of round and get a bitset covering
+them. Maybe we can generalise in the obj diff protocol not only the notion of id but the
+notion of list of ids. Basically we make abstract the [(id, size)] and we just ask for a function
+that returns a [(id, size)] given the abstract thingie
