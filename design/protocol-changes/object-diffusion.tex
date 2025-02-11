@@ -45,12 +45,12 @@
 
 \begin{tikzpicture}[->,shorten >=1pt,auto,node distance=4.5cm, semithick]
   \tikzstyle{every state}=[fill=red,draw=none,text=white]
-  \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
-  \node[state, myblue]           (A) at ( 0,  0) {\StIdle};
+  \node[state, myblue, initial] (I) at (-4,  0) {\StInit};
+  \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
   \node[state]                   (B) at ( 9, -4) {\StDone};
-  \node[state, mygreen]          (C) at ( 4, -4) {\StObjIdsBlocking};
-  \node[state, mygreen]          (D) at (-4, -4) {\StObjIdsNonBlocking};
-  \node[state, mygreen]          (E) at ( 0,  4) {\StObjs};
+  \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
+  \node[state, myblue]          (D) at (-4, -4) {\StObjIdsNonBlocking};
+  \node[state, myblue]          (E) at ( 0,  4) {\StObjs};
   \draw (I)  edge[above]                    node[above]{\MsgInit}                                                (A);
   \draw (C)  edge[above]                    node[below]{\MsgDone}                                                (B);
   \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestObjIdsB}               (C);
@@ -65,11 +65,11 @@
   \begin{center}
     \begin{tabular}{l|l}
       \header{state}      & \header{agency} \\\hline
-      \StInit             & \Client \\
-      \StIdle             & \Server \\
-      \StObjIdsBlocking    & \Client \\
-      \StObjIdsNonBlocking & \Client \\
-      \StObjs              & \Client \\
+      \StInit             & \Server \\
+      \StIdle             & \Client \\
+      \StObjIdsBlocking    & \Server \\
+      \StObjIdsNonBlocking & \Server \\
+      \StObjs              & \Server \\
     \end{tabular}
     \caption{Object diffusion state agencies}
   \end{center}
@@ -79,22 +79,22 @@
 \begin{description}
 \item [\MsgInit] initial message of the protocol
 \item [\MsgRequestObjIdsNB{} {\boldmath $(ack,req)$}]
-      The server asks for new object ids and acknowledges old ids.
-      The client immediately replies (possibly with an empty list).
+      The client asks for new object ids and acknowledges old ids.
+      The server immediately replies (possibly with an empty list).
 \item [\MsgRequestObjIdsB{} {\boldmath $(ack,req)$}]
-      The server asks for new object ids and acknowledges old ids.
-      The client will block until new objects are available.
+      The client asks for new object ids and acknowledges old ids.
+      The server will block until new objects are available.
 \item [\MsgReplyObjIds{} {\boldmath ($\langle (id, size) \rangle$) }]
-      The client replies with a list of available objects.
+      The server replies with a list of available objects.
       The list contains pairs of object ids and the corresponding size of the object in bytes.
       In the blocking case, the reply is guaranteed to contain at least one object.
       In the non-blocking case, the reply may contain an empty list.
 \item [\MsgRequestObjs{} {\boldmath ($\langle ids \rangle$)}]
-      The server requests objects by sending a list of object-ids.
+      The client requests objects by sending a list of object-ids.
 \item [\MsgReplyObjs{} {\boldmath ($\langle txs \rangle$})]
-      The client replies with a list of objects.
+      The server replies with a list of objects.
 \item [\MsgDone]
-      The client terminates the mini protocol.
+      The server terminates the mini protocol.
 \end{description}
 
 \begin{table}[h]
@@ -113,6 +113,7 @@
 \end{table}
 
 \subsection{Size limits per state}
+\niols{FIXME}
 
 Table~\ref{table:object-diffusion-size-limits} specifies how many bytes can be sent
 in a given state; indirectly, this limits the payload size of each message.  If
@@ -134,6 +135,7 @@ a space limit is violated, the connection SHOULD be torn down.
 \end{table}
 
 \subsection{Timeouts per state}
+\niols{FIXME}
 
 The table~\ref{table:object-diffusion-timeouts} specifies message timeouts in
 a given state.  If a timeout is violated, the connection SHOULD be torn down.
@@ -155,6 +157,8 @@ a given state.  If a timeout is violated, the connection SHOULD be torn down.
 
 \subsection{CDDL encoding specification}
 \label{object-diffusion-cddl}
+\niols{FIXME, but maybe it doesn't make sense at all if it is just wildly
+  generalised.}
 
 \lstset{
   xleftmargin=2pt,
@@ -189,7 +193,10 @@ a given state.  If a timeout is violated, the connection SHOULD be torn down.
 %% `protocol-changes/` prefix.
 \lstinputlisting[style=cddl]{protocol-changes/object-diffusion.cddl}
 
-\subsection{Client and Server Implementation}
+\subsection{Client and server implementation}
+
+\niols{REWRITE EVERYTHING. Client/server agency was switched, things might need
+  to be generalised, hooks for eg. LoP might need to be added, ...}
 
 The protocol has two design goals: It must diffuse transactions with high efficiency
 and, at the same time, it must rule out
