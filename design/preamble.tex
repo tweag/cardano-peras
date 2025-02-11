@@ -31,7 +31,7 @@
 
 %% For in-document notes between ourselves
 \usepackage[textwidth=8em, obeyFinal]{todonotes}
-\newcommand\niols[1]{\todo[color=red!30]{#1 [Niols]}}
+\newcommand\niols[2][]{\todo[color=red!30, #1]{#2 [Niols]}}
 
 %% Since not all reports might contain code, we also bring minted separately.
 \usepackage{minted}
