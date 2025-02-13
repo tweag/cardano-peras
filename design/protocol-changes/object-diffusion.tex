@@ -82,8 +82,10 @@
 \begin{description}
 \item [\argfont{object}] The abstract type of objects diffused by the protocol.
 \item [\argfont{id}] Identifier that uniquely identifies an object.
-\item [\argfont{objectMetadata}] Additional information that is returned by the
-  server when querying for new object ids. For instance, the size of the object.
+\item [\argfont{objectIds}] An opaque type returned by the server when asked for object ids.
+  It is not explicitely a list of $\argfont{id}$, because the server may want to add metadata to the ids,
+  and/or run a compression scheme to limit the size of its response.
+\item [\argfont{responseToIds}] A function with type $\argfont{objectIds} \rightarrow [\argfont{id}]$.
 \item [\argfont{initialPayload}] An abstract payload that helps initialise the
   state of the server. For instance, a slot number before which the client does
   not care about the objects.
@@ -104,18 +106,17 @@
       The client asks for up to \argfont{req} new object ids and acknowledges \argfont{ack} old ids.
       The server will block until new objects are available.
 
-\item [\MsgReplyObjIds{} {($[(\argfont{id}, \argfont{objectMetadata})]$)}]
-      The server replies with a list of available objects, represented by their ids.
-      The list contains pairs of object ids and some metadata about them.
-      In the blocking case, the reply is guaranteed to contain at least one object id.
-      In the non-blocking case, the reply may contain an empty list.
+\item [\MsgReplyObjIds{} {$(\argfont{objectIds})$}]
+      The server replies with the ids of its available objects.
+      In the blocking case, the reply is guaranteed to contain enough information to build at least one object id with \argfont{responseToIds}.
+      In the non-blocking case, the reply may not contain any actual data.
 
-\item [\MsgRequestObjs{} {($[\argfont{id}]$)}]
+\item [\MsgRequestObjs{} {$([\argfont{id}])$}]
       The client requests objects by sending a list of object ids.
       The total size of the corresponding objects MUST not be bigger than the size limit in bytes.
       \niols{Or maybe a bit less; should we take into account the size of the boilerplate?}
 
-\item [\MsgReplyObjs{} {($[\argfont{object}]$})]
+\item [\MsgReplyObjs{} {$([\argfont{object}])$}]
       The server replies with the list of all the objects that were requested.
       \niols{Maybe sometimes it is not possible to derive an \argfont{id} from
         an \argfont{object}? eg. with certificates that could be just a hash? In
