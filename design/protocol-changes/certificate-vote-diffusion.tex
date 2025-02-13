@@ -1,0 +1,102 @@
+\section{Certificates and vote diffusion}
+
+\niols[inline]{This section is really just a dump of my brain. Nothing here is a
+  final decision, and probably there are many mistakes.}
+
+\subsection{One vs two protocols}
+
+Pro of one protocol:
+\begin{itemize}
+\item some optimisations such as someone asking for votes and getting a cert
+  instead
+\item only one protocol to understand and maintain
+\item no need for synchronisation between the two protocols (eg. if we get a
+  cert we don’t need to ask for votes anymore)
+\end{itemize}
+
+Pro of two protocols:
+\begin{itemize}
+\item each protocol conceptually simpler
+\item can reuse a generalised version of Tx-Submission for vote diffusion
+\item can maybe even reuse it for cert diffusion
+\end{itemize}
+
+Leaning towards two protocols when seeing this list.
+
+\subsection{Vote diffusion mini-protocol}
+
+\begin{itemize}
+\item Instance of the generic object diffusion mini-protocol
+  (\autoref{object-diffusion-protocol}) where id = id’ = voteId, and obj = vote.
+
+\item The size of a vote is constant so we do not need to transmit the size.
+
+\item Probably we only start it once we’re caught-up (or almost caught-up?).
+
+\item Probably we don’t need an initial payload; worst case we waste a bit of
+  network once we reach almost caught-up.
+
+\item We want to avoid missing a quorum when almost caught-up and when we put
+  something in our immutable DB.
+
+\item We want to download all the votes because there could be votes
+  equivocation.
+  \alex{I don't immediately see a relation between these two things.}
+\end{itemize}
+
+\subsection{Certificate diffusion mini-protocol}
+
+\begin{itemize}
+\item We can assume that there is only one block that reaches quorum per round.
+  In particular, if we have a cert for a round, we do not care at all about any
+  other cert in the same round.
+
+\item Probably useless when caught-up. We might want to keep it running just for
+  the awkward situation where we really didn’t get all the votes but there is a
+  cert. Most of the time, we should get all the votes, realise there is a
+  quorum, and therefore know to ignore the certs that peer tell us about.
+  %
+  \alex{
+    I wouldn't say "useless" as we fundamentally need it to defend against
+    equivocation attacks.
+
+    Also, there is this other scenario mentioned on Slack that doesn't involve
+    any adversarial activity where we would need to diffuse certs between
+    caught-up nodes:
+    \url{https://moduscreate.slack.com/archives/C06J5CS446A/p1739264734649699?thread_ts=1739260385.010269&cid=C06J5CS446A}
+  }
+
+\item What about reusing the generic object diffusion mini-protocol?
+  (\autoref{object-diffusion-protocol})
+  \begin{itemize}
+  \item id = id’ = roundNumber
+
+  \item obj = cert
+
+  \item an initial payload telling the peer from which round number we want to
+    start.
+
+  \item While syncing, we want to know for sure that a round has no
+    certificates, because that influences the GDD. So we need a way to be sure
+    that it isn’t going to come later. Probably we can just solve this by making
+    it mandatory to have round numbers in increasing order for the historical
+    chain. (For caught-up nodes, certs might arrive in another order)
+    %
+    \alex{
+      The idea we discussed yesterday to avoid different logic for syncing and
+      (almost) caught up is to only allow the server to send certificates for a
+      bounded amount of rounds before the certificate with the highest round
+      number they have sent so far.
+
+      Concretely, this bound could be set to the number of volatile rounds
+      (ceil(stabilityWindow / perasRoundSlots) plus maybe some extra margin).
+    }
+
+  \item The information of round numbers can be made much more compact than a
+    list of Word16, because we just need a bitset. We could ask for a range of
+    round and get a bitset covering them. Maybe we can generalise in the obj
+    diff protocol not only the notion of id but the notion of list of ids.
+    Basically we make abstract the [(id, size)] and we just ask for a function
+    that returns a [(id, size)] given the abstract thingie
+  \end{itemize}
+\end{itemize}
