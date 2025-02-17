@@ -1,0 +1,48 @@
+\section{Protocol parameters}\label{sec:protocol parameters}
+
+The Peras protocol is influenced by various new protocol parameters, also see~\cite{peras-cip}, which we list in \cref{fig:protocol parameters}.
+For explicitness and to avoid confusion, we use a relatively verbose naming scheme.
+The Cardano Ledger allows protocol parameters to be controlled via on-chain governance.
+We indicate whether this flexibility is likely to be useful.
+
+\begin{figure}[h]
+  \centering
+  \begin{tabular}{c c c c c}
+    \toprule
+    Name & Unit & Symbol & Feasible value & Governable? \\
+    \midrule
+    \perasRoundSlots{} & \unit{\slot} & $U$ & \num{90} & $\checkmark$ \\
+    \perasBlockMinSlots{} & \unit{\slot} & $L$ & $T_{\mathrm{CQ}} = \kcg/\asc$ & $\checkmark$ \\
+    \perasBlockMaxSlots{} & \unit{\slot} & n.a. & \numrange{30}{90} & $\checkmark$ \\
+    \perasCertMaxSlots{} & \unit{\slot} & $A$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
+    \perasIgnoranceRounds{} & \unit{\slot} & $R$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
+    \perasCooldownRounds{} & \unit{\slot} & $K$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
+    \perasBoost{} & blocks & $B$ & \num{15} & $\checkmark$ \\
+    \perasQuorum{} & weight & $\tau$ & $3/4 \cdot \perasN$ & ✘ \\
+    \perasN{} & committee seats & $N$ & \numrange{500}{1000} & $\checkmark$ \\
+    \perasVoteSizeLimit{} & \unit{\byte} & n.a. & \qty{200}{\byte} & $\checkmark$ \\
+    \perasCertSizeLimit{} & \unit{\byte} & n.a. & \qty{20}{\kilo\byte} & $\checkmark$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Peras protocol parameters}\label{fig:protocol parameters}
+\end{figure}
+
+\begin{itemize}
+\item
+  The parameter \perasBlockMinSlots{} determines how easy it is for a relatively weak adversary to execute \enquote{vote splitting attacks}.
+  See \cref{sec:honest vote splitting} for more details.
+\item
+  The parameter \perasBlockMaxSlots{} is new compared to the CIP~\cite{peras-cip}.
+  It is motivated to allow validating votes/certificates ahead of the current chain, especially while syncing.\alex{link to corresponding appendix}
+\item
+  We assume that the total weight of all votes in a Peras round is at most \perasN{}.
+\end{itemize}
+
+\alex{Double-check $k_{\mathrm{Peras}}$}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:

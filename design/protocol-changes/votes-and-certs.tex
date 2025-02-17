@@ -1,0 +1,82 @@
+\section{Votes and certificates}
+
+Peras introduces two new entities: \emph{votes} and \emph{certificates}.
+
+\subsection{Votes}
+
+At the start of every Peras round (lasting $\perasRoundSlots$), the nodes in Peras committee (of expected size \perasN{}) for that round will usually vote for a recent block.
+Votes are \emph{weighted}.
+Under optimistic conditions, votes of total weight of at least \perasQuorum{} are cast for the same block, in which case the round is \emph{successful}.
+
+A vote contains the following data:
+\begin{itemize}
+\item Round number.
+\item Point of the block that is being voted for.
+\item Stake pool identifier.
+\item Associated cryptographic material, i.e.\ a signature and potentially an eligibility proof.
+\end{itemize}
+The weight of a vote is implicit here and can be recomputed upon validation.
+
+A vote from round $r$ (starting in slot $s$) for a block in slot $t$ is \emph{valid} under the following conditions.
+\begin{itemize}
+\item
+  The cryptographic material must be valid, ensuring that the vote was indeed cast by an eligible pool.
+
+  This requires the stake distribution, certain protocol parameters and the epoch nonce.
+  We suggest using the data that would be used to validate a header for slot $s$.
+  \alex{Appendix for forecasting caveat.}
+\item
+  $s - \perasBlockMaxSlots \le t < s - \perasBlockMinSlots$.
+\item
+  The slots $s$ and $t$ are in the same era, or at least, the eras of $s$ and $t$ both support Peras.
+\end{itemize}
+
+\subsection{Certificates}
+
+Once a node observes votes of the same round for the same block with total weight of at least $\perasQuorum$, then it will create (via \emph{aggregation}) a corresponding (succinct) \emph{certificate} proving this fact.
+
+A certificate contains the following data:
+\begin{itemize}
+\item Round number.
+\item Point of the block that is being voted for.
+\item Associated cryptographic material certifying that there are votes of weight \perasQuorum{} voting for the aforementioned block in the given round.
+\end{itemize}
+
+Validity of certificates is analogous to that of votes.
+
+We note that the cryptographic material may vary depending on which votes are aggregated.
+Such certificates are only artificially different and should be treated interchangeably.
+
+On the other hand, we assume that \emph{equivocating} certificates, i.e.\ two certificates in the same round for \emph{different} blocks, do not occur.
+\begin{tcolorbox}[title=Assumption]
+  For every Peras round, there is at most one block that has a valid certificate in that round.
+\end{tcolorbox}
+This assumption is justified by the choice of $\perasQuorum = 3/4$ and a standard quorum intersection argument.
+
+\subsection{Realizing votes and certificates}
+
+We propose to extend the existing formal specification in Agda for the Consensus and Ledger layer \parencite{consensus-spec,cardano-formal-ledger-specs} with the details of vote and certificate validation.
+
+The underlying cryptography used to realized votes and certificates is out-of-scope for this document, we refer to the document \enquote{Peras certificates revisited: January 2025}\footnote{\url{https://github.com/input-output-hk/peras-design/blob/febca47e37efcd980fca08d4a96e4d2d63664ef9/analytics/certificates-jan2025.md}} by the IOE Peras innovation team for more details.
+Here, we only summarize a few key metrics in \cref{fig:vote cert metrics}, while noting that these are still subject to change\footnote{In particular, certificates might get significantly smaller ($\le \qty{1}{\kilo\byte}$).}; however, we do not expect them to get significantly worse.
+
+\begin{figure}[h]
+  \centering
+  \begin{tabular}{c c c}
+    \toprule
+    & Votes & Certificates \\
+    \midrule
+    Size & \qtyrange{90}{164}{\byte} & \qtyrange{7}{10}{\kilo\byte} \\
+    Generation & \qty{280}{\us} & \qtyrange{63}{93}{\ms} \\
+    Verification & \qty{1.4}{\ms} & \qtyrange{115}{157}{\ms} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Preliminary metrics for votes and certificates}\label{fig:vote cert metrics}
+\end{figure}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:
