@@ -1,5 +1,43 @@
-\section{Object diffusion mini-protocol}
+\section{Object diffusion mini-protocol}%
 \label{object-diffusion-protocol}
+
+This section presents a generic object diffusion mini-protocol. Heavily inspired
+by Tx-Submission, we hope to use it for certificate and vote diffusion. This
+protocol aims are synchronising a data base of objects (e.g., for Tx-Submission,
+their mempool) between peers:
+%
+\begin{itemize}
+\item Clients and server maintain the knowledge of a queue of objects of which
+  the server has knowledge and the client presumably does not. Importantly, the
+  queue is of bounded size, and the maximal size is a hardcoded parameter of the
+  implementation. The objects are represented by {\em identifiers}, typically
+  orders of magnitude smaller than the objects themselves.
+
+\item Clients can ask their servers to provide them with an ordered list of the
+  {\em next} objects that they wish to diffuse. The notion of order---and
+  therefore of which objects are {\em next}---is internal to each server; it
+  might for instance be the order in which they themselves got aware of the
+  objects in question.
+
+\item Clients can then, given an object identifier, request the corresponding
+  object to the server. This is not mandatory, and, if several servers propose
+  to diffuse the same objects, the peer might decide to download only from a
+  subset of them. The strategy may vary depending on the objects, how promptly
+  the client wants to get them, and how important it is for them not to miss
+  one.
+
+\item When requesting the next batch of object identifiers, the client informs
+  the server that they are not interested in some of the objects anymore,
+  possibly because they have acquired them from this server or another one. They
+  do that by {\em acknowledging} a number of identifiers from the beginning of
+  the queue. They must, in doing so, ensure that the queue remains under the
+  maximal allowed size.
+\end{itemize}
+
+\autoref{fig:object-diffusion-state-machine} gives a graphical representation of
+the state machine of the proposed mini-protocol, while
+\autoref{fig:object-diffusion-state-agencies} provides a table with the states'
+agencies. The coming subsections give more details on the mini-protocol.
 
 \definecolor{mygreen}{rgb}{0.109804,0.698039,0.341176}
 \definecolor{myblue}{rgb}{0.360784,0.423529,255}
@@ -43,23 +81,29 @@
 \newcommand{\MsgReplyObjs}        {\msg{MsgReplyObjs}}
 \newcommand{\MsgDone}{\msg{MsgDone}}
 
-\begin{tikzpicture}[->,shorten >=1pt,auto,node distance=4.5cm, semithick]
-  \tikzstyle{every state}=[fill=red,draw=none,text=white]
-  \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
-  \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
-  \node[state]                   (B) at ( 9, -4) {\StDone};
-  \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
-  \node[state, myblue]          (D) at (-4, -4) {\StObjIdsNonBlocking};
-  \node[state, myblue]          (E) at ( 0,  4) {\StObjs};
-  \draw (I)  edge[above]                    node[above]{\MsgInit}                                                (A);
-  \draw (C)  edge[above]                    node[below]{\MsgDone}                                                (B);
-  \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestObjIdsB}               (C);
-  \draw (C)  edge[right, bend left=15]      node[fill = white, anchor = center, above = 2pt]{\MsgReplyObjIds}     (A);
-  \draw (D)  edge[right, bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
-  \draw (A)  edge[right, bend left=15]      node[fill = white, anchor = center, below = 2pt]{\MsgRequestObjIdsNB} (D);
-  \draw (A)  edge[left, bend right=45]      node[fill = white, anchor = center, above = 2pt]{\MsgRequestObjs}     (E);
-  \draw (E)  edge[right,bend right=45]      node[fill = white, anchor = center, below = 2pt]{\MsgReplyObjs}       (A);
-\end{tikzpicture}
+\begin{figure}[h]
+  \begin{center}
+    \begin{tikzpicture}[->,shorten >=1pt,auto,node distance=4.5cm, semithick, scale=0.9]
+      \tikzstyle{every state}=[fill=red,draw=none,text=white]
+      \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
+      \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
+      \node[state]                   (B) at ( 9, -4) {\StDone};
+      \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
+      \node[state, myblue]          (D) at (-4, -4) {\StObjIdsNonBlocking};
+      \node[state, myblue]          (E) at ( 0,  4) {\StObjs};
+      \draw (I)  edge[above]                    node[above]{\MsgInit}                                                 (A);
+      \draw (C)  edge[above]                    node[below]{\MsgDone}                                                 (B);
+      \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestObjIdsB}               (C);
+      \draw (C)  edge[right, bend left=15]      node[fill = white, anchor = center, above = 2pt]{\MsgReplyObjIds}     (A);
+      \draw (D)  edge[right, bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
+      \draw (A)  edge[right, bend left=15]      node[fill = white, anchor = center, below = 2pt]{\MsgRequestObjIdsNB} (D);
+      \draw (A)  edge[left, bend right=45]      node[fill = white, anchor = center, above = 2pt]{\MsgRequestObjs}     (E);
+      \draw (E)  edge[right,bend right=45]      node[fill = white, anchor = center, below = 2pt]{\MsgReplyObjs}       (A);
+    \end{tikzpicture}
+  \end{center}
+  \caption{Object diffusion state machine}%
+  \label{fig:object-diffusion-state-machine}
+\end{figure}
 
 \begin{figure}[h]
   \begin{center}
@@ -71,11 +115,15 @@
       \StObjIdsNonBlocking & \Server \\
       \StObjs              & \Server \\
     \end{tabular}
-    \caption{Object diffusion state agencies}
   \end{center}
+  \caption{Object diffusion state agencies}%
+  \label{fig:object-diffusion-state-agencies}
 \end{figure}
 
 \subsection{Parameters}
+
+This subsection describes the parameters of this generic protocol. They are
+notions that need to be made concrete for each implementation of the protocol.
 
 \newcommand\argfont[1]{\textbf{\texttt{\textit{#1}}}}
 
@@ -127,27 +175,37 @@
       The server terminates the mini protocol.
 \end{description}
 
+\autoref{table:object-diffusion-transitions} presents the state transitions and
+the associated messages.
+
 \begin{table}[h]
-  \begin{tabular}{l|l|l|l}
-    \header{from state}  & \header{message}    & \header{parameters}          & \header{to state}   \\\hline
-    \StInit              & \MsgInit            &                              & \StIdle             \\
-    \StIdle              & \MsgRequestObjIdsNB & \argfont{ack}, \argfont{req} & \StObjIdsNonBlocking \\
-    \StIdle              & \MsgRequestObjIdsB  & \argfont{ack}, \argfont{req} & \StObjIdsBlocking    \\
-    \StObjIdsNonBlocking & \MsgReplyObjIds     & $[(\argfont{id}, \argfont{objectMetadata})]$ & \StIdle \\
-    \StObjIdsBlocking    & \MsgReplyObjIds     & $[(\argfont{id}, \argfont{objectMetadata})]$ & \StIdle \\
-    \StIdle              & \MsgRequestObjs     & $[\argfont{id}]$             & \StObjs              \\
-    \StObjs              & \MsgReplyObjs       & $[\argfont{object}]$         & \StIdle             \\
-    \StIdle              & \MsgDone            &                              & \StDone             \\
-  \end{tabular}
-  \caption{Object diffusion mini-protocol messages.}
+  \begin{center}
+    \begin{tabular}{l|l|l|l}
+      \header{from state}  & \header{message}    & \header{to state}    \\\hline
+      \StInit              & \MsgInit            & \StIdle              \\
+      \StIdle              & \MsgRequestObjIdsNB & \StObjIdsNonBlocking \\
+      \StIdle              & \MsgRequestObjIdsB  & \StObjIdsBlocking    \\
+      \StObjIdsNonBlocking & \MsgReplyObjIds     & \StIdle              \\
+      \StObjIdsBlocking    & \MsgReplyObjIds     & \StIdle              \\
+      \StIdle              & \MsgRequestObjs     & \StObjs              \\
+      \StObjs              & \MsgReplyObjs       & \StIdle              \\
+      \StIdle              & \MsgDone            & \StDone              \\
+    \end{tabular}
+  \end{center}
+  \caption{Object diffusion mini-protocol state transitions}
+  \label{table:object-diffusion-transitions}
 \end{table}
 
-\subsection{Size limits per state}
+\subsection{Size limits and timeouts per state}
 \niols{FIXME}
 
-Table~\ref{table:object-diffusion-size-limits} specifies how many bytes can be sent
-in a given state; indirectly, this limits the payload size of each message.  If
-a space limit is violated, the connection SHOULD be torn down.
+\autoref{table:object-diffusion-size-limits} specifies how many bytes can be
+sent in a given state; indirectly, this limits the payload size of each message.
+If a space limit is violated, the connection SHOULD be torn down.
+
+
+\autoref{table:object-diffusion-timeouts} specifies message timeouts in a given
+state. If a timeout is violated, the connection SHOULD be torn down.
 
 \begin{table}[h]
   \begin{center}
@@ -159,16 +217,10 @@ a space limit is violated, the connection SHOULD be torn down.
       \StObjIdsNonBlocking & \texttt{2500000} \\
       \StObjs              & \texttt{2500000} \\
     \end{tabular}
-    \caption{size limits per state}
+    \caption{Size limits per state}
     \label{table:object-diffusion-size-limits}
   \end{center}
 \end{table}
-
-\subsection{Timeouts per state}
-\niols{FIXME}
-
-The table~\ref{table:object-diffusion-timeouts} specifies message timeouts in
-a given state.  If a timeout is violated, the connection SHOULD be torn down.
 
 \begin{table}[h]
   \begin{center}
@@ -180,7 +232,7 @@ a given state.  If a timeout is violated, the connection SHOULD be torn down.
       \StObjIdsNonBlocking & \texttt{10}s \\
       \StObjs              & \texttt{10}s \\
     \end{tabular}
-    \caption{timeouts per state}
+    \caption{Timeouts per state}
     \label{table:object-diffusion-timeouts}
   \end{center}
 \end{table}
