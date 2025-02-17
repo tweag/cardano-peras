@@ -1,6 +1,10 @@
 \section{Changes to the Ledger}
 
-The Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
+The Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} needs minor modifications to accomodate Peras.
+
+Peras requires new protocol parameters, see \cref{sec:protocol parameters}, which should be a routine change.
+
+Apart from that, the Ledger needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
 
 Concretely, we propose the following checks for a block body $B$ containing a certificate \cert{}:
 \begin{enumerate}
@@ -23,15 +27,16 @@ Moreover, this monotonicity property also ensures that the adversary can (on ave
 This means that, on average (assuming no cooldown periods), an attacker with sufficient stake to be elected at least once per round on average\footnote{Concretely, this is satisfied for an adversary with stake $\alpha$ if $\phi(\alpha)\cdot\perasRoundSlots \ge 1$, so for $\alpha \ge 21.8\%$ if $f=1/20$ and $\perasRoundSlots=90$.} can include
 \[\frac \perasCertSizeLimit \perasRoundSlots\,\unit{B/\slot}\]
 without anyone paying for the associated cost of bandwidth/storage.
-However,
 
 For comparison, the fee for including $\perasCertSizeLimit$ bytes on the chain as part of a transaction is given by $\mi{minfeeA}\cdot \perasCertSizeLimit$.
-For realistic values on the conservative end (using $\mi{minfeeA} = 44$ and $\mi{minfeeB} = 155381$ on Cardano mainnet as of epoch 537\footnote{See e.g.\ \url{https://cexplorer.io/params}.}, $\perasRoundSlots=90$ and $\perasCertSizeLimit = \SI{50}{kB}$), this would correspond to a cost of
-\[ \frac{\mi{minfeeA\cdot \perasCertSizeLimit + \mi{minfeeB}}}{\perasRoundSlots} = \SI{26170.9}{\lovelace/\slot} \approx \SI{94.22}{\ADA/h} \]
+For realistic values on the conservative end (using $\mi{minfeeA} = 44$ and $\mi{minfeeB} = 155381$ on Cardano mainnet as of epoch 537\footnote{See e.g.\ \url{https://cexplorer.io/params}.}, $\perasRoundSlots=90$ and $\perasCertSizeLimit = \SI{20}{kB}$, cf.~\cref{fig:vote cert metrics}), this would correspond to a cost of
+\[ \frac{\mi{minfeeA\cdot \perasCertSizeLimit + \mi{minfeeB}}}{\perasRoundSlots} \approx \SI{11504}{\lovelace/\slot} \approx \SI{41.42}{\ADA/h} \]
 assuming a slot length of one second.
 
 For context, note that implementing Peras also entails diffusing \perasN{} votes per round (and the total size of the votes is significantly large than \perasCertSizeLimit{}), and the bandwidth induced by this is also currently not planned to be compensated/incentivized.
 \todo{Link to section where we talk about lack of incentivization.}
+
+Finally, note that otherwise-honest nodes have no incentive to include such useless certificates, in particular as they usually could instead include more transactions (which pay fees) in their blocks.
 
 \subsection{Alternatives}
 If this cost is considered to be unacceptable, a drastic measure would be to require pools to pay a comparable fee when they include a certificate in a block (which is a rare thing for honest nodes).
