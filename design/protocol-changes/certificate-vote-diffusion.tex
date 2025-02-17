@@ -15,7 +15,7 @@ diffusion.
 The use of one combined protocol provides the following upsides:
 %
 \begin{itemize}
-\item It allows for some optimisations, such as respinding with a certificate
+\item It allows for some optimisations, such as responding with a certificate
   when a client asks for a vote that it subsumes.
 
 \item There only one protocol to understand and maintain.
@@ -32,7 +32,8 @@ provides the following upsides:
 \item Each protocol, by virtue of being smaller, is also conceptually simpler.
 
 \item We can hope to use similar protocols for certificate diffusion and vote
-  diffusion. In fact, we can hope to reuse Tx-Submission for everything.
+  diffusion. In fact, we can hope to reuse our generic object diffusion protocol
+  (\autoref{sec:object-diffusion-protocol}) for everything.
 \end{itemize}
 
 We propose to go for separate protocols. We find the upside of conceptually
