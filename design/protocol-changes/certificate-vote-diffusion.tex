@@ -51,27 +51,54 @@ for instance inspired by Tx-Submission.
 \subsection{Vote diffusion mini-protocol}%
 \label{sec:vote-diffusion}
 
+We propose to use the generic object diffusion mini-protocol
+(\autoref{sec:object-diffusion-protocol}) instantiated for votes. In particular,
+we want:
+%
+\begin{description}
+\item[\argfont{object}] a vote
+\item[\argfont{id}] the pair of a round number and a committee seat
+  identifier\niols{what is that? a hash? a number?}
+\item[\argfont{objectIds}] a list of \argfont{id}s
+\item[\argfont{responseToIds}] the identity function --- \(\argfont{objectIds} =
+  [\argfont{id}]\) already
+\item[\argfont{initialPayload}] unit --- no payload is necessary
+\end{description}
+
+A few notes:
+
 \begin{itemize}
-\item Instance of the generic object diffusion mini-protocol
-  (\autoref{object-diffusion-protocol}) where id = id’ = voteId, and obj = vote.
+\item The size of a vote is constant so we do not need to transmit the size at
+  any point, the client will be able to keep this in mind.
 
-\item The size of a vote is constant so we do not need to transmit the size.
-
-\item Probably we only start it once we’re caught-up (or almost caught-up?).
-
-\item Probably we don’t need an initial payload; worst case we waste a bit of
-  network once we reach almost caught-up.
+\item We do not need to download the votes on the historical chain, so we can
+  just start the protocol with the state of the server at that point, and there
+  is no need to transmit an initial payload to explain since when we want to
+  download votes.
 
 \item We want to avoid missing a quorum when almost caught-up and when we put
-  something in our immutable DB.
+  something in our immutable DB.\niols{I can't remember what I meant by that,
+    but probably there is an important question of when we should start
+    downloading votes. Is there a risk, if we want until we are caught-up?}
 
 \item We want to download all the votes because there could be votes
   equivocation.
   \alex{I don't immediately see a relation between these two things.}
+  \niols{I also don't know. What if we remove this line and just say that we
+    want to download the votes reasonably fast?}
 \end{itemize}
 
 \subsection{Certificate diffusion mini-protocol}%
 \label{sec:certificate-diffusion}
+
+We propose to use the generic object diffusion mini-protocol
+(\autoref{sec:object-diffusion-protocol}) instantiated for certificates. In particular, we want:
+
+\begin{description}
+\item[\argfont{object}] a certificate
+\end{description}
+
+A few notes:
 
 \begin{itemize}
 \item We can assume that there is only one block that reaches quorum per round.
@@ -94,7 +121,7 @@ for instance inspired by Tx-Submission.
   }
 
 \item What about reusing the generic object diffusion mini-protocol?
-  (\autoref{object-diffusion-protocol})
+  (\autoref{sec:object-diffusion-protocol})
   \begin{itemize}
   \item id = id’ = roundNumber
 
