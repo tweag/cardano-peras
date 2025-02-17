@@ -1,29 +1,55 @@
-\section{Certificates and vote diffusion}
+\section{Certificate and vote diffusion}
 
-\niols[inline]{This section is really just a dump of my brain. Nothing here is a
-  final decision, and probably there are many mistakes.}
+This section presents our proposed protocols for diffusion of certificates and
+votes between peers. \autoref{sec:cert-vote-diff-discussion} presents a
+discussion about alternative designs that we have considered,
+\autoref{sec:vote-diffusion} presents our protocol for vote diffusion, and
+\autoref{sec:certificate-diffusion} presents our protocol for certificate
+diffusion.
 
-\subsection{One vs two protocols}
+\subsection{Discussion on the chosen design}%
+\label{sec:cert-vote-diff-discussion}
 
-Pro of one protocol:
+\niols{Should this disappear? Or maybe go in the appendix?}
+
+The use of one combined protocol provides the following upsides:
+%
 \begin{itemize}
-\item some optimisations such as someone asking for votes and getting a cert
-  instead
-\item only one protocol to understand and maintain
-\item no need for synchronisation between the two protocols (eg. if we get a
-  cert we don’t need to ask for votes anymore)
+\item It allows for some optimisations, such as respinding with a certificate
+  when a client asks for a vote that it subsumes.
+
+\item There only one protocol to understand and maintain.
+
+\item It aleviates the need for synchronisation between the two protocols (e.g.,
+  if we get a certificate, then we do not need to request votes anymore) and
+  avoids us having to reason on the interactions between the two protocols.
 \end{itemize}
 
-Pro of two protocols:
+The use of distinct protocols for certificate diffusion and vote diffusion
+provides the following upsides:
+
 \begin{itemize}
-\item each protocol conceptually simpler
-\item can reuse a generalised version of Tx-Submission for vote diffusion
-\item can maybe even reuse it for cert diffusion
+\item Each protocol, by virtue of being smaller, is also conceptually simpler.
+
+\item We can hope to use similar protocols for certificate diffusion and vote
+  diffusion. In fact, we can hope to reuse Tx-Submission for everything.
 \end{itemize}
 
-Leaning towards two protocols when seeing this list.
+We propose to go for separate protocols. We find the upside of conceptually
+simpler protocols convincing, and even more if we manage to reuse an existing
+one. We believe that the lost optimisation is in fact not so significant, and
+that the synchronisation between the two protocols will not be difficult to
+implement.
 
-\subsection{Vote diffusion mini-protocol}
+Once that is decided, remains the question, for both certificate and vote
+diffusion, of whether we should introduce mini-protocols tailored to the
+specific use case of those objects, or if we should reuse existing protocols,
+for instance inspired by Tx-Submission.
+
+\niols[inline]{TODO: Discussion}
+
+\subsection{Vote diffusion mini-protocol}%
+\label{sec:vote-diffusion}
 
 \begin{itemize}
 \item Instance of the generic object diffusion mini-protocol
@@ -44,7 +70,8 @@ Leaning towards two protocols when seeing this list.
   \alex{I don't immediately see a relation between these two things.}
 \end{itemize}
 
-\subsection{Certificate diffusion mini-protocol}
+\subsection{Certificate diffusion mini-protocol}%
+\label{sec:certificate-diffusion}
 
 \begin{itemize}
 \item We can assume that there is only one block that reaches quorum per round.
