@@ -5,7 +5,7 @@ Peras introduces two new entities: \emph{votes} and \emph{certificates}.
 \subsection{Votes}
 
 At the start of every Peras round (lasting $\perasRoundSlots$), the nodes in Peras committee (of expected size \perasN{}) for that round will usually vote for a recent block.
-Votes are \emph{weighted}.
+Votes are \emph{weighted}, i.e.\ they are associated with a respective \enquote{voting power}, which allows for an improved size-security tradeoff compared to unweighted votes (where the same party might be allowed to vote multiple times), cf.~\cite{gavzi2023fait}.
 Under optimistic conditions, votes of total weight of at least \perasQuorum{} are cast for the same block, in which case the round is \emph{successful}.
 
 A vote contains the following data:
@@ -51,13 +51,13 @@ On the other hand, we assume that \emph{equivocating} certificates, i.e.\ two ce
 \begin{tcolorbox}[title=Assumption]
   For every Peras round, there is at most one block that has a valid certificate in that round.
 \end{tcolorbox}
-This assumption is justified by the choice of $\perasQuorum = 3/4$ and a standard quorum intersection argument.
+This assumption is justified by an appropriate parameterization \perasQuorum{} and \perasN{}, such that an adversary never attains sufficient weight in the committee to equivocate certificates.\footnote{Future work on the Peras protocol might relax this assumption and hence allow a less conservative parameterization.}
 
 \subsection{Realizing votes and certificates}
 
 We propose to extend the existing formal specification in Agda for the Consensus and Ledger layer \parencite{consensus-spec,cardano-formal-ledger-specs} with the details of vote and certificate validation.
 
-The underlying cryptography used to realized votes and certificates is out-of-scope for this document, we refer to the document \enquote{Peras certificates revisited: January 2025}\footnote{\url{https://github.com/input-output-hk/peras-design/blob/febca47e37efcd980fca08d4a96e4d2d63664ef9/analytics/certificates-jan2025.md}} by the IOE Peras innovation team for more details.
+The underlying cryptography used to realized votes and certificates is out-of-scope for this document, we refer to~\cite{peras-cert-report} for more details.
 Here, we only summarize a few key metrics in \cref{fig:vote cert metrics}, while noting that these are still subject to change\footnote{In particular, certificates might get significantly smaller ($\le \qty{1}{\kilo\byte}$).}; however, we do not expect them to get significantly worse.
 
 \begin{figure}[h]

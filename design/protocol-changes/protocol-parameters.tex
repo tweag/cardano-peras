@@ -5,18 +5,18 @@ For explicitness and to avoid confusion, we use a relatively verbose naming sche
 The Cardano Ledger allows protocol parameters to be controlled via on-chain governance.
 We indicate whether this flexibility is likely to be useful.
 
-\begin{figure}[h]
+\begin{table}[h]
   \centering
   \begin{tabular}{c c c c c}
     \toprule
     Name & Unit & Symbol & Feasible value & Governable? \\
     \midrule
     \perasRoundSlots{} & \unit{\slot} & $U$ & \num{90} & $\checkmark$ \\
-    \perasBlockMinSlots{} & \unit{\slot} & $L$ & $T_{\mathrm{CQ}} = \kcg/\asc$ & $\checkmark$ \\
-    \perasBlockMaxSlots{} & \unit{\slot} & n.a. & \numrange{30}{90} & $\checkmark$ \\
+    \perasBlockMinSlots{} & \unit{\slot} & $L$ & \numrange{30}{90} & $\checkmark$ \\
+    \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $T_{\mathrm{CQ}} = \kcg/\asc$ & $\checkmark$ \\
     \perasCertMaxSlots{} & \unit{\slot} & $A$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
-    \perasIgnoranceRounds{} & \unit{\slot} & $R$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
-    \perasCooldownRounds{} & \unit{\slot} & $K$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
+    \perasIgnoranceRounds{} & round & $R$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
+    \perasCooldownRounds{} & round & $K$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
     \perasBoost{} & blocks & $B$ & \num{15} & $\checkmark$ \\
     \perasQuorum{} & weight & $\tau$ & $3/4 \cdot \perasN$ & ✘ \\
     \perasN{} & committee seats & $N$ & \numrange{500}{1000} & $\checkmark$ \\
@@ -25,21 +25,40 @@ We indicate whether this flexibility is likely to be useful.
     \bottomrule
   \end{tabular}
   \caption{Peras protocol parameters}\label{fig:protocol parameters}
-\end{figure}
+\end{table}
 
-\begin{itemize}
-\item
-  The parameter \perasBlockMinSlots{} determines how easy it is for a relatively weak adversary to execute \enquote{vote splitting attacks}.
-  See \cref{sec:honest vote splitting} for more details.
-\item
-  The parameter \perasBlockMaxSlots{} is new compared to the CIP~\cite{peras-cip}.
+\begin{description}
+\item[\perasRoundSlots]
+  Peras round length, number of slots per Peras round.
+\item[\perasBlockMinSlots]
+  Peras block selection offset, the minimum age (in slots) of a block to be voted on at the beginning of a Peras round.
+
+  Note that the rather small values of this parameter allow relatively weak adversary to execute \enquote{vote splitting attacks}, see \cref{sec:honest vote splitting} for more details.
+\item[\perasBlockMaxSlots]
+  The maximum age (in slots) of a block to be voted on at the beginning of a Peras round.
+
+  This parameter is new compared to the CIP~\cite{peras-cip}.
   It is motivated to allow validating votes/certificates ahead of the current chain, especially while syncing.\alex{link to corresponding appendix}
-\item
+\item[\perasCertMaxSlots]
+  The maximum age of a certificate to be included in a block.
+\item[\perasIgnoranceRounds, \perasCooldownRounds]
+  Lengths of the chain ignorance period and the cooldown period.
+  Determine for how long honest nodes will not vote after an unsuccessful Peras round.
+\item[\perasBoost]
+  The extra chain weight that a certificate gives to a block.
+\item[\perasQuorum]
+  The total weight of votes required to create a certificate.
+
   We assume that the total weight of all votes in a Peras round is at most \perasN{}.
-\end{itemize}
+\item[\perasN]
+  The expected number of committee seats, i.e.\ the total number of votes that can be cast per round.
+\item[\perasVoteSizeLimit, \perasCertSizeLimit]
+  Maximum size (in bytes) of Peras votes and certificates.
+\end{description}
 
 \alex{Double-check $k_{\mathrm{Peras}}$}
 
+For a more detailed discussion of the interactions of the various parameters we refer to~\cite{peras-cip}.
 
 %%% Local Variables:
 %%% mode: latex
