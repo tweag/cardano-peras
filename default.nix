@@ -33,6 +33,7 @@ let
       libertine
       lineno
       listings
+      makecell
       microtype
       minted
       multirow

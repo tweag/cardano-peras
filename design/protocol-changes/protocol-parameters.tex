@@ -1,5 +1,23 @@
 \section{Protocol parameters}\label{sec:protocol parameters}
 
+For context, we list existing (Praos/Genesis) protocol parameters in~\cref{fig:praos protocol parameters}.
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{c c c c}
+    \toprule
+    Description & Unit & Symbol & Mainnet value \\
+    \midrule
+    Active slot coefficient & \unit{\slot^{-1}} & \asc{} & $1/20$ \\
+    Security parameter for chain growth & block & \kcp{} & \num{2160} \\
+    \makecell{Chain growth window size\\{\small to achieve common prefix}} & \unit{\slot} & \Tcp{} & $3\cdot\kcp / \asc = \num{129600}$ \\
+    \makecell{Chain quality window size\\{\small to guarantee at least one honest block}} & \unit{\slot} & \Tcq{} & $\kcp/\asc = \num{43200}$ \\
+    Genesis window & \unit{\slot} & \sgen & \Tcp{} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Existing Praos/Genesis protocol parameters}\label{fig:praos protocol parameters}
+\end{table}
+
 The Peras protocol is influenced by various new protocol parameters, also see~\cite{peras-cip}, which we list in \cref{fig:protocol parameters}.
 For explicitness and to avoid confusion, we use a relatively verbose naming scheme.
 The Cardano Ledger allows protocol parameters to be controlled via on-chain governance.
@@ -13,10 +31,11 @@ We indicate whether this flexibility is likely to be useful.
     \midrule
     \perasRoundSlots{} & \unit{\slot} & $U$ & \num{90} & $\checkmark$ \\
     \perasBlockMinSlots{} & \unit{\slot} & $L$ & \numrange{30}{90} & $\checkmark$ \\
-    \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $T_{\mathrm{CQ}} = \kcg/\asc$ & $\checkmark$ \\
-    \perasCertMaxSlots{} & \unit{\slot} & $A$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
-    \perasIgnoranceRounds{} & round & $R$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
-    \perasCooldownRounds{} & round & $K$ & \alex[inline,inlinewidth=4cm]{see ongoing Peras CIP discussion} & ✘ \\
+    \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $T_{\mathrm{CQ}} = \kcp/\asc$ & $\checkmark$ \\
+    \Theal & \unit{\slot} & \Theal & t.b.d. & ✘ \\
+    \perasCertMaxSlots{} & \unit{\slot} & $A$ & $\Theal + \Tcq$ & ✘ \\
+    \perasIgnoranceRounds{} & round & $R$ & $\lceil A/U \rceil$ & ✘ \\
+    \perasCooldownRounds{} & round & $K$ & $\lceil (A+\Tcp)/U \rceil$ & ✘ \\
     \perasBoost{} & blocks & $B$ & \num{15} & $\checkmark$ \\
     \perasQuorum{} & weight & $\tau$ & $3/4 \cdot \perasN$ & ✘ \\
     \perasN{} & committee seats & $N$ & \numrange{500}{1000} & $\checkmark$ \\
@@ -24,7 +43,7 @@ We indicate whether this flexibility is likely to be useful.
     \perasCertSizeLimit{} & \unit{\byte} & n.a. & \qty{20}{\kilo\byte} & $\checkmark$ \\
     \bottomrule
   \end{tabular}
-  \caption{Peras protocol parameters}\label{fig:protocol parameters}
+  \caption{New Peras protocol parameters}\label{fig:protocol parameters}
 \end{table}
 
 \begin{description}
@@ -39,6 +58,8 @@ We indicate whether this flexibility is likely to be useful.
 
   This parameter is new compared to the CIP~\cite{peras-cip}.
   It is motivated to allow validating votes/certificates ahead of the current chain, especially while syncing.\alex{link to corresponding appendix}
+\item[\Theal{}]
+  The amount of slots needed to heal from a failed Peras voting round.
 \item[\perasCertMaxSlots]
   The maximum age of a certificate to be included in a block.
 \item[\perasIgnoranceRounds, \perasCooldownRounds]
@@ -54,9 +75,9 @@ We indicate whether this flexibility is likely to be useful.
   The expected number of committee seats, i.e.\ the total number of votes that can be cast per round.
 \item[\perasVoteSizeLimit, \perasCertSizeLimit]
   Maximum size (in bytes) of Peras votes and certificates.
+\item[\kcp]
+  The security parameter (reinterpreted to measure weight of chains instead of just blocks) needs to be increased to retain the same security as in pure Praos.
 \end{description}
-
-\alex{Double-check $k_{\mathrm{Peras}}$}
 
 For a more detailed discussion of the interactions of the various parameters we refer to~\cite{peras-cip}.
 
