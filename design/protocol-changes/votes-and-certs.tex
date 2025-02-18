@@ -74,6 +74,22 @@ Here, we only summarize a few key metrics in \cref{fig:vote cert metrics}, while
   \caption{Preliminary metrics for votes and certificates}\label{fig:vote cert metrics}
 \end{figure}
 
+\subsection{Handling votes and certificates from the future}
+
+A vote or certificate is \emph{from the future} if its round has not yet begun according to the local wallclock.
+We suggest to handle such votes just like \emph{headers} from the future are already being handled:
+\begin{itemize}
+\item
+  Upon receiving a vote or certificate $x$ from the \emph{near} future (which is currently defined to be at most \qty{2}{\s} in the future), an artifical delay is introduced such that $x$ is no longer from the future, after which $x$ is processed further.
+
+  This rule is motivated by the insight that it would be unreasonable to expect clocks between honest nodes across the world to be perfectly synchronized.
+
+  The artifical delay might not be necessary for Peras votes/certificates as there is, in contrast to headers/blocks, no incentive to diffuse your vote as early as possible (as long as it still arrives within a Peras round).
+  However, using the exact same logic as for headers has a conceptual simplicity.
+\item
+  Upon receiving a vote or certificate from the \emph{far} future (defined to be more than \qty{2}{\s} in the future), we immediately disconnect from the sending peer as this constitutes adversarial behavior.
+\end{itemize}
+
 
 %%% Local Variables:
 %%% mode: latex
