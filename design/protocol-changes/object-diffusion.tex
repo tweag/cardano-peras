@@ -1,43 +1,34 @@
 \section{Object diffusion mini-protocol}%
 \label{sec:object-diffusion-protocol}
 
-This section presents a generic object diffusion mini-protocol. Heavily inspired
-by Tx-Submission, we hope to use it for certificate and vote diffusion. This
-protocol aims are synchronising a data base of objects (e.g., for Tx-Submission,
-their mempool) between peers:
+This section presents a generic object diffusion mini-protocol.
+Heavily inspired by Tx-Submission, we hope to use it for certificate and vote diffusion.
+This protocol aims are synchronising a data base of objects (e.g., for Tx-Submission, their mempool) between peers:
 %
 \begin{itemize}
-\item Clients and server maintain the knowledge of a queue of objects of which
-  the server has knowledge and the client presumably does not. Importantly, the
-  queue is of bounded size, and the maximal size is a hardcoded parameter of the
-  implementation. The objects are represented by {\em identifiers}, typically
-  orders of magnitude smaller than the objects themselves.
+\item
+  Clients and server maintain the knowledge of a queue of objects of which the server has knowledge and the client presumably does not.
+  Importantly, the queue is of bounded size, and the maximal size is a hardcoded parameter of the
+  implementation.
+  The objects are represented by {\em identifiers}, typically orders of magnitude smaller than the objects themselves.
 
-\item Clients can ask their servers to provide them with an ordered list of the
-  {\em next} objects that they wish to diffuse. The notion of order---and
-  therefore of which objects are {\em next}---is internal to each server; it
-  might for instance be the order in which they themselves got aware of the
-  objects in question.
+\item
+  Clients can ask their servers to provide them with an ordered list of the {\em next} objects that they wish to diffuse.
+  The notion of order---and therefore of which objects are {\em next}---is internal to each server; it might for instance be the order in which they themselves got aware of the objects in question.
 
-\item Clients can then, given an object identifier, request the corresponding
-  object to the server. This is not mandatory, and, if several servers propose
-  to diffuse the same objects, the peer might decide to download only from a
-  subset of them. The strategy may vary depending on the objects, how promptly
-  the client wants to get them, and how important it is for them not to miss
-  one.
+\item
+  Clients can then, given an object identifier, request the corresponding object to the server.
+  This is not mandatory, and, if several servers propose to diffuse the same objects, the peer might decide to download only from a subset of them.
+  The strategy may vary depending on the objects, how promptly the client wants to get them, and how important it is for them not to miss one.
 
-\item When requesting the next batch of object identifiers, the client informs
-  the server that they are not interested in some of the objects anymore,
-  possibly because they have acquired them from this server or another one. They
-  do that by {\em acknowledging} a number of identifiers from the beginning of
-  the queue. They must, in doing so, ensure that the queue remains under the
-  maximal allowed size.
+\item
+  When requesting the next batch of object identifiers, the client informs the server that they are not interested in some of the objects anymore, possibly because they have acquired them from this server or another one.
+  They do that by {\em acknowledging} a number of identifiers from the beginning of the queue.
+  They must, in doing so, ensure that the queue remains under the maximal allowed size.
 \end{itemize}
 
-\autoref{fig:object-diffusion-state-machine} gives a graphical representation of
-the state machine of the proposed mini-protocol, while
-\autoref{fig:object-diffusion-state-agencies} provides a table with the states'
-agencies. The coming subsections give more details on the mini-protocol.
+\Cref{fig:object-diffusion-state-machine} gives a graphical representation of the state machine of the proposed mini-protocol, while \cref{fig:object-diffusion-state-agencies} provides a table with the states' agencies.
+The coming subsections give more details on the mini-protocol.
 
 \definecolor{mygreen}{rgb}{0.109804,0.698039,0.341176}
 \definecolor{myblue}{rgb}{0.360784,0.423529,255}
@@ -122,8 +113,8 @@ agencies. The coming subsections give more details on the mini-protocol.
 
 \subsection{Parameters}
 
-This subsection describes the parameters of this generic protocol. They are
-notions that need to be made concrete for each implementation of the protocol.
+This subsection describes the parameters of this generic protocol.
+They are notions that need to be made concrete for each implementation of the protocol.
 
 \newcommand\argfont[1]{\textbf{\texttt{\textit{#1}}}}
 
@@ -131,12 +122,10 @@ notions that need to be made concrete for each implementation of the protocol.
 \item [\argfont{object}] The abstract type of objects diffused by the protocol.
 \item [\argfont{id}] Identifier that uniquely identifies an object.
 \item [\argfont{objectIds}] An opaque type returned by the server when asked for object ids.
-  It is not explicitely a list of $\argfont{id}$, because the server may want to add metadata to the ids,
-  and/or run a compression scheme to limit the size of its response.
+  It is not explicitely a list of $\argfont{id}$, because the server may want to add metadata to the ids, and/or run a compression scheme to limit the size of its response.
 \item [\argfont{responseToIds}] A function with type $\argfont{objectIds} \rightarrow [\argfont{id}]$.
-\item [\argfont{initialPayload}] An abstract payload that helps initialise the
-  state of the server. For instance, a slot number before which the client does
-  not care about the objects.
+\item [\argfont{initialPayload}] An abstract payload that helps initialise the state of the server.
+  For instance, a slot number before which the client does not care about the objects.
   \niols{eg. for Cert-Diffusion it would be a round number, for Vote-Diffusion it would be unit}
 \end{description}
 
@@ -166,17 +155,13 @@ notions that need to be made concrete for each implementation of the protocol.
 
 \item [\MsgReplyObjs{} {$([\argfont{object}])$}]
       The server replies with the list of all the objects that were requested.
-      \niols{Maybe sometimes it is not possible to derive an \argfont{id} from
-        an \argfont{object}? eg. with certificates that could be just a hash? In
-        those cases, wouldn't we want to return a list of pairs \((\argfont{id},
-        \argfont{object})\)?}
+      \niols{Maybe sometimes it is not possible to derive an \argfont{id} from an \argfont{object}? eg. with certificates that could be just a hash? In those cases, wouldn't we want to return a list of pairs \((\argfont{id}, \argfont{object})\)?}
 
 \item [\MsgDone]
       The server terminates the mini protocol.
 \end{description}
 
-\autoref{table:object-diffusion-transitions} presents the state transitions and
-the associated messages.
+\Cref{table:object-diffusion-transitions} presents the state transitions and the associated messages.
 
 \begin{table}[h]
   \begin{center}
@@ -199,13 +184,12 @@ the associated messages.
 \subsection{Size limits and timeouts per state}
 \niols{FIXME}
 
-\autoref{table:object-diffusion-size-limits} specifies how many bytes can be
-sent in a given state; indirectly, this limits the payload size of each message.
+\Cref{table:object-diffusion-size-limits} specifies how many bytes can be sent in a given state; indirectly, this limits the payload size of each message.
 If a space limit is violated, the connection SHOULD be torn down.
 
 
-\autoref{table:object-diffusion-timeouts} specifies message timeouts in a given
-state. If a timeout is violated, the connection SHOULD be torn down.
+\Cref{table:object-diffusion-timeouts} specifies message timeouts in a given state.
+If a timeout is violated, the connection SHOULD be torn down.
 
 \begin{table}[h]
   \begin{center}
@@ -320,3 +304,10 @@ If the FIFO is empty, the consumer must use a blocking request; otherwise, it mu
 The producer must reply immediately (i.e. within a small timeout) to a non-blocking request.
 It replies with not more than the requested number of ids (possibly with an empty list).
 A blocking request, on the other side, waits until at least one transaction is available.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:

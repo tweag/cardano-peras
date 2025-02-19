@@ -1,11 +1,7 @@
 \section{Certificate and vote diffusion}
 
-This section presents our proposed protocols for diffusion of certificates and
-votes between peers. \autoref{sec:cert-vote-diff-discussion} presents a
-discussion about alternative designs that we have considered,
-\autoref{sec:vote-diffusion} presents our protocol for vote diffusion, and
-\autoref{sec:certificate-diffusion} presents our protocol for certificate
-diffusion.
+This section presents our proposed protocols for diffusion of certificates and votes between peers.
+\Cref{sec:cert-vote-diff-discussion} presents a discussion about alternative designs that we have considered, \cref{sec:vote-diffusion} presents our protocol for vote diffusion, and \cref{sec:certificate-diffusion} presents our protocol for certificate diffusion.
 
 \subsection{Discussion on the chosen design}%
 \label{sec:cert-vote-diff-discussion}
@@ -15,46 +11,40 @@ diffusion.
 The use of one combined protocol provides the following upsides:
 %
 \begin{itemize}
-\item It allows for some optimisations, such as responding with a certificate
-  when a client asks for a vote that it subsumes.
+\item
+  It allows for some optimisations, such as responding with a certificate when a client asks for a vote that it subsumes.
 
-\item There only one protocol to understand and maintain.
+\item
+  There only one protocol to understand and maintain.
 
-\item It aleviates the need for synchronisation between the two protocols (e.g.,
-  if we get a certificate, then we do not need to request votes anymore) and
-  avoids us having to reason on the interactions between the two protocols.
+\item
+  It aleviates the need for synchronisation between the two protocols (e.g., if we get a certificate, then we do not need to request votes anymore) and avoids us having to reason on the interactions between the two protocols.
 \end{itemize}
 
-The use of distinct protocols for certificate diffusion and vote diffusion
-provides the following upsides:
+The use of distinct protocols for certificate diffusion and vote diffusion provides the following upsides:
 
 \begin{itemize}
-\item Each protocol, by virtue of being smaller, is also conceptually simpler.
+\item
+  Each protocol, by virtue of being smaller, is also conceptually simpler.
 
-\item We can hope to use similar protocols for certificate diffusion and vote
-  diffusion. In fact, we can hope to reuse our generic object diffusion protocol
-  (\autoref{sec:object-diffusion-protocol}) for everything.
+\item
+  We can hope to use similar protocols for certificate diffusion and vote diffusion.
+  In fact, we can hope to reuse our generic object diffusion protocol (\cref{sec:object-diffusion-protocol}) for everything.
 \end{itemize}
 
-We propose to go for separate protocols. We find the upside of conceptually
-simpler protocols convincing, and even more if we manage to reuse an existing
-one. We believe that the lost optimisation is in fact not so significant, and
-that the synchronisation between the two protocols will not be difficult to
-implement.
+We propose to go for separate protocols.
+We find the upside of conceptually simpler protocols convincing, and even more if we manage to reuse an existing one.
+We believe that the lost optimisation is in fact not so significant, and that the synchronisation between the two protocols will not be difficult to implement.
 
-Once that is decided, remains the question, for both certificate and vote
-diffusion, of whether we should introduce mini-protocols tailored to the
-specific use case of those objects, or if we should reuse existing protocols,
-for instance inspired by Tx-Submission.
+Once that is decided, remains the question, for both certificate and vote diffusion, of whether we should introduce mini-protocols tailored to the specific use case of those objects, or if we should reuse existing protocols, for instance inspired by Tx-Submission.
 
 \niols[inline]{TODO: Discussion}
 
 \subsection{Vote diffusion mini-protocol}%
 \label{sec:vote-diffusion}
 
-We propose to use the generic object diffusion mini-protocol
-(\autoref{sec:object-diffusion-protocol}) instantiated for votes. In particular,
-we want:
+We propose to use the generic object diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) instantiated for votes.
+In particular, we want:
 %
 \begin{description}
 \item[\argfont{object}] a vote
@@ -69,21 +59,17 @@ we want:
 A few notes:
 
 \begin{itemize}
-\item The size of a vote is constant so we do not need to transmit the size at
-  any point, the client will be able to keep this in mind.
+\item
+  The size of a vote is constant so we do not need to transmit the size at any point, the client will be able to keep this in mind.
 
-\item We do not need to download the votes on the historical chain, so we can
-  just start the protocol with the state of the server at that point, and there
-  is no need to transmit an initial payload to explain since when we want to
-  download votes.
+\item
+  We do not need to download the votes on the historical chain, so we can just start the protocol with the state of the server at that point, and there is no need to transmit an initial payload to explain since when we want to download votes.
 
-\item We want to avoid missing a quorum when almost caught-up and when we put
-  something in our immutable DB.\niols{I can't remember what I meant by that,
-    but probably there is an important question of when we should start
-    downloading votes. Is there a risk, if we want until we are caught-up?}
+\item
+  We want to avoid missing a quorum when almost caught-up and when we put something in our immutable DB.\niols{I can't remember what I meant by that, but probably there is an important question of when we should start downloading votes. Is there a risk, if we want until we are caught-up?}
 
-\item We want to download all the votes because there could be votes
-  equivocation.
+\item
+  We want to download all the votes because there could be votes equivocation.
   \alex{I don't immediately see a relation between these two things.}
   \niols{I also don't know. What if we remove this line and just say that we
     want to download the votes reasonably fast?}
@@ -93,7 +79,7 @@ A few notes:
 \label{sec:certificate-diffusion}
 
 We propose to use the generic object diffusion mini-protocol
-(\autoref{sec:object-diffusion-protocol}) instantiated for certificates. In particular, we want:
+(\cref{sec:object-diffusion-protocol}) instantiated for certificates. In particular, we want:
 
 \begin{description}
 \item[\argfont{object}] a certificate
@@ -102,27 +88,23 @@ We propose to use the generic object diffusion mini-protocol
 A few notes:
 
 \begin{itemize}
-\item We can assume that there is only one block that reaches quorum per round.
-  In particular, if we have a cert for a round, we do not care at all about any
-  other cert in the same round.
+\item
+  We can assume that there is only one block that reaches quorum per round.
+  In particular, if we have a cert for a round, we do not care at all about any other cert in the same round.
 
-\item Probably useless when caught-up. We might want to keep it running just for
-  the awkward situation where we really didn’t get all the votes but there is a
-  cert. Most of the time, we should get all the votes, realise there is a
-  quorum, and therefore know to ignore the certs that peer tell us about.
+\item
+  Probably useless when caught-up. We might want to keep it running just for the awkward situation where we really didn’t get all the votes but there is a cert.
+  Most of the time, we should get all the votes, realise there is a quorum, and therefore know to ignore the certs that peer tell us about.
   %
   \alex{
-    I wouldn't say "useless" as we fundamentally need it to defend against
-    equivocation attacks.
+    I wouldn't say "useless" as we fundamentally need it to defend against equivocation attacks.
 
-    Also, there is this other scenario mentioned on Slack that doesn't involve
-    any adversarial activity where we would need to diffuse certs between
-    caught-up nodes:
+    Also, there is this other scenario mentioned on Slack that doesn't involve any adversarial activity where we would need to diffuse certs between caught-up nodes:
     \url{https://moduscreate.slack.com/archives/C06J5CS446A/p1739264734649699?thread_ts=1739260385.010269&cid=C06J5CS446A}
   }
 
 \item What about reusing the generic object diffusion mini-protocol?
-  (\autoref{sec:object-diffusion-protocol})
+  (\cref{sec:object-diffusion-protocol})
   \begin{itemize}
   \item id = id’ = roundNumber
 
@@ -131,27 +113,29 @@ A few notes:
   \item an initial payload telling the peer from which round number we want to
     start.
 
-  \item While syncing, we want to know for sure that a round has no
-    certificates, because that influences the GDD. So we need a way to be sure
-    that it isn’t going to come later. Probably we can just solve this by making
-    it mandatory to have round numbers in increasing order for the historical
-    chain. (For caught-up nodes, certs might arrive in another order)
+  \item
+    While syncing, we want to know for sure that a round has no certificates, because that influences the GDD.
+    So we need a way to be sure that it isn’t going to come later.
+    Probably we can just solve this by making it mandatory to have round numbers in increasing order for the historical chain.
+    (For caught-up nodes, certs might arrive in another order)
     %
     \alex{
-      The idea we discussed yesterday to avoid different logic for syncing and
-      (almost) caught up is to only allow the server to send certificates for a
-      bounded amount of rounds before the certificate with the highest round
-      number they have sent so far.
+      The idea we discussed yesterday to avoid different logic for syncing and (almost) caught up is to only allow the server to send certificates for a bounded amount of rounds before the certificate with the highest round number they have sent so far.
 
-      Concretely, this bound could be set to the number of volatile rounds
-      (ceil(stabilityWindow / perasRoundSlots) plus maybe some extra margin).
+      Concretely, this bound could be set to the number of volatile rounds (ceil(stabilityWindow / perasRoundSlots) plus maybe some extra margin).
     }
 
-  \item The information of round numbers can be made much more compact than a
-    list of Word16, because we just need a bitset. We could ask for a range of
-    round and get a bitset covering them. Maybe we can generalise in the obj
-    diff protocol not only the notion of id but the notion of list of ids.
-    Basically we make abstract the [(id, size)] and we just ask for a function
-    that returns a [(id, size)] given the abstract thingie
+  \item
+    The information of round numbers can be made much more compact than a list of Word16, because we just need a bitset.
+    We could ask for a range of round and get a bitset covering them.
+    Maybe we can generalise in the obj diff protocol not only the notion of id but the notion of list of ids.
+    Basically we make abstract the [(id, size)] and we just ask for a function that returns a [(id, size)] given the abstract thingie
   \end{itemize}
 \end{itemize}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:
