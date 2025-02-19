@@ -1,32 +1,30 @@
 ;
-; TxSubmission mini-protocol v2
+; Object diffusion mini-protocol
 ;
 
-; reference implementation of the codec in :
-; ouroboros-network/src/Ouroboros/Network/Protocol/TxSubmission2/Codec.hs
-
-txSubmission2Message
+objectDiffusion2Message
     = msgInit
-    ; corresponds to either MsgRequestTxIdsBlocking or
-    ; MsgRequestTxIdsNonBlocking in the spec
-    / msgRequestTxIds
-    / msgReplyTxIds
-    / msgRequestTxs
-    / msgReplyTxs
-    / tsMsgDone
+    ; corresponds to either MsgRequestObjIdsBlocking or
+    ; MsgRequestObjIdsNonBlocking in the spec
+    / msgRequestObjIds
+    / msgReplyObjIds
+    / msgRequestObjs
+    / msgReplyObjs
+    / msgDone
 
+; Parameters of the protocol:
+;
+; - initialPayload
+; - object
+; - id
+; - objectIds (they will be turned into *id with a function responseToIds)
 
-msgInit         = [6]
-msgRequestTxIds = [0, tsBlocking, txCount, txCount]
-msgReplyTxIds   = [1, [ *txIdAndSize] ]
-msgRequestTxs   = [2, txIdList ]
-msgReplyTxs     = [3, txList ]
-tsMsgDone       = [4]
+msgInit          = [0, initialPayload]
+msgRequestObjIds = [1, blocking, objCount, objCount]
+msgReplyObjIds   = [2, objectIds ]
+msgRequestObjs   = [3, *id ]
+msgReplyObjs     = [4, *object ]
+msgDone          = [5]
 
-tsBlocking      = false / true
-txCount         = word16
-; The codec only accepts infinite-length list encoding for txIdList !
-txIdList        = [ *txId ]
-txList          = [ *tx ]
-txIdAndSize     = [txId, txSizeInBytes]
-txSizeInBytes   = word32
+blocking         = false / true
+objCount         = word16
