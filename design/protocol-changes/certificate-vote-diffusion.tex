@@ -1,10 +1,10 @@
 \section{Certificate and vote diffusion}
 
 This section presents our proposed protocols for diffusion of certificates and
-votes between peers. \autoref{sec:cert-vote-diff-discussion} presents a
+votes between peers. \Cref{sec:cert-vote-diff-discussion} presents a
 discussion about alternative designs that we have considered,
-\autoref{sec:vote-diffusion} presents our protocol for vote diffusion, and
-\autoref{sec:certificate-diffusion} presents our protocol for certificate
+\cref{sec:vote-diffusion} presents our protocol for vote diffusion, and
+\cref{sec:certificate-diffusion} presents our protocol for certificate
 diffusion.
 
 \subsection{Discussion on the chosen design}%
@@ -33,7 +33,7 @@ provides the following upsides:
 
 \item We can hope to use similar protocols for certificate diffusion and vote
   diffusion. In fact, we can hope to reuse our generic object diffusion protocol
-  (\autoref{sec:object-diffusion-protocol}) for everything.
+  (\cref{sec:object-diffusion-protocol}) for everything.
 \end{itemize}
 
 We propose to go for separate protocols. We find the upside of conceptually
@@ -53,7 +53,7 @@ for instance inspired by Tx-Submission.
 \label{sec:vote-diffusion}
 
 We propose to use the generic object diffusion mini-protocol
-(\autoref{sec:object-diffusion-protocol}) instantiated for votes. In particular,
+(\cref{sec:object-diffusion-protocol}) instantiated for votes. In particular,
 we want:
 %
 \begin{description}
@@ -93,7 +93,7 @@ A few notes:
 \label{sec:certificate-diffusion}
 
 We propose to use the generic object diffusion mini-protocol
-(\autoref{sec:object-diffusion-protocol}) instantiated for certificates. In particular, we want:
+(\cref{sec:object-diffusion-protocol}) instantiated for certificates. In particular, we want:
 
 \begin{description}
 \item[\argfont{object}] a certificate
@@ -122,7 +122,7 @@ A few notes:
   }
 
 \item What about reusing the generic object diffusion mini-protocol?
-  (\autoref{sec:object-diffusion-protocol})
+  (\cref{sec:object-diffusion-protocol})
   \begin{itemize}
   \item id = id’ = roundNumber
 

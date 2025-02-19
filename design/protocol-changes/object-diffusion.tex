@@ -34,9 +34,9 @@ their mempool) between peers:
   maximal allowed size.
 \end{itemize}
 
-\autoref{fig:object-diffusion-state-machine} gives a graphical representation of
+\Cref{fig:object-diffusion-state-machine} gives a graphical representation of
 the state machine of the proposed mini-protocol, while
-\autoref{fig:object-diffusion-state-agencies} provides a table with the states'
+\cref{fig:object-diffusion-state-agencies} provides a table with the states'
 agencies. The coming subsections give more details on the mini-protocol.
 
 \definecolor{mygreen}{rgb}{0.109804,0.698039,0.341176}
@@ -175,7 +175,7 @@ notions that need to be made concrete for each implementation of the protocol.
       The server terminates the mini protocol.
 \end{description}
 
-\autoref{table:object-diffusion-transitions} presents the state transitions and
+\Cref{table:object-diffusion-transitions} presents the state transitions and
 the associated messages.
 
 \begin{table}[h]
@@ -199,12 +199,12 @@ the associated messages.
 \subsection{Size limits and timeouts per state}
 \niols{FIXME}
 
-\autoref{table:object-diffusion-size-limits} specifies how many bytes can be
+\Cref{table:object-diffusion-size-limits} specifies how many bytes can be
 sent in a given state; indirectly, this limits the payload size of each message.
 If a space limit is violated, the connection SHOULD be torn down.
 
 
-\autoref{table:object-diffusion-timeouts} specifies message timeouts in a given
+\Cref{table:object-diffusion-timeouts} specifies message timeouts in a given
 state. If a timeout is violated, the connection SHOULD be torn down.
 
 \begin{table}[h]
