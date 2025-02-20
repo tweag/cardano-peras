@@ -4,8 +4,19 @@ Peras introduces two new entities: \emph{votes} and \emph{certificates}.
 
 \subsection{Votes}
 
-At the start of every Peras round (lasting $\perasRoundSlots$), the nodes in Peras committee (of expected size \perasN{}) for that round will usually vote for a recent block.
-Votes are \emph{weighted}, i.e.\ they are associated with a respective \enquote{voting power}, which allows for an improved size-security tradeoff compared to unweighted votes (where the same party might be allowed to vote multiple times), cf.~\cite{gavzi2023fait}.
+Peras voting proceeds in rounds, lasting $\perasRoundSlots$ each.
+Every round has an associated \emph{weighted committee} \parencite[Section~4]{gavzi2023fait}, a set of stake pools responsible for voting in this round, together with individual amounts of \emph{voting power}, i.e.\ their \emph{weight} in the committee.
+The exact committee election scheme has not yet been decided, but it must satisfy the following informal properties.
+\begin{enumerate}
+\item
+  An adversary with total stake $\alpha$ can not get significantly more than $\alpha$ relative weight in any committee.
+  The (expected) weight of a pool in the committee is proportional to its stake.
+\item
+  The (expected) size of the committee can be controlled via the \perasN{} parameter.
+\end{enumerate}
+
+At the start of every Peras round (lasting $\perasRoundSlots$), all of the honest nodes in the corresponding Peras committee will usually vote for a recent block (otherwise, Peras is likely entering a cooldown period).
+Votes are \emph{weighted} according to the weight of the pool that cast them in the committee, which allows for an improved size-security tradeoff compared to unweighted votes (where the same party might be allowed to vote multiple times), cf.~\cite{gavzi2023fait}.
 Under optimistic conditions, votes of total weight of at least \perasQuorum{} are cast for the same block, in which case the round is \emph{successful}.
 
 A vote contains the following data:
