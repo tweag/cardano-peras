@@ -55,8 +55,6 @@ This assumption is justified by an appropriate parameterization \perasQuorum{} a
 
 \subsection{Realizing votes and certificates}
 
-We propose to extend the existing formal specification in Agda for the Consensus and Ledger layer \parencite{consensus-spec,cardano-formal-ledger-specs} with the details of vote and certificate validation.
-
 The underlying cryptography used to realized votes and certificates is out-of-scope for this document, we refer to~\cite{peras-cert-report} for more details.
 Here, we only summarize a few key metrics in \cref{fig:vote cert metrics}, while noting that these are still subject to change\footnote{In particular, certificates might get significantly smaller ($\le \qty{1}{\kilo\byte}$).}; however, we do not expect them to get significantly worse.
 
@@ -73,6 +71,8 @@ Here, we only summarize a few key metrics in \cref{fig:vote cert metrics}, while
   \end{tabular}
   \caption{Preliminary metrics for votes and certificates}\label{fig:vote cert metrics}
 \end{figure}
+
+The existing formal specification in Agda for the Consensus and Ledger layer \parencite{consensus-spec,cardano-formal-ledger-specs} can be naturally extended with the details of vote and certificate validation, in particular for conformance testing.
 
 \subsection{Handling votes and certificates from the future}
 
