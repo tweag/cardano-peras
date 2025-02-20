@@ -19,6 +19,7 @@ For context, we list existing (Praos/Genesis) protocol parameters in~\cref{fig:p
 \end{table}
 
 The Peras protocol is influenced by various new protocol parameters, also see~\cite{peras-cip}, which we list in \cref{fig:protocol parameters}.
+The values of these parameters are not yet final, and justifying their values (especially the ones related to cooldowns) is out of scope for this document.
 For explicitness and to avoid confusion, we use a relatively verbose naming scheme.
 The Cardano Ledger allows protocol parameters to be controlled via on-chain governance.
 We indicate whether this flexibility is likely to be useful.
@@ -32,7 +33,7 @@ We indicate whether this flexibility is likely to be useful.
     \perasRoundSlots{} & \unit{\slot} & $U$ & \num{90} & $\checkmark$ \\
     \perasBlockMinSlots{} & \unit{\slot} & $L$ & \numrange{30}{90} & $\checkmark$ \\
     \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $T_{\mathrm{CQ}} = \kcp/\asc$ & $\checkmark$ \\
-    \Theal & \unit{\slot} & \Theal & t.b.d. & ✘ \\
+    \perasHealingSlots{} & \unit{\slot} & \Theal & t.b.d. & ✘ \\
     \perasCertMaxSlots{} & \unit{\slot} & $A$ & $\Theal + \Tcq$ & ✘ \\
     \perasIgnoranceRounds{} & round & $R$ & $\lceil A/U \rceil$ & ✘ \\
     \perasCooldownRounds{} & round & $K$ & $\lceil (A+\Tcp)/U \rceil + 1$ & ✘ \\
@@ -58,8 +59,9 @@ We indicate whether this flexibility is likely to be useful.
 
   This parameter is new compared to the CIP~\cite{peras-cip}.
   It is motivated to allow validating votes/certificates ahead of the current chain, especially while syncing.\alex{link to corresponding appendix}
-\item[\Theal{}]
-  The amount of slots needed to heal from a failed Peras voting round.
+\item[\perasHealingSlots]
+  The amount of slots needed to heal from a failed Peras voting round, depending on $\perasBoost$.
+  A concrete value has yet to be chosen.
 \item[\perasCertMaxSlots]
   The maximum age of a certificate to be included in a block.
 \item[\perasIgnoranceRounds, \perasCooldownRounds]
