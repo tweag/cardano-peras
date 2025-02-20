@@ -38,7 +38,7 @@ We indicate whether this flexibility is likely to be useful.
     \perasIgnoranceRounds{} & round & $R$ & $\lceil A/U \rceil$ & ✘ \\
     \perasCooldownRounds{} & round & $K$ & $\lceil (A+\Tcp)/U \rceil + 1$ & ✘ \\
     \perasBoost{} & block & $B$ & \num{15} & $\checkmark$ \\
-    \perasQuorum{} & weight & $\tau$ & $3/4 \cdot \perasN$ & ✘ \\
+    \perasQuorum{} & weight & $\tau$ & $3/4$ & ✘ \\
     \perasN{} & committee seat & $N$ & \numrange{500}{1000} & $\checkmark$ \\
     \perasVoteSizeLimit{} & \unit{\byte} & n.a. & \qty{200}{\byte} & $\checkmark$ \\
     \perasCertSizeLimit{} & \unit{\byte} & n.a. & \qty{20}{\kilo\byte} & $\checkmark$ \\
@@ -70,9 +70,7 @@ We indicate whether this flexibility is likely to be useful.
 \item[\perasBoost]
   The extra chain weight that a certificate gives to a block.
 \item[\perasQuorum]
-  The total weight of votes required to create a certificate.
-
-  We assume that the total weight of all votes in a Peras round is at most \perasN{}.
+  The total weight of votes required to create a certificate, assuming that the total (expected) weight of a committe is $1$.
 \item[\perasN]
   The expected number of committee seats, i.e.\ the total number of votes that can be cast per round.
 \item[\perasVoteSizeLimit, \perasCertSizeLimit]
