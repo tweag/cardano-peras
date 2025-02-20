@@ -153,6 +153,10 @@ Concretely, the adversary can diffuse its votes shortly before the start of roun
 If the latter category of nodes is sufficiently small, then them not voting during round $r$ does not preclude the possibility of round $r$ being successful, in which case they will vote again in round $r$ as normal.
 However, the modified rule~\ref{rule:block creation:a} would still force them to include the most recent certificate on chain when they are elected before they receive the adversarial votes for round $r-1$, which we want to avoid.
 
+It may be useful to clarify that the harm of honest nodes unnecessarily including a certificate on chain is not necessarily the presence of the certificate itself.
+Note that an adversary can include a certificate in any block they mint, for example, with the only risk being reputational harm.
+Instead, the harm done by honest nodes including unnecessary certificates in the honest blocks they mint is that the limit on block size means the bytes occupied by the certificate could have otherwise been occupied by transactions.
+
 \subsection{Adding weight to Genesis density comparisons}\label{sec:weighted genesis}
 
 The implementation approach of Ouroboros Genesis in the Cardano node fundamentally relies on the following property, justified by the analysis of the Genesis chain selection rule in~\cite{badertscher2018ouroboros}:
