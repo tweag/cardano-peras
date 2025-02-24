@@ -261,49 +261,72 @@ If a timeout is violated, the connection SHOULD be torn down.
 
 \subsection{Client and server implementation}
 
-\niols{REWRITE EVERYTHING. Client/server agency was switched, things might need
-  to be generalised, hooks for eg. LoP might need to be added, ...}
+TODO:
+\begin{itemize}
+\item Hooks in the client:
+  \begin{itemize}
+  \item LoP
+  \item “onRecvId” to add ID to the DB
+  \item “onRecvObject” to add object to the DB
+  \item “statusOfObject” -> in DB, in flight with N peers (?). NB: it is not an
+    info on the object, but on whether we want the object (eg. we don't want a
+    vote if we have a cert)
+  \end{itemize}
+\item Server hooks:
+  \begin{itemize}
+  \item next ids
+  \item object from id
+  \end{itemize}
+\item Several client implementations; orchestration
+\item Handling of sizes by client and server
+\item Blocking vs. non-blocking
+\end{itemize}
 
-The protocol has two design goals: It must diffuse transactions with high efficiency
-and, at the same time, it must rule out
-asymmetric resource attacks from the transaction consumer against the transaction provider.
+The protocol has two design goals: It must diffuse objects with high efficiency
+and, at the same time, it must rule out asymmetric resource attacks from a
+client against a server.
 
-The protocol is based on two pull-based operations.
-The transaction consumer can ask for a number of transaction ids, and it can use these
-transaction ids to request a batch of transactions.
-The transaction consumer has flexibility in the number of transaction ids it requests,
-whether to actually download the transaction body
-and flexibility in how it batches the download of transactions.
-The transaction consumer can also switch between requesting transaction ids and downloading
-transaction bodies at any time.
-It must, however, observe several constraints that are necessary for a memory-efficient implementation
-of the transaction provider.
+Typically, downstream nodes will run one instance of the client per upstream
+peer that they have, and upstream nodes will run one instance of the server per
+downstream peer that they have.
 
-Conceptually, the provider maintains a limited size FIFO of outstanding transactions per consumer.
-(The actual implementation can, of course, use the data structure that works best).
-The maximum FIFO size is a protocol parameter.
-The protocol guarantees that, at any time, the consumer and producer agree on the current size of
-that FIFO and on the outstanding transaction ids.
-The consumer can use a variety of heuristics to request transaction ids and transactions.
-One possible implementation for a consumer is to maintain a FIFO that mirrors the producer's FIFO
-but only contains the transaction ids (and the size of the transaction) and not the full transactions.
+The protocol is based on two pull-based operations. The client can ask for a
+number of object ids, and it can use these object ids to request a batch of
+objects. The client has flexibility in the number of object ids it requests,
+whether to actually download the object and how it batches the download of
+objects. For instance, a downstream node might choose to download an object from
+a subset its upstream peers that shared its id.
 
-After the consumer requests new transaction ids, the provider replies with a list of transaction ids and
-puts these transactions in its FIFO.
-As part of a request, a consumer also acknowledges the number of old transactions,
-which are removed from the FIFO at the same time.
-The provider checks that the size of the FIFO, i.e. the number of outstanding transactions,
-never exceeds the protocol limit and aborts the connection if a request violates the limits.
-The consumer can request any batch of transactions from the current FIFO in any order.
-Note, however, that the reply will omit any transactions that have become invalid in the meantime.
-(More precisely, the server will omit invalid transactions from the reply, but they will still be counted in the FIFO
-size, and they will still require an acknowledgement from the consumer).
+The client can also switch between requesting object ids and downloading objects
+at any time. It must, however, observe several constraints that are necessary
+for a memory-efficient implementation of the server.
 
-The protocol supports blocking and non-blocking requests for new transactions ids.
-If the FIFO is empty, the consumer must use a blocking request; otherwise, it must be a non-blocking request.
-The producer must reply immediately (i.e. within a small timeout) to a non-blocking request.
-It replies with not more than the requested number of ids (possibly with an empty list).
-A blocking request, on the other side, waits until at least one transaction is available.
+Conceptually, the server maintains a limited size FIFO of outstanding objects
+per client. (The actual implementation can, of course, use the data structure
+that works best.) The maximum FIFO size is a protocol parameter. The protocol
+guarantees that the client and server agree on the current size of that FIFO and
+on the outstanding object ids. The client can use a variety of heuristics to
+request object ids and objects. One possible implementation for a client is to
+maintain a FIFO that mirrors the producer's FIFO but only contains the object
+ids (and the size of the object) and not the full objects.
+
+After the client requests new object ids, the server replies with a list of
+object ids and puts these objects in its FIFO. As part of a request, a client
+also acknowledges the number of old objects, which are removed from the FIFO at
+the same time. The server checks that the size of the FIFO, i.e. the number of
+outstanding objects, never exceeds the protocol limit and aborts the connection
+if a request violates the limits. The client can request any batch of objects
+from the current FIFO in any order. Note, however, that the reply will omit any
+objects that have become invalid in the meantime. (More precisely, the server
+will omit invalid objects from the reply, but they will still be counted in the
+FIFO size, and they will still require an acknowledgement from the client).
+
+The protocol supports blocking and non-blocking requests for new objects ids. If
+the FIFO is empty, the client must use a blocking request; otherwise, it must be
+a non-blocking request. The producer must reply immediately (i.e. within a small
+timeout) to a non-blocking request. It replies with not more than the requested
+number of ids (possibly with an empty list). A blocking request, on the other
+side, waits until at least one object is available.
 
 
 %%% Local Variables:
