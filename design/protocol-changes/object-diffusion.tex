@@ -278,8 +278,11 @@ TODO:
   \item object from id
   \end{itemize}
 \item Several client implementations; orchestration
-\item Handling of sizes by client and server
-\item Blocking vs. non-blocking
+\item Handling of sizes by client and server; in particular, function
+  “responseToSizes”, or “responseToIds : objectIds -> [(id, size)]”
+\item Semantics of answering no object ids; semantics of answering strictly less
+  than request (eg. no more objects?). Client knows that server is done -> link
+  with orchestration? Also, when syncing, server announces caught up.
 \end{itemize}
 
 The protocol has two design goals: It must diffuse objects with high efficiency
@@ -307,26 +310,41 @@ that works best.) The maximum FIFO size is a protocol parameter. The protocol
 guarantees that the client and server agree on the current size of that FIFO and
 on the outstanding object ids. The client can use a variety of heuristics to
 request object ids and objects. One possible implementation for a client is to
-maintain a FIFO that mirrors the producer's FIFO but only contains the object
-ids (and the size of the object) and not the full objects.
+maintain a FIFO that mirrors the server's FIFO but only contains the object ids
+(and the size of the objects) and not the full objects.
 
 After the client requests new object ids, the server replies with a list of
 object ids and puts these objects in its FIFO. As part of a request, a client
-also acknowledges the number of old objects, which are removed from the FIFO at
-the same time. The server checks that the size of the FIFO, i.e. the number of
+also acknowledges a number of objects from the beginning of the server's FIFO
+that it is no longer interested in. The server then removes them from its FIFO.
+The server checks that the size of the FIFO, {\em i.e.}\ the number of
 outstanding objects, never exceeds the protocol limit and aborts the connection
-if a request violates the limits. The client can request any batch of objects
-from the current FIFO in any order. Note, however, that the reply will omit any
-objects that have become invalid in the meantime. (More precisely, the server
-will omit invalid objects from the reply, but they will still be counted in the
-FIFO size, and they will still require an acknowledgement from the client).
+if a request violates the limits.%
+%
+\niols{The server could also answer as many ids as permitted by the FIFO size,
+  and would then not need to abort. This might clash with giving semantics to
+  returning less than the requested number of objects ids. Is it the case in
+  Tx-Submission? Do we care?}
 
 The protocol supports blocking and non-blocking requests for new objects ids. If
-the FIFO is empty, the client must use a blocking request; otherwise, it must be
-a non-blocking request. The producer must reply immediately (i.e. within a small
-timeout) to a non-blocking request. It replies with not more than the requested
-number of ids (possibly with an empty list). A blocking request, on the other
-side, waits until at least one object is available.
+the FIFO is empty, the client has nothing better to do than to wait for the
+server to acquire more object ids; in that case it should use a blocking
+request, in order to avoid polling. The rest of the time, the client might
+prefer non-blocking requests to prevent giving agency to the server for too long
+a time, and being able to download objects in the meantime. The server must
+reply within a small timeout to a non-blocking request, possibly with an empty
+list. A blocking request, on the other hand, waits until at least one object is
+available.
+
+The client can request any batch of objects from the current FIFO in any order.
+The server must respond with all the requested objects.%
+%
+\niols{We removed the possibility to omit invalid objects. The behaviour can be
+  recovered by making \argfont{object} = \argfont{option} \argfont{realObject}.
+  Is this satisfactory?}
+%
+The client must ensure that the total size of the batch it requests does not
+exceeds the protocol's size limits.
 
 
 %%% Local Variables:
