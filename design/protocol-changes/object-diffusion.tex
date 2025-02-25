@@ -261,30 +261,6 @@ If a timeout is violated, the connection SHOULD be torn down.
 
 \subsection{Client and server implementation}
 
-TODO:
-\begin{itemize}
-\item Hooks in the client:
-  \begin{itemize}
-  \item LoP
-  \item “onRecvId” to add ID to the DB
-  \item “onRecvObject” to add object to the DB
-  \item “statusOfObject” -> in DB, in flight with N peers (?). NB: it is not an
-    info on the object, but on whether we want the object (eg. we don't want a
-    vote if we have a cert)
-  \end{itemize}
-\item Server hooks:
-  \begin{itemize}
-  \item next ids
-  \item object from id
-  \end{itemize}
-\item Several client implementations; orchestration
-\item Handling of sizes by client and server; in particular, function
-  “responseToSizes”, or “responseToIds : objectIds -> [(id, size)]”
-\item Semantics of answering no object ids; semantics of answering strictly less
-  than request (eg. no more objects?). Client knows that server is done -> link
-  with orchestration? Also, when syncing, server announces caught up.
-\end{itemize}
-
 The protocol has two design goals: It must diffuse objects with high efficiency
 and, at the same time, it must rule out asymmetric resource attacks from a
 client against a server.
@@ -325,6 +301,10 @@ if a request violates the limits.%
   and would then not need to abort. This might clash with giving semantics to
   returning less than the requested number of objects ids. Is it the case in
   Tx-Submission? Do we care?}
+\nbacquey{Specifically, if the server does sever the connection when the client
+requests a number of ids that would overflow the FIFO, and yet can answer with
+less object ids than requested: do we want that to bear semantics? If so, would
+it be different in blocking v. non-blocking?}
 
 The protocol supports blocking and non-blocking requests for new objects ids. If
 the FIFO is empty, the client has nothing better to do than to wait for the
@@ -339,12 +319,50 @@ available.
 The client can request any batch of objects from the current FIFO in any order.
 The server must respond with all the requested objects.%
 %
-\niols{We removed the possibility to omit invalid objects. The behaviour can be
+\niols{We removed the possibility to omit invalid objects. The behavior can be
   recovered by making \argfont{object} = \argfont{option} \argfont{realObject}.
   Is this satisfactory?}
 %
-The client must ensure that the total size of the batch it requests does not
-exceeds the protocol's size limits.
+
+The client must ensure that the total size of the object batch it requests does not
+exceed the protocol's size limits. In order to do so, the $\argfont{objectIds}$ type
+should contain enough information to infer the size of each object, or the protocol
+should exchange objects with fixed size.
+
+\subsubsection{Orchestration}
+
+A downstream node should run an instance of the object diffusion mini-protocol
+for each of its upstream peers, with the client side running on the node, and
+the server side running on its peers.
+
+If the network is well-connected, it means that the node should receive the same object id
+from multiple peers. The choice of which peer(s) from which to actually download the object
+depends on a large variety of parameters, specific to each parameterization of the mini-protocol:
+\begin{itemize}
+  \item the latency/throughput constraints,
+  \item the expected network load,
+  \item the quality of each node-to-node connection.
+\end{itemize}
+
+\subsubsection{Hooks}
+
+As the object diffusion protocol is generic, it should be parameterized with hooks to achieve behaviors specific to each use case.
+
+The server should be parameterized with the following hooks:
+\begin{itemize}
+  \item $\argfont{nextIds}$ to retrieve the ids of objects it can serve, when receiving \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{}.
+  \item $\argfont{idsToObjects}$ to retrieve objects given their ids, when receiving \MsgRequestObjs{}.
+\end{itemize}
+
+The client should be parameterized with the following hooks:
+\begin{itemize}
+  \item $\argfont{onRecvId}$ to add object ids to the FIFO, and to reward/penalize their peer depending on how much time and/or how many ids they sent (similar to the Limit on Patience in Genesis). \nbacquey{Should we put a link to LoP here, or is it assumed the reader knows what we are talking about?}
+  \item $\argfont{onRecvObject}$ to register new objects in the database.
+  \item $\argfont{objectStatus}$ to retrieve data about an object, given its id.
+  Typical data may include the expected size of the object, and whether it has been/should be requested from the server to which this client instance of the mini-protocol is connected.
+  Reasons for no longer wanting to retrieve an object could be that it has already been retrieved from another peer, has been considered invalid, or has been superseded (for instance, if the object is a vote, but a certificate for the same round has already been received).
+  In any case, this hook should provide enough information to decide whether to acknowledge the object's id when sending the next \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{} to the server.
+\end{itemize}
 
 
 %%% Local Variables:
