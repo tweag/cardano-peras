@@ -81,25 +81,25 @@ A few notes:
 
 \paragraph{Requirements.}
 
-Diffusion of certificates is required in the following contexts:
+Diffusion of certificates is required both for syncing (\ref{enumi:cert diffusion:syncing}) and caught-up (\ref{enumi:cert diffusion:caught up}) nodes:
 
 \begin{enumerate}
-\item
+\item\label{enumi:cert diffusion:syncing}
   Primarily, syncing nodes/pools need to be able to obtain historical certificates in order to choose the correct historical chain, even though certificates do not (meaningfully) affect the ledger state.
 
-  Concretely, nodes bootstrapping via Ouroboros Genesis (to minimize trust assumptions) need to be able to assess the weight of competing historical chains in order to resist adversarial \emph{long-range attacks}.
-  Computing the weight of a chain requires the corresponding certificates indicating which blocks are boosted (potentially multiple times).
+  Concretely, nodes bootstrapping via Ouroboros Genesis (to minimize trust assumptions) need to be able to assess the weight of competing historical chains in order to resist adversarial \emph{long-range attacks} \parencite{genesis-implementation-documentation}.
+  Computing the weight of a chain requires the corresponding certificates indicating which blocks are boosted.
   See \cref{sec:weighted genesis} for more details.
   Even if a syncing node did not encounter any adversarial challengers (and hence didn't ever need to compute weight), it still must get all certificates. Indeed, \emph{other} peers syncing from that node (e.g., in the future) might encounter adversaries and therefore require those certificates.
   Briefly, there is a \enquote{duty to remember} certificates even if they are not directly useful for the caught-up node anymore.
 
   The Cardano implementation of Ouroboros Genesis \parencite{genesis-implementation-documentation} requires that syncing nodes are always connected to at least one honest peer.
-  (This requirement is called the “honest availability assumption”.)
+  (This requirement is called the \enquote{honest availability assumption}.)
   In practice, this is guaranteed by connecting to a sufficient number of appropriately sampled peers.
   To reduce the load on these peers (and for a more efficient use of resources generally), downloading the same certificates from multiple peers must be avoided.%
 %
 \footnote{We find this motivation in other parts of Ouroboros. For instance, as part of the Cardano Genesis implementation, we ensured that both block bodies and headers were downloaded only once.\cite{genesis-implementation-documentation}}
-\item
+\item\label{enumi:cert diffusion:caught up}
   Additionally, diffusing certificates even between caught-up nodes allows mitigating vote-equivocation attacks, cf.~\cref{sec:attack equivocations}.
 \end{enumerate}
 
@@ -137,8 +137,8 @@ In particular, we want:
 An honest server answers requests for more round numbers by monotonically sending those for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.
 At any time, it will serve the certificates corresponding to unacknowledged round numbers, while enforcing an upper bound on the this quantity.
 
-This design leverages the fact that there can only be at most one certificate per round, which allows us to elide data like the point of the block that is being certified/boosted.
-In particular, it does not matter who we download a certificate for a particular from.
+This design leverages the fact that there can only be at most one certificate per round, which allows us to elide data like the point of the block that is being certified/boosted, justifying the use of round numbers as certificate IDs.
+In particular, it does not matter who we download a certificate for a particular round from.
 
 We now give a high-level description of the envisioned dynamics of this protocol.
 
