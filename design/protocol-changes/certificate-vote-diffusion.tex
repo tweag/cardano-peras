@@ -90,12 +90,15 @@ Diffusion of certificates is required in the following contexts:
   Concretely, nodes bootstrapping via Ouroboros Genesis (to minimize trust assumptions) need to be able to assess the weight of competing historical chains in order to resist adversarial \emph{long-range attacks}.
   Computing the weight of a chain requires the corresponding certificates indicating which blocks are boosted (potentially multiple times).
   See \cref{sec:weighted genesis} for more details.
-  Even if a syncing node did not encounter any adversarial challengers (and hence didn't ever need to compute weight), it still must get all certificates in order to in turn be able to serve them to \emph{other} peers syncing \emph{from} that node, as these \emph{do} might require them.
+  Even if a syncing node did not encounter any adversarial challengers (and hence didn't ever need to compute weight), it still must get all certificates. Indeed, \emph{other} peers syncing from that node (e.g., in the future) might encounter adversaries and therefore require those certificates.
   Briefly, there is a \enquote{duty to remember} certificates even if they are not directly useful for the caught-up node anymore.
 
   The Cardano implementation of Ouroboros Genesis \parencite{genesis-implementation-documentation} requires that syncing nodes are always connected to at least one honest peer.
-  In practice, this is guaranteed by connectiong to a sufficient number of appropriately sampled peers.
-  To reduce the load on these peers (and for a more efficient use of resources generally), downloading the same certificates from multiple peers must be avoided.\footnote{This is an extension of the motivation e.g.\ for the \emph{ChainSync Jumping} optimization \parencite{genesis-implementation-documentation} as part of the Cardano Genesis implementation.}
+  (This requirement is called the “honest availability assumption”.)
+  In practice, this is guaranteed by connecting to a sufficient number of appropriately sampled peers.
+  To reduce the load on these peers (and for a more efficient use of resources generally), downloading the same certificates from multiple peers must be avoided.%
+%
+\footnote{We find this motivation in other parts of Ouroboros. For instance, as part of the Cardano Genesis implementation, we ensured that both block bodies and headers were downloaded only once.\cite{genesis-implementation-documentation}}
 \item
   Additionally, diffusing certificates even between caught-up nodes allows mitigating vote-equivocation attacks, cf.~\cref{sec:attack equivocations}.
 \end{enumerate}
@@ -113,7 +116,7 @@ In particular, we want:
 \item [\argfont{id}]
   A Peras round number.
 \item [\argfont{objectIds}, \argfont{responseToIds}]
-  In its simplest form, a list of Peras round numbers.
+  In its simplest form, a list of Peras round numbers, and the identity function.
 
   As an optimization, compact/compressed representations are possible, for example
   \begin{itemize}
@@ -158,7 +161,7 @@ We now give a high-level description of the envisioned dynamics of this protocol
 Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enforcing appropriate timeouts and a monotonicity property on the advertised round numbers:
 \begin{enumerate}
 \item
-  Prompt delivery of requested certificates can be ensured by protocol-level timeouts, or a via more elaborate mechanism like a \emph{leaky token bucket} as used in the Cardnao Genesis implementation  \parencite{genesis-implementation-documentation} which handles temporary latency spikes more gracefully.
+  Prompt delivery of requested certificates can be ensured by protocol-level timeouts, or via a more elaborate mechanism like a \emph{leaky token bucket} as used in the Cardano Genesis implementation  \parencite{genesis-implementation-documentation} which handles temporary latency spikes more gracefully.
 \item\label{enumi:cert diffusion monotonicity}
   The sequence of round numbers sent by the server must increase strictly monotonically, or alternatively (as part of an implementation tradeoff) \emph{almost} monotonically, as honest nodes can observe the certificate for round $r$ before the one for round $s$ despite $r>s$, but only for small $r-s$, see \cref{sec:votes certs from the past}.\footnote{
   More formally, we call a sequence ${(a_k)}_{k\in \mathbb{N}}$ \emph{$d$-monotonic} if $\max_{i<k} a_i < a_{i+1} + d$ for all $i\in \mathbb{N}$.
