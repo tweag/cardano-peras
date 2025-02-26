@@ -1,7 +1,7 @@
-\section{Certificate and vote diffusion}%
+\section{Vote and certificate diffusion}%
 \label{sec:certificate-vote-diffusion}
 
-This section presents our proposed protocols for diffusion of certificates and votes between peers.
+This section presents our proposed protocols for diffusion of votes and certificates between peers.
 \Cref{sec:cert-vote-diff-discussion} presents a discussion about alternative designs that we have considered, \cref{sec:vote-diffusion} presents our protocol for vote diffusion, and \cref{sec:certificate-diffusion} presents our protocol for certificate diffusion.
 
 \subsection{Discussion on the chosen design}%
@@ -79,61 +79,95 @@ A few notes:
 \subsection{Certificate diffusion mini-protocol}%
 \label{sec:certificate-diffusion}
 
-We propose to use the generic object diffusion mini-protocol
-(\cref{sec:object-diffusion-protocol}) instantiated for certificates. In particular, we want:
+\paragraph{Requirements.}
+
+Diffusion of certificates is required in the following contexts:
+
+\begin{enumerate}
+\item
+  Primarily, syncing nodes/pools need to be able to obtain historical certificates in order to choose the correct historical chain, even though certificates do not (meaningfully) affect the ledger state.
+
+  Concretely, nodes bootstrapping via Ouroboros Genesis (to minimize trust assumptions) need to be able to assess the weight of competing historical chains in order to resist adversarial \emph{long-range attacks}.
+  Computing the weight of a chain requires the corresponding certificates indicating which blocks are boosted (potentially multiple times).
+  See \cref{sec:weighted genesis} for more details.
+  Even if a syncing node did not encounter any adversarial challengers (and hence didn't ever need to compute weight), it still must get all certificates in order to in turn be able to serve them to \emph{other} peers syncing \emph{from} that node, as these \emph{do} might require them.
+  Briefly, there is a \enquote{duty to remember} certificates even if they are not directly useful for the caught-up node anymore.
+
+  The Cardano implementation of Ouroboros Genesis \parencite{genesis-implementation-documentation} requires that syncing nodes are always connected to at least one honest peer.
+  In practice, this is guaranteed by connectiong to a sufficient number of appropriately sampled peers.
+  To reduce the load on these peers (and for a more efficient use of resources generally), downloading the same certificates from multiple peers must be avoided.\footnote{This is an extension of the motivation e.g.\ for the \emph{ChainSync Jumping} optimization \parencite{genesis-implementation-documentation} as part of the Cardano Genesis implementation.}
+\item
+  Additionally, diffusing certificates even between caught-up nodes allows mitigating vote-equivocation attacks, cf.~\cref{sec:attack equivocations}.
+\end{enumerate}
+
+We note that certificates can also be diffused in blocks (in order to coordinate the end of a cooldown); this is orthogonal to the discussion in this section.
+
+\paragraph{Using object diffusion.}
+
+We propose to use the generic object diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) instantiated for certificates.
+In particular, we want:
 
 \begin{description}
-\item[\argfont{object}] a certificate
+\item [\argfont{object}]
+  A certificate.
+\item [\argfont{id}]
+  A Peras round number.
+\item [\argfont{objectIds}, \argfont{responseToIds}]
+  In its simplest form, a list of Peras round numbers.
+
+  As an optimization, compact/compressed representations are possible, for example
+  \begin{itemize}
+  \item
+    a round followed by a bitset for the subsequent rounds, indicating whether a certificate is present, or
+  \item
+    a round followed by a run-length encoding of the subsequent rounds.
+    This is motivated by the observation that in Peras, rounds are (not) successful in larger runs, either because all rounds are successful due to sufficient honest votes, and if not, a lengthy cooldown period (with no successful rounds to due honest abstention) of unsuccessful rounds.
+  \end{itemize}
+  The \argfont{responseToIds} function is then decoding this compact representation.
+\item [\argfont{initialPayload}]
+  A Peras round number.
+
+  Partially synced/recently caught-up peers can use this to receive certificates starting from the first round for which they do not yet have a certificate, avoiding the transfer of older, already-downloaded data.\footnote{
+  This is conceptually analogous to \msg{MsgFindIntersect} in the ChainSync protocol.}
 \end{description}
 
-A few notes:
+An honest server answers requests for more round numbers by monotonically sending those for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.
+At any time, it will serve the certificates corresponding to unacknowledged round numbers, while enforcing an upper bound on the this quantity.
+
+This design leverages the fact that there can only be at most one certificate per round, which allows us to elide data like the point of the block that is being certified/boosted.
+In particular, it does not matter who we download a certificate for a particular from.
+
+We now give a high-level description of the envisioned dynamics of this protocol.
 
 \begin{itemize}
 \item
-  We can assume that there is only one block that reaches quorum per round.
-  In particular, if we have a cert for a round, we do not care at all about any other cert in the same round.
-
+  Consider a syncing node via Ouroboros Genesis which still needs to catch up a significant part of the historical chain.
+  The node continually requests sizeable chunks of round numbers via \msg{MsgRequestObjIdsNonBlocking} for each peers.
+  For every round number that is advertised by at least one peer, the corresponding certificates are downloaded from the peers via \msg{MsgRequestObjs} (as a first step, a singular designated peer which a simple batching strategy could be used; but more sophisticated strategies, similar to the existing BlockFetch logic are conceivable).
+  The client uses protocol-level pipelining to avoid round-trip delays and to make full use of the available bandwidth.
 \item
-  Probably useless when caught-up. We might want to keep it running just for the awkward situation where we really didn’t get all the votes but there is a cert.
-  Most of the time, we should get all the votes, realise there is a quorum, and therefore know to ignore the certs that peer tell us about.
-  %
-  \alex{
-    I wouldn't say "useless" as we fundamentally need it to defend against equivocation attacks.
+  As the node is eventually done catching up, its peers run out of certificates to serve, and the node will start sending \msg{MsgRequestObjIdsBlocking} instead.\footnote{
+  In particular, an incomplete/empty reply to \msg{MsgRequestObjIdsBlocking} is analogous to \msg{MsgAwaitReply} in the ChainSync protocol.}
+  Usually, it will receive one new round number per peer every \perasRoundSlots{} slots, but given that the node now participates in vote diffusion, it is not necessary to actually download the certificate.
 
-    Also, there is this other scenario mentioned on Slack that doesn't involve any adversarial activity where we would need to diffuse certs between caught-up nodes:
-    \url{https://moduscreate.slack.com/archives/C06J5CS446A/p1739264734649699?thread_ts=1739260385.010269&cid=C06J5CS446A}
-  }
-
-\item What about reusing the generic object diffusion mini-protocol?
-  (\cref{sec:object-diffusion-protocol})
-  \begin{itemize}
-  \item id = id’ = roundNumber
-
-  \item obj = cert
-
-  \item an initial payload telling the peer from which round number we want to
-    start.
-
-  \item
-    While syncing, we want to know for sure that a round has no certificates, because that influences the GDD.
-    So we need a way to be sure that it isn’t going to come later.
-    Probably we can just solve this by making it mandatory to have round numbers in increasing order for the historical chain.
-    (For caught-up nodes, certs might arrive in another order)
-    %
-    \alex{
-      The idea we discussed yesterday to avoid different logic for syncing and (almost) caught up is to only allow the server to send certificates for a bounded amount of rounds before the certificate with the highest round number they have sent so far.
-
-      Concretely, this bound could be set to the number of volatile rounds (ceil(stabilityWindow / perasRoundSlots) plus maybe some extra margin).
-    }
-
-  \item
-    The information of round numbers can be made much more compact than a list of Word16, because we just need a bitset.
-    We could ask for a range of round and get a bitset covering them.
-    Maybe we can generalise in the obj diff protocol not only the notion of id but the notion of list of ids.
-    Basically we make abstract the [(id, size)] and we just ask for a function that returns a [(id, size)] given the abstract thingie
-  \end{itemize}
+  An exception is the scenario where the node has downloaded all votes for a round without observing a quorum, but still received this round number via the certificate diffusion protocol.
+  In this case, the node will download the certificate via certificate diffusion.
+  This can only happen due to adversarial vote equivocation, see \cref{sec:attack equivocations}.
 \end{itemize}
 
+Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enforcing appropriate timeouts and a monotonicity property on the advertised round numbers:
+\begin{enumerate}
+\item
+  Prompt delivery of requested certificates can be ensured by protocol-level timeouts, or a via more elaborate mechanism like a \emph{leaky token bucket} as used in the Cardnao Genesis implementation  \parencite{genesis-implementation-documentation} which handles temporary latency spikes more gracefully.
+\item\label{enumi:cert diffusion monotonicity}
+  The sequence of round numbers sent by the server must increase strictly monotonically, or alternatively (as part of an implementation tradeoff) \emph{almost} monotonically, as honest nodes can observe the certificate for round $r$ before the one for round $s$ despite $r>s$, but only for small $r-s$, see \cref{sec:votes certs from the past}.\footnote{
+  More formally, we call a sequence ${(a_k)}_{k\in \mathbb{N}}$ \emph{$d$-monotonic} if $\max_{i<k} a_i < a_{i+1} + d$ for all $i\in \mathbb{N}$.
+  Let $r_\bullet = {(r_k)}_{k\in\mathbb{N}}$ be the sequence of round numbers sent by the server.
+  Letting the client enforce $0$-monotonicity of $r_\bullet$ simplifies the client at the cost of the server, whereas enforcing $d$-monotonicity for $d=1$ (or other small positive values) has the opposite tradeoff.
+}
+\end{enumerate}
+
+Finally, we note that in order to conclude that a round \emph{does} have a corresponding certificate, it is enough to download such a cert from any peer, while concluding that there is \emph{no} certificate for a round $r$ requires information from \emph{all} peers (in the form of advertising a certificate for a round sufficiently larger than $r$ as per~\ref{enumi:cert diffusion monotonicity}, or by the peer indicating that they have no more certificates at the moment).
 
 %%% Local Variables:
 %%% mode: latex

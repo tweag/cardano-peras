@@ -126,7 +126,7 @@ Let us consider concretely how and under what conditions an attacker can execute
 
 Here, we list attacks that motivate (and are hence prevented by) certain rules of the Peras design.
 
-\subsection{Attack on a variant of the block creation rule}
+\subsection{Attack on a variant of the block creation rule}\label{sec:attack block creation rule}
 
 Peras enters a \emph{cooldown period} when a round does not give rise to a certificate.
 In order to coordinate the \emph{end} of the cooldown period, a certificate is included on chain.
@@ -181,7 +181,7 @@ However, this complexity is necessary, as \cref{sec:density reduction via boost-
 Concretely, the adversary can use the attack to let the honest chain to have less than $\phi(\alpha) \cdot \sgen$ blocks (i.e.\ the average number of blocks on a chain they can create completely by themselves) in a window of $\sgen$ slots, despite having higher weight.
 Once successful, the adversary can cause syncing nodes to commit to the adversarial chain permanently, violating safety.
 
-\subsection{Spamming equivocating votes}
+\subsection{Spamming equivocating votes}\label{sec:attack equivocations}
 
 The adversary can equivocate any of their seats in the voting committee of a Peras round by creating more than one vote for each seat, voting for different blocks.
 An adversary with $\alpha<1/2$ stake can not use this to cause a quorum for different blocks in the same round due to the choice of $\perasQuorum = 3/4$ and a quorum intersection argument.
