@@ -199,6 +199,8 @@ An honest node downloads votes from its peers in two stages:
 
   The vote ID must be chosen as to uniquely identify a voting committee seat in a particular round.
   Concretely, it can be represented as the round number and a proof of eligibility, which might be the stake pool identity or a VRF proof.
+
+  Also, we assume vote IDs to be significantly smaller than full votes.
 \item\label{enumi:equivocation:step 2}
   In the second stage, the node downloads votes corresponding to all vote IDs \emph{without duplicates}.
   Upon receiving a vote, it is checked that the vote matches the supplied vote ID.\@
