@@ -306,6 +306,16 @@ requests a number of ids that would overflow the FIFO, and yet can answer with
 less object ids than requested: do we want that to bear semantics? If so, would
 it be different in blocking v. non-blocking?}
 
+The choice of a FIFO is what allows for acknowledgement by a simple integer,
+which is more network-efficient and allows for simple implementation. However,
+it somewhat constrains the order in which we request the objects. Note that we
+could use another structure and implementation, as long as the acknowledgement
+scheme still makes sense.%
+%
+\footnote{In the case of Tx-Submission, the use of a FIFO matters because we
+also care about the order of transactions themselves, as they may depend upon
+each other.}
+
 The protocol supports blocking and non-blocking requests for new objects ids. If
 the FIFO is empty, the client has nothing better to do than to wait for the
 server to acquire more object ids; in that case it should use a blocking
