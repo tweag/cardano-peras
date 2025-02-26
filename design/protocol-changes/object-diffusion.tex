@@ -357,6 +357,7 @@ As the object diffusion protocol is generic, it should be parameterized with hoo
 
 The server should be parameterized with the following hooks:
 \begin{itemize}
+  \item \argfont{initialise}, consuming \argfont{initialPayload}.
   \item $\argfont{nextIds}$ to retrieve the ids of objects it can serve, when receiving \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{}.
   \item $\argfont{idsToObjects}$ to retrieve objects given their ids, when receiving \MsgRequestObjs{}.
 \end{itemize}
