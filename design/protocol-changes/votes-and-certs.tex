@@ -109,7 +109,7 @@ If a caught-up node observes a vote or certificat for the first time while its r
 
 A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
 
-On the other hand, votes and certificates from the near past are handled nominally.
+On the other hand, votes and certificates from the near (i.e.\ not distant) past are handled nominally.
 Note that certificates can not arise arbitrarily out of order:
 If an honest caught-up node observes a certificate for round $r$ but has not yet done so for round $r-1$, this means that
 \begin{itemize}
