@@ -323,15 +323,18 @@ available.
 The client can request any batch of objects from the current FIFO in any order.
 The server must respond with all the requested objects.%
 %
-\niols{We removed the possibility to omit invalid objects. The behavior can be
-  recovered by making \argfont{object} = \argfont{option} \argfont{realObject}.
-  Is this satisfactory?}
-%
+\footnote{This is different from the behaviour of Tx-Submission, that allows the
+server to omit transactions in its response, indicating by doing so that they
+are invalid. This behaviour can be recovered by using transaction {\em options}
+as \argfont{object}s.}
 
 The client must ensure that the total size of the object batch it requests does not
 exceed the protocol's size limits. In order to do so, the $\argfont{objectIds}$ type
 should contain enough information to infer the size of each object, or the protocol
-should exchange objects with fixed size.
+should exchange objects with fixed size.%
+%
+\footnote{For votes and certificates, we will use the latter. See
+\Cref{sec:certificate-vote-diffusion}.}
 
 \subsubsection{Orchestration}
 
