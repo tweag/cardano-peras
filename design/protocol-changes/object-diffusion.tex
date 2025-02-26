@@ -292,21 +292,13 @@ maintain a FIFO that mirrors the server's FIFO but only contains the object ids
 (and the size of the objects) and not the full objects.
 
 After the client requests new object ids, the server replies with a list of
-object ids and puts these objects in its FIFO. As part of a request, a client
-also acknowledges a number of objects from the beginning of the server's FIFO
-that it is no longer interested in. The server then removes them from its FIFO.
-The server checks that the size of the FIFO, {\em i.e.}\ the number of
-outstanding objects, never exceeds the protocol limit and aborts the connection
-if a request violates the limits.%
-%
-\niols{The server could also answer as many ids as permitted by the FIFO size,
-  and would then not need to abort. This might clash with giving semantics to
-  returning less than the requested number of objects ids. Is it the case in
-  Tx-Submission? Do we care?}
-\nbacquey{Specifically, if the server does sever the connection when the client
-requests a number of ids that would overflow the FIFO, and yet can answer with
-less object ids than requested: do we want that to bear semantics? If so, would
-it be different in blocking v. non-blocking?}
+object ids and puts these objects in its FIFO. The server may reply with less
+ids that requested, indicating that it has no more objects after those. As part
+of a request, a client also acknowledges a number of objects from the beginning
+of the server's FIFO that it is no longer interested in. The server then removes
+them from its FIFO. The server checks that the size of the FIFO, {\em i.e.}\ the
+number of outstanding objects, never exceeds the protocol limit and aborts the
+connection if a request violates the limits.
 
 The choice of a FIFO is what allows for acknowledgement by a simple integer,
 which is more network-efficient and allows for simple implementation. However,
