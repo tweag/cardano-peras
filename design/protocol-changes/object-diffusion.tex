@@ -1,9 +1,10 @@
 \section{Object diffusion mini-protocol}%
 \label{sec:object-diffusion-protocol}
 
-This section presents a generic object diffusion mini-protocol.
-Heavily inspired by Tx-Submission, we hope to use it for certificate and vote diffusion.
-This protocol aims are synchronising a data base of objects (e.g., for Tx-Submission, their mempool) between peers:
+This section presents a generic object diffusion mini-protocol. Heavily inspired
+by Tx-Submission~\cite[Section~3.9]{network-spec-150}, we hope to use it for
+certificate and vote diffusion. This protocol aims are synchronising a data base
+of objects (e.g., for Tx-Submission, their mempool) between peers:
 %
 \begin{itemize}
 \item
@@ -261,9 +262,10 @@ If a timeout is violated, the connection SHOULD be torn down.
 
 \subsection{Client and server implementation}
 
-The protocol has two design goals: It must diffuse objects with high efficiency
-and, at the same time, it must rule out asymmetric resource attacks from a
-client against a server.
+The protocol has two design goals, inherited from
+Tx-Submission~\cite[Section~3.9]{network-spec-150}: It must diffuse objects with
+high efficiency and, at the same time, it must rule out asymmetric resource
+attacks from a client against a server.
 
 Typically, downstream nodes will run one instance of the client per upstream
 peer that they have, and upstream nodes will run one instance of the server per
