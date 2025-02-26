@@ -134,7 +134,8 @@ In particular, we want:
   This is conceptually analogous to \msg{MsgFindIntersect} in the ChainSync protocol.}
 \end{description}
 
-An honest server answers requests for more round numbers by monotonically sending those for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.
+An honest server answers requests for more round numbers by sending those for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.%
+\footnote{The resulting sequence of round numbers is \emph{almost} monotonically increasing, with a possible exception once the client has (almost) caught-up, see below.}
 At any time, it will serve the certificates corresponding to unacknowledged round numbers, while enforcing an upper bound on the this quantity.
 
 This design leverages the fact that there can only be at most one certificate per round, which allows us to elide data like the point of the block that is being certified/boosted, justifying the use of round numbers as certificate IDs.
@@ -160,14 +161,16 @@ We now give a high-level description of the envisioned dynamics of this protocol
 
 Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enforcing appropriate timeouts and a monotonicity property on the advertised round numbers:
 \begin{enumerate}
-\item
+\item\label{enumi:cert diffusion timeouts}
   Prompt delivery of requested certificates can be ensured by protocol-level timeouts, or via a more elaborate mechanism like a \emph{leaky token bucket} as used in the Cardano Genesis implementation  \parencite{genesis-implementation-documentation} which handles temporary latency spikes more gracefully.
 \item\label{enumi:cert diffusion monotonicity}
-  The sequence of round numbers sent by the server must increase strictly monotonically, or alternatively (as part of an implementation tradeoff) \emph{almost} monotonically, as honest nodes can observe the certificate for round $r$ before the one for round $s$ despite $r>s$, but only for small $r-s$, see \cref{sec:votes certs from the past}.\footnote{
-  More formally, we call a sequence ${(a_k)}_{k\in \mathbb{N}}$ \emph{$d$-monotonic} if $\max_{i<k} a_i < a_{i+1} + d$ for all $i\in \mathbb{N}$.
-  Let $r_\bullet = {(r_k)}_{k\in\mathbb{N}}$ be the sequence of round numbers sent by the server.
-  Letting the client enforce $0$-monotonicity of $r_\bullet$ simplifies the client at the cost of the server, whereas enforcing $d$-monotonicity for $d=1$ (or other small positive values) has the opposite tradeoff.
-}
+  The sequence of round numbers sent by the server must increase \emph{almost} monotonically, as honest nodes (acting as servers) can observe the certificate for round $r$ before the one for round $s$ despite $r>s$, but only for small $r-s$, see \cref{sec:votes certs from the past}.
+
+  This almost-monotonicity requirement can be enforced by an appropriate leaky token bucket (also see~\ref{enumi:cert diffusion timeouts}) via an approach analogous to the \enquote{Limit on Patience}, the mechanism used in the Cardano Genesis implementation \parencite{genesis-implementation-documentation} to guarantee progress in ChainSync while syncing.
+
+  In short, the idea is to make sure that the server sends round numbers higher than anything it has sent before at a minimum rate on average, or that the server advertises that it has no more certificates.
+  An honest server will have no trouble in doing that, as it will only ever send round numbers in non-monotonic order when the client is almost caught-up.
+  Once it is caught-up, this mechanism can be disabled, just like the Limit on Patience.
 \end{enumerate}
 
 Finally, we note that in order to conclude that a round \emph{does} have a corresponding certificate, it is enough to download such a cert from any peer, while concluding that there is \emph{no} certificate for a round $r$ requires information from \emph{all} peers (in the form of advertising a certificate for a round sufficiently larger than $r$ as per~\ref{enumi:cert diffusion monotonicity}, or by the peer indicating that they have no more certificates at the moment).
