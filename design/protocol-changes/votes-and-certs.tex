@@ -102,6 +102,24 @@ We suggest to handle such votes just like \emph{headers} from the future are alr
   Upon receiving a vote or certificate from the \emph{far} future (defined to be more than \qty{2}{\s} in the future), we immediately disconnect from the sending peer as this constitutes adversarial behavior.
 \end{itemize}
 
+\subsection{Handling votes and certificates from the past}\label{sec:votes certs from the past}
+
+If a caught-up node observes a vote or certificat for the first time while its round is already from the distant past (i.e.\ more than \Tcp{} slots), it can safely ignore/discard them (in contrast to the current version of the formal specification in~\cite{peras-cip}), as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection.\footnote{
+  In particular, the node does not maintain the necessary state (e.g.\ arbitrarily old stake distributions) in order to even be able to validate such votes/certificates, and doing so would be undesirable.}
+
+A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
+
+On the other hand, votes and certificates from the near past are handled nominally.
+Note that certificates can not arise arbitrarily out of order:
+If an honest caught-up node observes a certificate for round $r$ but has not yet done so for round $r-1$, this means that
+\begin{itemize}
+\item
+  either a cooldown just ended, during which no honest nodes voted and so no certificate was created for many rounds, so the node has definitely seen all certificates for rounds smaller than $r$,
+\item
+  or honest pools voted in round $r$, which is only the case if they observed a certificate for round $r-1$ at that point, so it is only a matter of time until the node receives that certificate.
+\end{itemize}
+An adversary with sufficient stake $\alpha > 1-\perasQuorum$ can cause the latter scenario by withholding its votes during round $r-1$ until closely before the start of round $r$, and then diffusing them only to a subset of the honest nodes.
+Also see \cref{sec:attack block creation rule}.
 
 %%% Local Variables:
 %%% mode: latex
