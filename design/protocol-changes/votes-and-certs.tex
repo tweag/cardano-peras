@@ -62,7 +62,8 @@ On the other hand, we assume that \emph{equivocating} certificates, i.e.\ two ce
 \begin{tcolorbox}[title=Assumption]
   For every Peras round, there is at most one block that has a valid certificate in that round.
 \end{tcolorbox}
-This assumption is justified by an appropriate parameterization \perasQuorum{} and \perasN{}, such that an adversary never attains sufficient weight in the committee to equivocate certificates.\footnote{Future work on the Peras protocol might relax this assumption and hence allow a less conservative parameterization.}
+This assumption is justified by an appropriate parameterization of \perasQuorum{} and \perasN{}, such that an adversary never attains sufficient weight in the committee to equivocate certificates.\footnote{Future work on the Peras protocol might relax this assumption and hence allow a less conservative parameterization.
+  However, certain design decisions (especially around certificate diffusion) in this document would need to be reconsidered to properly handle equivocating certificates, as we decided not to prematurely complicate the design without a clear picture of how the necessary semantics.}
 
 \subsection{Realizing votes and certificates}
 
