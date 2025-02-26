@@ -1,80 +1,69 @@
 \section{Vote and certificate diffusion}%
 \label{sec:certificate-vote-diffusion}
 
-This section presents our proposed protocols for diffusion of votes and certificates between peers.
-\Cref{sec:cert-vote-diff-discussion} presents a discussion about alternative designs that we have considered, \cref{sec:vote-diffusion} presents our protocol for vote diffusion, and \cref{sec:certificate-diffusion} presents our protocol for certificate diffusion.
-
-\subsection{Discussion on the chosen design}%
-\label{sec:cert-vote-diff-discussion}
-
-\niols{Should this disappear? Or maybe go in the appendix?}
-
-The use of one combined protocol provides the following upsides:
-%
-\begin{itemize}
-\item
-  It allows for some optimisations, such as responding with a certificate when a client asks for a vote that it subsumes.
-
-\item
-  There only one protocol to understand and maintain.
-
-\item
-  It aleviates the need for synchronisation between the two protocols (e.g., if we get a certificate, then we do not need to request votes anymore) and avoids us having to reason on the interactions between the two protocols.
-\end{itemize}
-
-The use of distinct protocols for certificate diffusion and vote diffusion provides the following upsides:
-
-\begin{itemize}
-\item
-  Each protocol, by virtue of being smaller, is also conceptually simpler.
-
-\item
-  We can hope to use similar protocols for certificate diffusion and vote diffusion.
-  In fact, we can hope to reuse our generic object diffusion protocol (\cref{sec:object-diffusion-protocol}) for everything.
-\end{itemize}
-
-We propose to go for separate protocols.
-We find the upside of conceptually simpler protocols convincing, and even more if we manage to reuse an existing one.
-We believe that the lost optimisation is in fact not so significant, and that the synchronisation between the two protocols will not be difficult to implement.
-
-Once that is decided, remains the question, for both certificate and vote diffusion, of whether we should introduce mini-protocols tailored to the specific use case of those objects, or if we should reuse existing protocols, for instance inspired by Tx-Submission.
-
-\niols[inline]{TODO: Discussion}
+This section presents our proposed protocols for diffusion of votes (\cref{sec:vote-diffusion}) and certificates (\cref{sec:certificate-diffusion}) between peers, based on the object diffusion mini-protocol described in \cref{sec:object-diffusion-protocol}.
+Finally, \cref{sec:vote cert alternatives} presents a discussion about alternative designs that we have considered.
 
 \subsection{Vote diffusion mini-protocol}%
 \label{sec:vote-diffusion}
+
+\paragraph{Requirements.}
+Diffusion of votes takes place between caught-up nodes in every Peras round.
+The core requirement is that all honest pools observe a quorum before the end of a round, as long as votes with weight of at least \perasQuorum{} have been cast for the same block in that round.
+
+Concretely, assuming $\perasN = 1000$ and a vote size of $\qty{164}{\byte}$ (\cref{fig:protocol parameters,fig:vote cert metrics}), the total size of the votes of a round is $\perasN \cdot \qty{164}{\byte} = \qty{164}{\kilo\byte}$, which needs to be diffused within $\perasRoundSlots = 90$ slots/seconds.
+This is a more relaxed timeliness constraint compared to block diffusion, where blocks of size up to $\qty{90}{\kilo\byte}$ need to be diffused within $\lesssim \Delta = 5$ slots/seconds.
+
+\paragraph{Using object diffusion.}
 
 We propose to use the generic object diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) instantiated for votes.
 In particular, we want:
 %
 \begin{description}
-\item[\argfont{object}] a vote
-\item[\argfont{id}] the pair of a round number and a committee seat
-  identifier\niols{what is that? a hash? a number?}
-\item[\argfont{objectIds}] a list of \argfont{id}s
-\item[\argfont{responseToIds}] the identity function --- \(\argfont{objectIds} =
-  [\argfont{id}]\) already
-\item[\argfont{initialPayload}] unit --- no payload is necessary
+\item[\argfont{object}]
+  A Peras vote.
+\item[\argfont{id}]
+  A vote ID, i.e.\ a pair of a round number and an identifier for a committee seat of that round, determining the pool identity.
+
+  Concretely, in scheme described in~\cite{peras-cert-report}, this is either the hash of the cold key of the voting pool, or (as an optimization) an index into the stake distribution.
+\item[\argfont{objectIds}, \argfont{responseToIds}]
+  A list of \argfont{id}s. Correspondingly, \argfont{objectIds} is the identity function.
+\item[\argfont{initialPayload}]
+  No payload is necessary; only votes near the current round of the system are ever diffused.
 \end{description}
 
-A few notes:
+The server advertises the vote IDs of the votes it has received for the current round, as well as (with lower priority) vote IDs for unsuccessful rounds of the near past, cf.~\cref{sec:votes certs from the past}.
+(As honest nodes stop voting after an unsuccessful round, all later votes during a cooldown periods have been cast by the adversary.)
+Additionally, it serves the votes corresponding to the unacknowledged vote IDs.
 
+We now describe the dynamics of an honest node engaging as the client in vote diffusion with its peers, assuming that it is caught-up.
 \begin{itemize}
 \item
-  The size of a vote is constant so we do not need to transmit the size at any point, the client will be able to keep this in mind.
-
+  The node continually requests more vote IDs from its peers (with a limit on unacknowledged votes), using non-blocking or blocking requests depending on whether there are are outstanding unacknowledged votes.
 \item
-  We do not need to download the votes on the historical chain, so we can just start the protocol with the state of the server at that point, and there is no need to transmit an initial payload to explain since when we want to download votes.
+  At the beginning of a Peras round, the node will start receiving lots of new vote IDs for that round from all of its (honest) peers.
+  For each such vote ID, the node will ask one peer (or a small number in parallel) out of the peers that offered this vote ID for the corresponding vote, relying on protocol-level timeouts for a prompt delivery (or otherwise disconnecting from the peer).
 
-\item
-  We want to avoid missing a quorum when almost caught-up and when we put something in our immutable DB.\niols{I can't remember what I meant by that, but probably there is an important question of when we should start downloading votes. Is there a risk, if we want until we are caught-up?}
+  By limiting the number of votes that are being downloaded in parallel, the traffic is implicitly spread out over the first few seconds of the round, bounding the spike of network activity.
 
+  This strategy naturally handles adversarial vote equivocation, cf.~\cref{sec:attack equivocations}.
 \item
-  We want to download all the votes because there could be votes equivocation.
-  \alex{I don't immediately see a relation between these two things.}
-  \niols{I also don't know. What if we remove this line and just say that we
-    want to download the votes reasonably fast?}
+  The client will \emph{not} download the vote corresponding to a vote ID if its round either lies in the distant past (\cref{sec:votes certs from the past}), or in the near past for which the node has already observed a successful quorum.
+\item
+  It might seem appealing to also stop downloading votes for the current round as soon as we have observed a quorum (via votes of weight \perasQuorum{}).
+
+  However, then the node can not relay these votes, and a downstream peer might be missing exactly some of these votes to observe a quorum of votes by itself.
+  Our design still handles this case directly by also running certificate diffusion between caught-up nodes (\cref{sec:certificate-diffusion}), but downloading and validating only a few votes is more efficient than transferring a certificate.\footnote{
+  It is conceivable that in a variant of~\cite{peras-cert-report}, certificates will be only slightly larger than votes, in which case the difference in efficiency might be negligible.}
+A compromise would be to stop downloading votes for the current round as soon as votes of weight larger than $\sigma$ have been observed, where $\perasQuorum < \sigma < 1$.
+\item
+  The client always checks that the votes indeed correspond to the advertised vote IDs, and that the votes are in fact valid, and disconnects from the offending peer otherwise.
+  Together with the fact that the number of votes per bound is bounded by the size of the Peras committe, this bounds the work of the client.
 \end{itemize}
+The node does not send requests for vote IDs or votes while it is syncing (in particular, it could not even validate them at this point), which can be determined by the Genesis State Machine \parencite{genesis-implementation-documentation} or a more ad-hoc criterion like the proximity of the chain tip to the current wall-clock time.
+
+This protocol shares several similarities with Tx-Submission, and we anticipate that the implementation can benefit from the insights of the design in \texttt{cardano-node}.
+In particular, the IOE Network team has been reworking the inbound side of Tx-Submission\footnote{\url{https://github.com/IntersectMBO/ouroboros-network/pull/4887}} to more efficiently download transactions from different peers (avoiding repeated downloads).
 
 \subsection{Certificate diffusion mini-protocol}%
 \label{sec:certificate-diffusion}
@@ -107,7 +96,7 @@ We note that certificates can also be diffused in blocks (in order to coordinate
 
 \paragraph{Using object diffusion.}
 
-We propose to use the generic object diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) instantiated for certificates.
+We propose to again use the generic object diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) instantiated for certificates.
 In particular, we want:
 
 \begin{description}
@@ -174,6 +163,25 @@ Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enfo
 \end{enumerate}
 
 Finally, we note that in order to conclude that a round \emph{does} have a corresponding certificate, it is enough to download such a cert from any peer, while concluding that there is \emph{no} certificate for a round $r$ requires information from \emph{all} peers (in the form of advertising a certificate for a round sufficiently larger than $r$ as per~\ref{enumi:cert diffusion monotonicity}, or by the peer indicating that they have no more certificates at the moment).
+
+\subsection{Alternatives}\label{sec:vote cert alternatives}
+
+We briefly discuss two alternatives to the design of vote and certificate diffusion presented above.
+\begin{itemize}
+\item
+  One could combine vote and certificate diffusion into one custom protocol.
+  This would allow for some optimizations, such as responding with a certificate when a client asks for a vote that it subsumes, and could make certain interactions between the vote and certificate clients explicit.
+
+  However, the separation of votes and certificates actually allows the individual protocols to be simpler and more focused, and the aforementioned optimization does not seem relevant in practice, in particular as one still needs synchronization between the clients of different peers.
+
+  Also, there is an advantage in reusing object-diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) due to its similarity to the existing Tx-Submission protocol, and the planned use for Mithril \parencite{dmq-cip} and Ouroboros Leios.
+\item
+  Certificate diffusion could use \emph{two} protocols similar to how chains are diffused in Cardano.
+  Concretely, the first protocol would be similar to ChainSync and diffuse just certificate IDs (i.e.\ round numbers) and the second protocol would be an instantiation of BlockFetch with certificate IDs instead of block points and certificates instead of blocks.
+
+  However, this approach seems overly complicated for the purpose of certificate diffusion.
+  The primary motivation for having separate ChainSync and BlockFetch protocls is the \emph{header-body split} \parencite{shelley-data-diffusion-networking}, and ChainSync is specifically designed for stateful chain following, whereas certificates do not have an inherent chain structure (despite voting for blocks on a block chain).
+\end{itemize}
 
 %%% Local Variables:
 %%% mode: latex
