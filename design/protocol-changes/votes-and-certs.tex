@@ -116,10 +116,12 @@ If an honest caught-up node observes a certificate for round $r$ but has not yet
 \item
   either a cooldown just ended, during which no honest nodes voted and so no certificate was created for many rounds, so the node has definitely seen all certificates for rounds smaller than $r$,
 \item
-  or honest pools voted in round $r$, which is only the case if they observed a certificate for round $r-1$ at that point, so it is only a matter of time until the node receives that certificate.
+  or other honest nodes voted in round $r$ due to them observing a certificate for round $r-1$ at that point, so it is only a matter of time until the node also receives that certificate (which we can assume to happen before round $r+1$ starts, as $\perasRoundSlots \gg \Delta$, where $\Delta$ is the maximum network delay).
+
+  An adversary with sufficient stake $\alpha > 1-\perasQuorum$ can cause this scenario by withholding its votes during round $r-1$ until closely before the start of round $r$, and then diffusing them only to a subset of the honest nodes in time before round $r$.
+  Also see \cref{sec:attack block creation rule}.
 \end{itemize}
-An adversary with sufficient stake $\alpha > 1-\perasQuorum$ can cause the latter scenario by withholding its votes during round $r-1$ until closely before the start of round $r$, and then diffusing them only to a subset of the honest nodes.
-Also see \cref{sec:attack block creation rule}.
+In both cases, the sequence ${(r_k)}_{k\in\mathbb{N}}$ of round numbers of certificates observed by an honest node increases \emph{almost} monotonically, i.e.\ $\max_{i<k} r_k \le  r_{k+1} - 1$ for all $k\in\mathbb{N}$.
 
 %%% Local Variables:
 %%% mode: latex

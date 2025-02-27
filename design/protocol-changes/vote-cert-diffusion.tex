@@ -164,9 +164,9 @@ Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enfo
 \item\label{enumi:cert diffusion timeouts}
   Prompt delivery of requested certificates can be ensured by protocol-level timeouts, or via a more elaborate mechanism like a \emph{leaky token bucket} as used in the Cardano Genesis implementation  \parencite{genesis-implementation-documentation} which handles temporary latency spikes more gracefully.
 \item\label{enumi:cert diffusion monotonicity}
-  The sequence of round numbers sent by the server must increase \emph{almost} monotonically, as honest nodes (acting as servers) can observe the certificate for round $r$ before the one for round $s$ despite $r>s$, but only for small $r-s$, see \cref{sec:votes certs from the past}.
+  The sequence of round numbers sent by the server must increase \emph{almost} monotonically, as honest nodes (acting as servers) can observe the certificate for round $r$ before the one for round $r-1$ in edge cases, see~\cref{sec:votes certs from the past}.
 
-  This almost-monotonicity requirement can be enforced by an appropriate leaky token bucket (also see~\ref{enumi:cert diffusion timeouts}) via an approach analogous to the \enquote{Limit on Patience}, the mechanism used in the Cardano Genesis implementation \parencite{genesis-implementation-documentation} to guarantee progress in ChainSync while syncing.
+  This almost-monotonicity requirement can be enforced implicitly by an appropriate leaky token bucket (also see~\ref{enumi:cert diffusion timeouts}) via an approach analogous to the \enquote{Limit on Patience}, the mechanism used in the Cardano Genesis implementation \parencite{genesis-implementation-documentation} to guarantee progress in ChainSync while syncing.
 
   In short, the idea is to make sure that the server sends round numbers higher than anything it has sent before at a minimum rate on average, or that the server advertises that it has no more certificates.
   An honest server will have no trouble in doing that, as it will only ever send round numbers in non-monotonic order when the client is almost caught-up.
