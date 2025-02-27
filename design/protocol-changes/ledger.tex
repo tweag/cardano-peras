@@ -5,13 +5,14 @@ The Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} 
 Peras requires new protocol parameters, see \cref{sec:protocol parameters}, which should be a routine change.
 
 Apart from that, the Ledger needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
+We note that certificate are morally part of the Consensus layer (in particular, validating them requires the epoch nonce, which no other ledger rule does); however, certificates are likely too large to be stored in a header.
 
 Concretely, we propose the following checks for a block body $B$ containing a certificate \cert{}:
 \begin{enumerate}
 \item
   The certificate \cert{} must be valid.
 \item
-  The round of \cert{} must be strictly greater than the round than the previous certificate on chain.
+  The round of \cert{} must be strictly greater than the round of the previous certificate on chain, and not larger than the round corresponding to the slot of $B$.
 \item
   The size of the certificate must be bounded.
   Concretely, we propose a protocol parameter \perasCertSizeLimit{} for the size of a certificate, and potentially (if the size of the certificate can be large, say $\ge\SI{5}{\kilo\byte}$), let the size of the certificate count towards the maximum transaction size of a block.
@@ -24,18 +25,22 @@ This does not impact the purpose of on-chain certificates:
 If the system does enter a cooldown (via honest nodes stopping to vote), the adversary will run out of certificates to include on chain due to the monotonicity property of round numbers.
 
 Moreover, this monotonicity property also ensures that the adversary can (on average) only include one certificate per Peras round.
-This means that, on average (assuming no cooldown periods), an attacker with sufficient stake to be elected at least once per round on average\footnote{Concretely, this is satisfied for an adversary with stake $\alpha$ if $\phi(\alpha)\cdot\perasRoundSlots \ge 1$, so for $\alpha \ge 21.8\%$ if $f=1/20$ and $\perasRoundSlots=90$.} can include
-\[\frac \perasCertSizeLimit \perasRoundSlots\,\unit{B/\slot}\]
-without anyone paying for the associated cost of bandwidth/storage.
+\begin{itemize}
+\item
+  This means that, on average (assuming no cooldown periods), an attacker with sufficient stake to be elected at least once per round on average\footnote{Concretely, this is satisfied for an adversary with stake $\alpha$ if $\phi(\alpha)\cdot\perasRoundSlots \ge 1$, so for $\alpha \ge 21.8\%$ if $f=1/20$ and $\perasRoundSlots=90$.} can include
+  \[\frac \perasCertSizeLimit \perasRoundSlots\,\unit{B/\slot}\]
+  without anyone paying for the associated cost of bandwidth/storage.
 
-For comparison, the fee for including $\perasCertSizeLimit$ bytes on the chain as part of a transaction is given by $\mi{minfeeA}\cdot \perasCertSizeLimit$.
-For realistic values on the conservative end (using $\mi{minfeeA} = 44$ and $\mi{minfeeB} = 155381$ on Cardano mainnet as of epoch 537\footnote{See e.g.\ \url{https://cexplorer.io/params}.}, $\perasRoundSlots=90$ and $\perasCertSizeLimit = \SI{20}{kB}$, cf.~\cref{fig:vote cert metrics}), this would correspond to a cost of
-\[ \frac{\mi{minfeeA\cdot \perasCertSizeLimit + \mi{minfeeB}}}{\perasRoundSlots} \approx \SI{11504}{\lovelace/\slot} \approx \SI{41.42}{\ADA/h} \]
-assuming a slot length of one second.
+  For comparison, the fee for including $\perasCertSizeLimit$ bytes on the chain as part of a transaction is given by $\mi{minfeeA}\cdot \perasCertSizeLimit$.
+  For realistic values on the conservative end (using $\mi{minfeeA} = 44$ and $\mi{minfeeB} = 155381$ on Cardano mainnet as of epoch 537\footnote{See e.g.\ \url{https://cexplorer.io/params}.}, $\perasRoundSlots=90$ and $\perasCertSizeLimit = \SI{20}{kB}$, cf.~\cref{fig:vote cert metrics}), this would correspond to a cost of
+  \[ \frac{\mi{minfeeA\cdot \perasCertSizeLimit + \mi{minfeeB}}}{\perasRoundSlots} \approx \SI{11504}{\lovelace/\slot} \approx \SI{41.42}{\ADA/h} \]
+  assuming a slot length of one second.
 
-For context, note that implementing Peras also entails diffusing \perasN{} votes per round (and the total size of the votes is significantly large than \perasCertSizeLimit{}), and the bandwidth induced by this is also currently not planned to be compensated/incentivized.
-\todo{Link to section where we talk about lack of incentivization.}
-
+  For context, note that implementing Peras also entails diffusing \perasN{} votes per round (and the total size of the votes is significantly large than \perasCertSizeLimit{}), and the bandwidth induced by this is also currently not planned to be compensated/incentivized.
+\item
+  Additionally, we need to validate these uselessly included certificates.
+  As they do not affect the ledger state, this validation can in principle be performed in parallel to the ledger rules, partially mitigating the impact.
+\end{itemize}
 Finally, note that otherwise-honest nodes have no incentive to include such useless certificates, in particular as they usually could instead include more transactions (which pay fees) in their blocks.
 
 \subsection{Alternatives}

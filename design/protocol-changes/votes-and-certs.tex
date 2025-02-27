@@ -42,7 +42,7 @@ A vote from round $r$ (starting in slot $s$) for a block in slot $t$ is \emph{va
   The slots $s$ and $t$ are in the same era, or at least, the eras of $s$ and $t$ both support Peras.
 \end{itemize}
 
-\subsection{Certificates}
+\subsection{Certificates}\label{sec:certificate generalities}
 
 Once a node observes votes of the same round for the same block with total weight of at least $\perasQuorum$, then it will create (via \emph{aggregation}) a corresponding (succinct) \emph{certificate} proving this fact.
 
