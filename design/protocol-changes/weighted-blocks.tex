@@ -29,7 +29,7 @@ Various components that currently consider chain \emph{length} must instead cons
   The Hard Fork Combinator (HFC) is Cardano's mechanism for transparently handling transitions between different Cardano eras.
   Before enacting an era transition decided by on-chain governance, the HFC requires at least \kcp{} blocks after the \emph{voting deadline}, i.e.\ the last slot that could still affect the on-chain governance.\footnote{
     See \url{https://ouroboros-consensus.cardano.intersectmbo.org/docs/for-developers/CivicTime} for more context.}
-  This mechanism is called \emph{block counting}
+  This mechanism is called \emph{block counting}.
 
   Relying on Praos Chain Growth, these \kcp{} blocks must arise in \Tcp{} slots.
   In Peras however, Chain Growth guarantees instead that \Tcp{} slots contain blocks having \emph{weight} of at least \kcp{} blocks on any chain, which does not imply that there actually are \kcp{} blocks.
