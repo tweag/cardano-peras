@@ -351,20 +351,22 @@ depends on a large variety of parameters, specific to each parameterization of t
   \item the quality of each node-to-node connection.
 \end{itemize}
 
-\subsubsection{Hooks}
+\subsubsection{Use-case specific functions}
 
-As the object diffusion protocol is generic, it should be parameterized with hooks to achieve behaviors specific to each use case.
+As the object diffusion protocol is generic, its implementation may benefit from having specific key functions where use-case specific behavior is implemented.
+This would allow code sharing between implementations.
+We identify the following use-case specific functions:
 
-The server should be parameterized with the following hooks:
+In the server:
 \begin{itemize}
-  \item \argfont{initialise}, consuming \argfont{initialPayload}.
+  \item $\argfont{initialise}$, consuming \argfont{initialPayload}.
   \item $\argfont{nextIds}$ to retrieve the ids of objects it can serve, when receiving \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{}.
   \item $\argfont{idsToObjects}$ to retrieve objects given their ids, when receiving \MsgRequestObjs{}.
 \end{itemize}
 
-The client should be parameterized with the following hooks:
+In the client:
 \begin{itemize}
-  \item $\argfont{onRecvId}$ to add object ids to the FIFO, and to reward/penalize their peer depending on how much time and/or how many ids they sent (similar to the Limit on Patience in Genesis). \nbacquey{Should we put a link to LoP here, or is it assumed the reader knows what we are talking about?}
+  \item $\argfont{onRecvId}$ to add object ids to the FIFO, and to reward/penalize their peer depending on how much time they took and/or how many ids they sent.
   \item $\argfont{onRecvObject}$ to register new objects in the database.
   \item $\argfont{objectStatus}$ to retrieve data about an object, given its id.
   Typical data may include the expected size of the object, and whether it has been/should be requested from the server to which this client instance of the mini-protocol is connected.
@@ -372,6 +374,8 @@ The client should be parameterized with the following hooks:
   In any case, this hook should provide enough information to decide whether to acknowledge the object's id when sending the next \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{} to the server.
 \end{itemize}
 
+I may be possible to have a fully generic implementation of the object diffusion mini-protocol, where the use-case specific behavior is entirely contained in the key functions above.
+In that case, those could be provided as hooks to the generic implementation.
 
 %%% Local Variables:
 %%% mode: latex
