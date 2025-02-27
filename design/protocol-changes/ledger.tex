@@ -7,17 +7,20 @@ Peras requires new protocol parameters, see \cref{sec:protocol parameters}, whic
 Apart from that, the Ledger needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
 We note that certificate are morally part of the Consensus layer (in particular, validating them requires the epoch nonce, which no other ledger rule does); however, certificates are likely too large to be stored in a header.
 
-Concretely, we propose the following checks for a block body $B$ containing a certificate \cert{}:
+Concretely, we propose the following checks for a block body $B$ in round $r$ containing a certificate \cert{}:
 \begin{enumerate}
 \item
   The certificate \cert{} must be valid.
 \item
-  The round of \cert{} must be strictly greater than the round of the previous certificate on chain, and not larger than the round corresponding to the slot of $B$.
+  The round of \cert{} must be strictly greater than the round of the previous certificate on chain, and it must lie between $r-\perasCertMaxSlots$ and $r$, i.e.\
+  \[ r-\perasCertMaxSlots \le \round(\cert) \le r \;. \]
+  This ensures that \cert{} is neither too old nor too new, such that the ledger state that $B$ is validated against contains the necessary information to validate $r$.
 \item
   The size of the certificate must be bounded.
   Concretely, we propose a protocol parameter \perasCertSizeLimit{} for the size of a certificate, and potentially (if the size of the certificate can be large, say $\ge\SI{5}{\kilo\byte}$), let the size of the certificate count towards the maximum transaction size of a block.
 \end{enumerate}
-The only change to the ledger state is the addition of the round number of the last certificate on chain.
+The only change to the ledger state is the addition of the round number of the last certificate on chain, and the stake distribution for the previous epoch in case \cert{} is in a previous epoch compared to $B$.%
+\footnote{The ledger state already keeps the stake distribution of the previous epoch around for its reward calculation.}
 
 \subsection{Analysis}
 Note that these rules allow the adversary to needlessly include certificates in chain even if there is no current/upcoming cooldown period.
