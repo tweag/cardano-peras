@@ -32,8 +32,8 @@ In particular, we want:
   No payload is necessary; only votes near the current round of the system are ever diffused.
 \end{description}
 
-The server advertises the vote IDs of the votes it has received for the current round (sorted by weight in decreasing order), as well as (with lower priority) vote IDs for unsuccessful rounds of the near past, cf.~\cref{sec:votes certs from the past}.
-(As honest nodes stop voting after an unsuccessful round, all later votes during a cooldown periods have been cast by the adversary.)
+The server advertises the vote IDs of the votes it has received for the current round (sorted by weight in decreasing order), cf.~\cref{sec:votes certs from the past}.
+Votes for older rounds are not advertised, cf.~\cref{sec:votes certs from the past}.
 Additionally, it serves the votes corresponding to the unacknowledged vote IDs.
 
 We now describe the dynamics of an honest node engaging as the client in vote diffusion with its peers, assuming that it is caught-up.
@@ -41,14 +41,14 @@ We now describe the dynamics of an honest node engaging as the client in vote di
 \item
   The node continually requests more vote IDs from its peers (with a limit on unacknowledged votes), using non-blocking or blocking requests depending on whether there are are outstanding unacknowledged votes.
 \item
+  The client disconnects from the server if the round of the vote ID is from the future or the past (modulo some acceptable clock skew), cf.~\cref{sec:votes certs from the future,sec:votes certs from the past}.
+\item
   At the beginning of a Peras round, the node will start receiving lots of new vote IDs for that round from all of its (honest) peers.
   For each such vote ID, the node will ask one peer (or a small number in parallel) out of the peers that offered this vote ID for the corresponding vote, relying on protocol-level timeouts for a prompt delivery (or otherwise disconnecting from the peer).
 
   By limiting the number of votes that are being downloaded in parallel, the traffic is implicitly spread out over the first few seconds of the round, bounding the spike of network activity.
 
   This strategy naturally handles adversarial vote equivocation, cf.~\cref{sec:attack equivocations}.
-\item
-  The client will \emph{not} download the vote corresponding to a vote ID if its round either lies in the distant past (\cref{sec:votes certs from the past}), or in the near past for which the node has already observed a successful quorum.
 \item
   The client stops downloading votes as soon as it has votes with weight of at least \perasQuorum{}.
   However, it still continues to offer these vote IDs/votes during the round, as it can be more efficient for downstream peers to download a few remaining votes to observe a quorum by themselves instead of downloading a certificate.
@@ -85,7 +85,7 @@ Diffusion of certificates is required both for syncing (\ref{enumi:cert diffusio
 %
 \footnote{We find this motivation in other parts of Ouroboros. For instance, as part of the Cardano Genesis implementation, we ensured that both block bodies and headers were downloaded only once.\cite{genesis-implementation-documentation}}
 \item\label{enumi:cert diffusion:caught up}
-  Additionally, diffusing certificates even between caught-up nodes allows mitigating vote-equivocation attacks, cf.~\cref{sec:attack equivocations}.
+  Additionally, diffusing certificates even between caught-up nodes is necessary in certain cases involving adversarial activity, such as late votes (\cref{sec:votes certs from the past}) and equivocation attacks (\cref{sec:attack equivocations}).
 \end{enumerate}
 
 We note that certificates can also be diffused in blocks (in order to coordinate the end of a cooldown); this is orthogonal to the discussion in this section.
@@ -136,12 +136,12 @@ We now give a high-level description of the envisioned dynamics of this protocol
   The client uses protocol-level pipelining to avoid round-trip delays and to make full use of the available bandwidth.
 \item
   As the node is eventually done catching up, its peers run out of certificates to serve, and the node will start sending \msg{MsgRequestObjIdsBlocking} instead.\footnote{
-  In particular, an incomplete/empty reply to \msg{MsgRequestObjIdsBlocking} is analogous to \msg{MsgAwaitReply} in the ChainSync protocol.}
+  In particular, an incomplete/empty reply to \msg{MsgRequestObjIdsNonBlocking} is analogous to \msg{MsgAwaitReply} in the ChainSync protocol.}
   Usually, it will receive one new round number per peer every \perasRoundSlots{} slots, but given that the node now participates in vote diffusion, it is not necessary to actually download the certificate.
 
   An exception is the scenario where the node has downloaded all votes for a round without observing a quorum, but still received this round number via the certificate diffusion protocol.
   In this case, the node will download the certificate via certificate diffusion.
-  This can only happen due to adversarial vote equivocation, see \cref{sec:attack equivocations}.
+  This can only happen due to adversarial activity like vote equivocation, see \cref{sec:attack equivocations}.
 \end{itemize}
 
 Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enforcing appropriate timeouts and a monotonicity property on the advertised round numbers:
