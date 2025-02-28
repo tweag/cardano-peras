@@ -18,7 +18,8 @@ Various components that currently consider chain \emph{length} must instead cons
   \[ \left\lceil \frac{\kcp }{1 + \frac{\perasBoost}{\perasRoundSlots \cdot \asc}} \right\rceil = 499 \]
   blocks in expectation, assuming no adversary and full honest participation, as well as $\perasBoost = 15$, $\asc = 1/20$ and $\kcp = 2160$.
 
-  The node needs to store the ledger state corresponding to every volatile block and the immutable tip; this also changes analogously.
+  As a consequence, and because we only need to store ledger states for each volatile block and the immutable tip, fewer ledger states need to be stored in that case.
+  However, this expected to only result in a small gain in efficiency, as ledger states corresponding to subsequent blocks only differ by a small amount in relation to the total size, and existing implementations exploit this fact by using implicit structural sharing or by explicitly maintaining these diffs.
 \item[Ouroboros Genesis rule]
   The Cardano Genesis implementation \parencite{genesis-implementation-documentation} performs density comparisons between competing header chains while syncing.
   With Peras, this needs to be modified to use the \emph{weighted} density instead (cf.~\cref{sec:weighted genesis}).
