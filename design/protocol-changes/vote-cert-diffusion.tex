@@ -50,12 +50,8 @@ We now describe the dynamics of an honest node engaging as the client in vote di
 \item
   The client will \emph{not} download the vote corresponding to a vote ID if its round either lies in the distant past (\cref{sec:votes certs from the past}), or in the near past for which the node has already observed a successful quorum.
 \item
-  It might seem appealing to also stop downloading votes for the current round as soon as we have observed a quorum (via votes of weight \perasQuorum{}).
-
-  However, then the node can not relay these votes, and a downstream peer might be missing exactly some of these votes to observe a quorum of votes by itself.
-  Our design still handles this case directly by also running certificate diffusion between caught-up nodes (\cref{sec:certificate-diffusion}), but downloading and validating only a few votes is more efficient than transferring a certificate.\footnote{
-  It is conceivable that in a variant of~\cite{peras-cert-report}, certificates will be only slightly larger than votes, in which case the difference in efficiency might be negligible.}
-A compromise would be to stop downloading votes for the current round as soon as votes of weight larger than $\sigma$ have been observed, where $\perasQuorum < \sigma < 1$.
+  The client stops downloading votes as soon as it has votes with weight of at least \perasQuorum{}.
+  However, it still continues to offer these vote IDs/votes during the round, as it can be more efficient for downstream peers to download a few remaining votes to observe a quorum by themselves instead of downloading a certificate.
 \item
   The client always checks that the votes indeed correspond to the advertised vote IDs, and that the votes are in fact valid, and disconnects from the offending peer otherwise.
   Together with the fact that the number of votes per round is bounded by the size of the Peras committe, this bounds the work of the client.
