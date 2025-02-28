@@ -32,7 +32,7 @@ In particular, we want:
   No payload is necessary; only votes near the current round of the system are ever diffused.
 \end{description}
 
-The server advertises the vote IDs of the votes it has received for the current round, as well as (with lower priority) vote IDs for unsuccessful rounds of the near past, cf.~\cref{sec:votes certs from the past}.
+The server advertises the vote IDs of the votes it has received for the current round (sorted by weight in decreasing order), as well as (with lower priority) vote IDs for unsuccessful rounds of the near past, cf.~\cref{sec:votes certs from the past}.
 (As honest nodes stop voting after an unsuccessful round, all later votes during a cooldown periods have been cast by the adversary.)
 Additionally, it serves the votes corresponding to the unacknowledged vote IDs.
 
