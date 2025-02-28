@@ -346,7 +346,7 @@ We propose the following rule to govern this decision:
 If the pipeline of that specific client-server pair contains only \MsgRequestObjs{} messages, and these messages span over all the objects in the FIFO that we have not yet obtained, then send \MsgRequestObjIdsB. Otherwise, send \MsgRequestObjIdsNB.
 
 Note that this criterion covers the simpler case of empty pipelines and FIFO.
-Note that, if we send \MsgRequestObjIdsB{} while the messages in the pipeline do not cover the whole FIFO, then we might get stuck with ids that we will not be able to process until the server gets net ones.
+Note that, if we send \MsgRequestObjIdsB{} while the messages in the pipeline do not cover all of the objects in the FIFO that we are missing, then we might get stuck with ids that we will not be able to process until the server gets net ones.
 This point holds also if we have requested the objects from other peers, as they might fail to deliver.
 Finally, note that, if we send \MsgRequestObjIdsB{} while there are messages in the pipeline that are not \MsgRequestObjs, then we might receive new ids that we will not be able to process (with this server) until the server gets new ones.
 
