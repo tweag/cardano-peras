@@ -1,4 +1,4 @@
-\section{Using chain weight instead of chain length}
+\section{Using chain weight instead of chain length}\label{sec:weight not length}
 
 Any certified block receives extra weight corresponding to \perasBoost{} per certificate.%
 \footnote{Usually, blocks will be boosted by at most one certificate, but it is possible for the same block to be boosted by multiple certificates, for example if there is no active slot within a Peras round, which happens with probability ${(1-\asc)}^{\perasRoundSlots} \approx \qty{1}{\percent}$ for $\asc=1/20$ and $\perasRoundSlots=90$.}
