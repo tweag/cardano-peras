@@ -1,0 +1,47 @@
+\section{Vote storage (PerasVoteDB)}\label{sec:vote db}
+
+The node needs to store votes for the current round (cf.~\cref{sec:votes certs from the past}) in order to observe a quorum, and to diffuse these votes to downstream peers while the round is still ongoing even after a quorum has been observed.
+
+\begin{itemize}
+\item
+  As soon as the PerasVoteDB contains votes with weight of at least \perasQuorum, it starts aggregating these votes into a certificate and adds it to the PerasCertDB (\cref{sec:cert db}).
+\item
+  At the beginning of a Peras round $r$, all votes prior to $r$ are deleted from the PerasVoteDB\@.
+\end{itemize}
+
+We propose to store these votes in memory only; not persisting its state to disk.
+Restarting a node is realistically going to take longer than \perasRoundSlots{}, so any persisted votes would become stale immediately after a restart.
+
+\section{Certificate storage (PerasCertDB)}\label{sec:cert db}
+
+\subsection{In-memory storage of recent certificates}
+Various components of the node need quick access to all certificates applying to a particular candidate chain in order to compute its weight, cf.~\cref{sec:weight not length}.
+In addition, the Peras aspect of the block minting logic needs access to the most recent certificate.
+
+We propose to maintain an in-memory cache in the PerasCertDB of all certificates that can apply to a block that the node could select.
+Older certificates (e.g.\ those with a round that ends before the tip slot of the immutable chain) can be garbage-collected from this in-memory cache, which bounds the size of the cache.
+Therefore, as there is at most one certificate per round, this cache contains at most $\lceil \Tcp / \perasRoundSlots \rceil = 1440$ certificates, so in total \qty{28.8}{\mega\byte} for the proposed parameters (\cref{sec:protocol parameters}).
+
+\subsection{On-disk storage of historical certificates}
+Nodes serving the historical chain need to retain all past certificates in order to provide them to peers syncing from them via Ouroboros Genesis, see \cref{sec:weighted genesis}.
+Naturally, due to its unbounded size (linear to the age of the chain), these certificates need to be stored on disk.
+
+We store certificates on disk that are boosting a block on the immutable chain.%
+\footnote{The only certificates that do not have this property must be from rounds shortly before a cooldown period, so they are rather rare.}
+Therefore, the on-disk store is \emph{append-only}, and all certificates stored in it are \emph{immutable}.
+
+These properties are similar to those of the ImmutableDB in the \texttt{cardano-node} implementation, \parencite[chapter~8]{consensus-storage-report}, and the on-disk storage has similar requirements:
+\begin{enumerate}
+\item
+  The store must efficiently add new certificates, but it \emph{is} acceptable if recently added certificates are lost on a crash, as they can be re-downloaded.
+\item
+  The store must provide performant functionality to implement the server side of certificate diffusion \cref{sec:certificate-diffusion}.
+  Concretely, we require efficient lookups and streaming of certificates indexed by their round number.
+\end{enumerate}
+A simplified variant of the ImmutableDB as implemented in the \texttt{cardano-node} fulfills these requirements, as does any standard key-value store (which usually provide many additional features/guarantees that are not strictly required here).
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:
