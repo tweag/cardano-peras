@@ -131,12 +131,12 @@ We now give a high-level description of the envisioned dynamics of this protocol
 \begin{itemize}
 \item
   Consider a syncing node via Ouroboros Genesis which still needs to catch up a significant part of the historical chain.
-  The node continually requests sizeable chunks of round numbers via \msg{MsgRequestObjIdsNonBlocking} for each peers.
-  For every round number that is advertised by at least one peer, the corresponding certificates are downloaded from the peers via \msg{MsgRequestObjs} (as a first step, a singular designated peer which a simple batching strategy could be used; but more sophisticated strategies, similar to the existing BlockFetch logic are conceivable).
+  The node continually requests sizeable chunks of round numbers via \MsgRequestObjIdsNB{} for each peers.
+  For every round number that is advertised by at least one peer, the corresponding certificates are downloaded from the peers via \MsgRequestObjs{} (as a first step, a singular designated peer which a simple batching strategy could be used; but more sophisticated strategies, similar to the existing BlockFetch logic are conceivable).
   The client uses protocol-level pipelining to avoid round-trip delays and to make full use of the available bandwidth.
 \item
-  As the node is eventually done catching up, its peers run out of certificates to serve, and the node will start sending \msg{MsgRequestObjIdsBlocking} instead.\footnote{
-  In particular, an incomplete/empty reply to \msg{MsgRequestObjIdsNonBlocking} is analogous to \msg{MsgAwaitReply} in the ChainSync protocol.}
+  As the node is eventually done catching up, its peers run out of certificates to serve, and the node will start sending \MsgRequestObjIdsB{} instead.\footnote{
+  In particular, an incomplete/empty reply to \MsgRequestObjIdsNB{} is analogous to \msg{MsgAwaitReply} in the ChainSync protocol.}
   Usually, it will receive one new round number per peer every \perasRoundSlots{} slots, but given that the node now participates in vote diffusion, it is not necessary to actually download the certificate.
 
   An exception is the scenario where the node has downloaded all votes for a round without observing a quorum, but still received this round number via the certificate diffusion protocol.
