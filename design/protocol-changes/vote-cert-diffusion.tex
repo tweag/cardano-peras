@@ -120,7 +120,7 @@ In particular, we want:
 \end{description}
 
 An honest server answers requests for more round numbers by sending those for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.%
-\footnote{The resulting sequence of round numbers is \emph{almost} monotonically increasing, with a possible exception once the client has (almost) caught-up, see below.}
+\footnote{The resulting sequence of round numbers is \emph{almost} monotonically increasing, with a possible exception once the client has (almost) caught-up, see~\cref{sec:cert monotonicity}.}
 At any time, it will serve the certificates corresponding to unacknowledged round numbers, while enforcing an upper bound on the this quantity.
 
 This design leverages the fact that there can only be at most one certificate per round, which allows us to elide data like the point of the block that is being certified/boosted, justifying the use of round numbers as certificate IDs.
@@ -149,7 +149,7 @@ Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enfo
 \item\label{enumi:cert diffusion timeouts}
   Prompt delivery of requested certificates can be ensured by protocol-level timeouts, or via a more elaborate mechanism like a \emph{leaky token bucket} as used in the Cardano Genesis implementation  \parencite{genesis-implementation-documentation} which handles temporary latency spikes more gracefully.
 \item\label{enumi:cert diffusion monotonicity}
-  The sequence of round numbers sent by the server must increase \emph{almost} monotonically, as honest nodes (acting as servers) can observe the certificate for round $r$ before the one for round $r-1$ in edge cases, see~\cref{sec:votes certs from the past}.
+  The sequence of round numbers sent by the server must increase \emph{almost} monotonically, as honest nodes (acting as servers) can observe the certificate for round $r$ before the one for round $r-1$ in edge cases, see~\cref{sec:cert monotonicity}.
 
   This almost-monotonicity requirement can be enforced implicitly by an appropriate leaky token bucket (also see~\ref{enumi:cert diffusion timeouts}) via an approach analogous to the \enquote{Limit on Patience}, the mechanism used in the Cardano Genesis implementation \parencite{genesis-implementation-documentation} to guarantee progress in ChainSync while syncing.
 
