@@ -343,7 +343,7 @@ However, they abandon the agency to the server, preventing the client to request
 
 We propose the following rule to govern this decision:
 
-If the pipeline of that specific client-server pair contains only \MsgRequestObjs{} messages, and these messages span over all the objects in the FIFO, then send \MsgRequestObjIdsB. Otherwise, send \MsgRequestObjIdsNB.
+If the pipeline of that specific client-server pair contains only \MsgRequestObjs{} messages, and these messages span over all the objects in the FIFO that we have not yet obtained, then send \MsgRequestObjIdsB. Otherwise, send \MsgRequestObjIdsNB.
 
 Note that this criterion covers the simpler case of empty pipelines and FIFO.
 Note that, if we send \MsgRequestObjIdsB{} while the messages in the pipeline do not cover the whole FIFO, then we might get stuck with ids that we will not be able to process until the server gets net ones.
