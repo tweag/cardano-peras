@@ -86,7 +86,7 @@ Here, we only summarize a few key metrics in \cref{fig:vote cert metrics}, while
 
 The existing formal specification in Agda for the Consensus and Ledger layer \parencite{consensus-spec,cardano-formal-ledger-specs} can be naturally extended with the details of vote and certificate validation, in particular for conformance testing.
 
-\subsection{Handling votes and certificates from the future}
+\subsection{Handling votes and certificates from the future}\label{sec:votes certs from the future}
 
 A vote or certificate is \emph{from the future} if its round has not yet begun according to the local wallclock.
 We suggest to handle such votes just like \emph{headers} from the future are already being handled:
@@ -104,13 +104,25 @@ We suggest to handle such votes just like \emph{headers} from the future are alr
 
 \subsection{Handling votes and certificates from the past}\label{sec:votes certs from the past}
 
-If a caught-up node observes a vote or certificate for the first time while its round is already from the distant past (i.e.\ more than \Tcp{} slots), it can safely ignore/discard them (in contrast to the current version of the formal specification in~\cite{peras-cip}), as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection.\footnote{
-  In particular, the node does not maintain the necessary state (e.g.\ arbitrarily old stake distributions) in order to even be able to validate such votes/certificates, and doing so would be undesirable.}
+The formal specification of Peras in~\cite{peras-cip} allows to diffuse votes (and hence processes the resulting certificates) that lie far arbitrarily in the past.
+In an actual implementation, this is undesirable, as the node does not maintain the necessary state (e.g.\ arbitrarily old stake distributions) in order to even be able to validate such votes/certificates.
+We now describe an approach for resolving this in an actual implementation.
 
-A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
+\begin{description}
+\item[Distant past]
+  If a caught-up node observes a vote or certificate for the first time while its round is already from the distant past (i.e.\ more than \Tcp{} slots old), it can safely ignore/discard it, as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection.
 
-On the other hand, votes and certificates from the near (i.e.\ not distant) past are handled nominally.
+  A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
+\item[Near past]
+  In contrast, we handle votes and certificates from the near (i.e., not distant) past by disallowing votes from past rounds (with some tolerance to account for an acceptable clock skew), but still allowing to diffuse such certificates.
 
+  This is justified by the fact that honestly cast and diffused votes have ample time to be diffused within a Peras round.
+  On the other hand, an adversary can delay their votes for some round $r$ arbitrarily, for example such that some honest nodes consider them to have arrived on time for round $r$ and hence observe a quorum, while other honest nodes do not.
+  However, despite not receiving these votes, the nodes in the latter category still quickly learn of the quorum in round $r$ as the certificate is still diffused separately.
+
+  This approach is compatible in behavior with the formal specification, and directly bounds the amount of vote diffusion work that an honest client has to perform per round (namely, to download the votes of that round).
+  In particular, it prevents attackers from releasing lots of votes from past rounds in a burst.
+\end{description}
 
 \subsection{Monotonicity of honestly observed certificates}\label{sec:cert monotonicity}
 For future reference, we observe that an honest nodes observes Peras certificates in \emph{almost} monotonically increasing order of round numbers in the sense below.
