@@ -1,0 +1,83 @@
+We provide a preliminary discussion of the interactions of Peras with Mithril\footnote{\label{footnote:mithril}\url{https://mithril.network/}} and Ouroboros Leios\footnote{\label{footnote:leios}\url{https://leios.cardano-scaling.org/}}.
+
+\section{Mithril}
+
+Mithril is a protocol for generating stake-based threshold multi-signatures for certain entities related the Cardano blockchain, for example the stake distribution, the node database or even individual transactions.
+
+\subsection{Bootstrapping Peras certificates}
+Mithril\footref{footnote:mithril} is often used to bootstrap a node by fetching a pre-synced chain database which has been signed via Mithril instead of syncing manually from other nodes.
+Given that Peras is adding \emph{certificates} to the chain database, we now sketch how these could be handled by Mithril.
+\begin{itemize}
+\item
+  Applications that are not interested to serve the chain to other nodes themselves\footnote{
+    We note that such nodes might also benefit from other optimizations, such as eliding the transaction signatures from blocks (\enquote{segregated witness}).}
+  do not need Peras certificates, so Mithril does already work for this use case without any additional modifications.
+\item
+  Nodes that \emph{do} want/need to serve the historical chain to other nodes (e.g., pools) need to obtain all historical certificates.
+  This is non-trivial, as there can be many different valid certificates for the same block in some round, and even further, honest nodes do not necessarily have the exact same collection of historical certificates, see~\cref{sec:certificate generalities}.
+  This is in contrast to the immutable chain, on which all honest peers agree on eventually up to a specific slot.
+
+  It seems plausibly possible to us to work around these complications, but it requires further thought and discussion with the Mithril team.
+\end{itemize}
+
+\subsection{Reusing votes across Peras and Mithril}\label{sec:mithril reuse votes}
+Just like Mithril, Peras needs to diffuse votes in order to create certificate, which is a stake-based threshold multi-signature for the block that is being voted for.%
+\footnote{The Mithril team intends to use a protocol very similar to Tx-Submission, see~\cite{dmq-cip}.}
+Conceptually, it is therefore possible to use the same votes for Peras \emph{and} for Mithril, adding the data to be signed for both applications to individual votes (concretely, the point of the block that Peras is voting for, and e.g.\ the hash of a (stable) stake distribution for Mithril).
+Peras and Mithril would aggregate these votes into certificates independently from each other.
+
+The main benefit of this approach is that all pools would automatically and at essentially no extra cost for themselves on top of Peras (assuming that the data that Mithril requires to be signed is sufficiently lightweight, which should be the case for e.g.\ stake distributions) participate in Mithril voting.
+In particular, no bandwidth is wasted for duplicate
+
+Of course, this approach requires that Peras and Mithril use the same or compatible cryptography for votes and certificates.
+The current design for votes and certificates in Peras \parencite{peras-cert-report} is different from Mithril's certificates \parencite{chaidos2024mithril}; however, we understand that there is an effort to use a unified approach of stake-based threshold multi-signatures across various Cardano-related projects, in particular for Peras and Mithril.
+
+Another complication is the existence of Peras cooldown periods.
+As presented in the Peras CIP \parencite{peras-cip} and this document, honest nodes stop voting during such a cooldown period, which, even if rare, would also disable Mithril as a side effect, which is undesirable.
+A natural mitigation is to let nodes still vote even during Peras cooldown periods, but indicate in the vote that it must not be considered as a Peras vote, only as a Mithril vote.
+
+In general, the main drawback of this idea is that it introduces coupling between components that are logically separate, and hence imposes accidental complexity that needs to be weighed against the aforementioned advantages.
+In particular, this coupling makes a separate evolution of Peras and Mithril more difficult.
+
+\section{Ouroboros Leios}
+
+Ouroboros Leios\footref{footnote:leios} is a high-throughput protocol for Cardano.
+
+\subsection{Combining Peras and Mithril}
+
+From a very high level point of view, Peras and Leios are orthogonal features:
+Leios is a significant change to the protocol with many new kinds of blocks as well as votes and certificates.
+However, in the end Leios, still establishes a chain made out of \emph{ranking blocks} that follows the longest chain rule as in Praos.
+Peras can still be applied to this chain (i.e.\ votes would be case for ranking blocks), providing faster settlement under optimistic conditions.
+
+In other words, interacting with the Cardano blockchain via a transaction involves two steps:
+\begin{enumerate}
+\item\label{enumi:leios:tx step 1}
+  First, the transaction needs to be propagated through the network and be included in a block.
+\item\label{enumi:leios:tx step 2}
+  Second, the block needs to be settled with a probability appropriate for the concrete use case.
+\end{enumerate}
+Leios accelerates step~\ref{enumi:leios:tx step 1} (by increasing throughput), while Peras speeds up step~\ref{enumi:leios:tx step 2} (by boosting the block or one of its descendants).
+
+On a lower level, Peras and Leios fundamentally compete for bandwidth in the system (as Leios is all about making full use of it, in contrast to Praos).
+The Leios innovation time is currently working on elaborate realistic simulations of Leios to assess its dynamics and performance profiles.
+Enriching these simulations with Peras (concretely, its vote diffusion) can provide further insights into this tradeoff.
+However, we note that a future version of Peras might incorporate a dedicated \emph{pre-agreement} mechanism of unclear specifics.
+
+Overall, there is no explicit dependency between Peras and Leios, but rather common dependencies like the work on a cryptographic scheme for votes and certificates.
+Moreover, Leios will likely also use a variant of Tx-Submission do diffuse its various kinds of new entities, which provides an opportunity for collaboration.
+
+\subsection{Reusing votes}
+Like Peras and Mithril, Leios also makes use of stake-based threshold multi-signatures (in order to certify data availability), and needs to diffuse votes for this purpose.
+Similar to the discussion in~\cref{sec:mithril reuse votes}, it is therefore in principle conceivable to share these votes between Peras and Leios (and Mithril), potentially mitigating the competition for bandwidth.
+
+\medskip
+At present, it is unclear whether or how Peras could be more tightly integrated with Leios, such as voting for input blocks or directly reusing the endorsement certificates for faster finality.
+It seems likely that any such approach would have to differ signficantly from Peras in its current form.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "peras-design"
+%%% End:
