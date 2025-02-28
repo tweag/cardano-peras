@@ -1,4 +1,4 @@
-\section{Changes to the Ledger}
+\section{Changes to the Ledger}\label{sec:ledger changes}
 
 The Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} needs minor modifications to accomodate Peras.
 
@@ -17,7 +17,7 @@ Concretely, we propose the following checks for a block body $B$ in round $r$ co
   This ensures that \cert{} is neither too old nor too new, such that the ledger state that $B$ is validated against contains the necessary information to validate $r$.
 \item
   The size of the certificate must be bounded.
-  Concretely, we propose a protocol parameter \perasCertSizeLimit{} for the size of a certificate, and potentially (if the size of the certificate can be large, say $\ge\SI{5}{\kilo\byte}$), let the size of the certificate count towards the maximum transaction size of a block.
+  Concretely, we propose a protocol parameter \perasCertSizeLimit{} for the size of a certificate, and additionally, we let the size of the certificate count towards the maximum block body size.
 \end{enumerate}
 The only change to the ledger state is the addition of the round number of the last certificate on chain, and the stake distribution for the previous epoch in case \cert{} is in a previous epoch compared to $B$.%
 \footnote{The ledger state already keeps the stake distribution of the previous epoch around for its reward calculation.}

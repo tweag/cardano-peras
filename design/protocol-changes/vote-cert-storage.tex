@@ -16,7 +16,7 @@ Restarting a node is realistically going to take longer than \perasRoundSlots{},
 
 \subsection{In-memory storage of recent certificates}
 Various components of the node need quick access to all certificates applying to a particular candidate chain in order to compute its weight, cf.~\cref{sec:weight not length}.
-In addition, the Peras aspect of the block minting logic needs access to the most recent certificate.
+In addition, the Peras aspect of the block minting logic (\cref{sec:vote mint}) needs access to the most recent certificate.
 
 We propose to maintain an in-memory cache in the PerasCertDB of all certificates that can apply to a block that the node could select.
 Older certificates (e.g.\ those with a round that ends before the tip slot of the immutable chain) can be garbage-collected from this in-memory cache, which bounds the size of the cache.

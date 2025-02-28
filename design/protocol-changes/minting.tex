@@ -1,0 +1,44 @@
+\section{Minting}\label{sec:minting}
+
+\subsection{Voting component (PerasVoteMint)}\label{sec:vote mint}
+
+At the beginning of every Peras round, a pool needs wake up and perform the following tasks in order:
+\begin{enumerate}
+\item
+  Check if it is eligible for a seat in the Peras committee of that round.
+  If not, exit here.
+
+  If the node is currently syncing, this might be impossible to determine, just as for the block minting logic.
+  In this case, the node does not vote.
+\item
+  Determine the candidate block $B$ to potentially vote for.
+  If none\footnote{This can only happen when the chain is very sparse.}, exit here.
+
+  In the pre-alpha version of Peras described in this document, this is defined by a simple rule (the latest block on the current selection that is at least \perasBlockMinSlots{}, but at most \perasBlockMaxSlots{} old compared to the first slot of the current round).
+  Future versions of the Peras protocol might include a more sophisticated pre-agreement rule here.
+\item
+  Check if it should participate in voting this round, using~\cite[Rules for voting in a round]{peras-cip}.
+  If none, exit here.
+
+  This requires access to the most recent certificate, which is available via the PerasVoteDB (\cref{sec:vote db}), and the most recent certificate stored on the current selection, which is stored in the corresponding tip ledger state.
+
+  Note that the node might not vote in a round, but continue voting in the next round, see \cref{sec:attack block creation rule} for details.
+  However, usually, honest nodes will only stop voting when the protocol enters a cooldown period.
+\item
+  Cast a vote for $B$ and add it to the PerasCertDB (\cref{sec:vote db}), which will cause it to be diffused to the downstream peers.
+\end{enumerate}
+
+\subsection{Modification to the block minting logic}\label{sec:modified block mint}
+
+Honest nodes need to include a certificate on chain when the protocol is in a cooldown period in order to coordinate the \emph{end} of that cooldown period.
+We refer to~\cite[Block creation]{peras-cip} for the precise condition.
+This extra check is computationally trivial.
+
+As mentioned in \cref{sec:ledger changes}, the size of the certificate count towards the maximum block body size, so logic for selecting transactions to include in the block needs to be appropriately tuned to select fewer transactions in that case.
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:
