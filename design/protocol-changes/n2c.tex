@@ -1,0 +1,14 @@
+\section{Node-to-client protocols}
+
+In order to make use of Peras and its improved settlement guarantees under optimistic conditions, applications need to monitor whether or how many of the block containing their transaction of interest and its descendants are boosted via a Peras certificate.
+
+For this, we propose to run certificate diffusion (\cref{sec:certificate-diffusion}) also as a node-to-client protocol, such that clients can process these themselves for their use case.
+For example, such a separate service can provide an easy-to-use API that can answer queries about recent blocks with concrete settlement probabilities based on the observed certificates.
+
+We do not see a strong use case for exposing votes as a node-to-client protocol; monitoring tools for Peras can likely use the node-to-node protocol directly.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:
