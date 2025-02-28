@@ -7,6 +7,7 @@ let
   };
   texlive = pkgs.texlive.combine {
     inherit (pkgs.texlive)
+      adjustbox
       amsmath
       appendix
       bera

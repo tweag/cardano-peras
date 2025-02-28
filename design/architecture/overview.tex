@@ -1,0 +1,96 @@
+\Cref{fig:overview} gives a graphical overview of the data flow between the
+components involved in the architectural changes of this document. We elide all
+existing components that do we do not expect to modify non-trivially.
+
+\begin{figure}
+  \centering
+
+  \usetikzlibrary{arrows.meta, fit}
+  \pgfdeclarelayer{background}
+  \pgfsetlayers{background, main}
+
+  \begin{adjustbox}{scale=0.75}
+  \begin{tikzpicture}[
+      every node/.style={
+        font=\sffamily,
+        text=black,
+      },
+      component/.style={
+        draw,
+        fill=gray!10,
+        rounded corners=3pt,
+        minimum width=2cm,
+        minimum height=1cm,
+        align=center,
+        inner xsep=10pt,
+        inner ysep=2pt,
+      },
+      label/.style={
+        fill=gray!10,
+        rounded corners=2pt,
+      },
+      grouping/.style={
+        rounded corners=5pt,
+        inner xsep=15pt,
+        inner ysep=15pt,
+        yshift=5pt,
+        fill=gray!25,
+      },
+      >={Latex[scale=1.5]},
+    ]
+
+    \node[component] (PerasVoteMint) at (0, 0) {PerasVoteMint};
+    \node[component] (PerasVoteDB) at (4, 0) {PerasVoteDB};
+    \node[component] (PerasCertDB) at (9, -2) {PerasCertDB};
+
+    \node[component] (VoteDiffusion) at (16, 5) {VoteDiffusion};
+    \node[component] (CertDiffusion) at (16, 3) {CertDiffusion};
+    \node[component] (BlockMint) at (16, 1) {BlockMint};
+    \node[component] (ChainSel) at (16, -1.4) {ChainSel};
+    \node[component] (BlockFetch) at (16, -4.1) {BlockFetch};
+    \node[component] (GDD) at (16, -6.9) {GDD};
+
+    \draw[->] (PerasVoteMint) to (PerasVoteDB);
+    \draw[->, out=-80, in=180] (PerasVoteDB) to node[label, midway]{quorum reached} (PerasCertDB);
+    \draw[<-, out=45, in=180] (PerasVoteDB) to (VoteDiffusion);
+    \draw[<->, out=80, in=180] (PerasCertDB) to (CertDiffusion);
+    \draw[->, out=45, in=180] (PerasCertDB) to node[label, midway]{potentially include cert} (BlockMint);
+    \draw[->, out=20, in=180] (PerasCertDB) to node[label, midway]{influences} (ChainSel);
+    \draw[<-, out=-35, in=170] (PerasCertDB) to node[label, midway]{block contains cert} (BlockFetch);
+    \draw[->, out=-45, in=190] (PerasCertDB) to node[label, midway]{influences preferences} (BlockFetch);
+    \draw[->, out=-75, in=180] (PerasCertDB) to node[label, midway]{influences} (GDD);
+
+    \begin{pgfonlayer}{background}
+      \node[grouping, fit={(PerasVoteDB) (PerasCertDB)}] (Peras storage) {};
+      \node[anchor=north, overlay] at (Peras storage.north) {Peras storage};
+
+      \node[grouping, fit={(VoteDiffusion) (CertDiffusion)}] (Peras mini-protocols) {};
+      \node[anchor=north, overlay] at (Peras mini-protocols.north) {Peras mini-protocols};
+
+      \node[grouping, fit={(ChainSel)}] (ChainDB) {};
+      \node[anchor=north, overlay] at (ChainDB.north) {ChainDB};
+
+      \node[grouping, fit={(BlockFetch)}] (Existing mini-protocols) {};
+      \node[anchor=north, overlay] at (Existing mini-protocols.north) {Existing mini-protocols};
+
+      \node[grouping, fit={(GDD)}] (Genesis) {};
+      \node[anchor=north, overlay] at (Genesis.north) {Genesis};
+    \end{pgfonlayer}
+
+    %% \begin{pgfonlayer}{background}
+    %%   \draw[dashed, rounded corners=.3cm, fill=lightgray]
+    %%   (right-of-shell)
+    %%   |- (above-colis)
+    %%   -| (left-of-specs)
+    %%   |- (below-exec)
+    %%   -| node[midway,above left]{colis-language}
+    %%   (right-of-ast)
+    %%   |- (above-cst)
+    %%   -| cycle;
+    %% \end{pgfonlayer}
+  \end{tikzpicture}
+  \end{adjustbox}
+
+  \caption{Overview of the data flow between the components of this document}%
+  \label{fig:overview}
+\end{figure}
