@@ -1,0 +1,33 @@
+We have identified the following risks inherent in the protocol that we do not see how to address at the implementation level:
+\begin{itemize}
+\item
+  An adversary can include useless certificates on chain while the system is not in a cooldown period, cf.~\cref{sec:ledger changes}.
+  This is not a fatal flaw, and might be of limited relevance if the cryptographic scheme for Peras allows for very small and cheap-to-validate certificates.
+\item
+  The pre-alpha version of Peras is characterized by the lack of a dedicated \emph{pre-agreement} mechanism for avoiding cooldown periods as much as possible.
+  We stress that this implies that adversaries with less than \qty{25}{\percent} of the stake can cause (long!) cooldown periods with decent probability, cf.~\cref{sec:honest vote splitting}.
+
+  The additional implementation complexity of a pre-agreement mechanism has not been analyzed so far.
+  Therefore, we recommend to conduct further research to determine if the consequences of the lack of pre-agreement are acceptable for the anticipated users of Peras.
+\item
+  In its current form, there is no direct monetary incentive for pool operators to participate in Peras.
+  This is relevant as low honest participation in voting (even without any adversary) causes Peras to be ineffective due to its lengthy cooldown periods on unsuccessful rounds.
+  It is not obvious how to realize a reward mechanism for voting in general as there is no on-chain track record of who participated in Peras voting.
+  Even then, further research in the form of a game-theoretic analysis would be required.
+
+  We propose to transparently communicate this fact to pool operators to gather feedback.
+\end{itemize}
+
+Finally, we highlight an opportunity (discussed with the Peras research team) for further study of the Peras protocol that \emph{could} avoid a significant chunk of the work necessary to implement Peras.
+Concretely, if such research results in the conclusion that it is possible to instantiate Peras in such a way that it is acceptable to perform \emph{unweighted} Genesis density comparisons instead of weighted ones, it is not necessary to store historical certificates, cf.~\cref{sec:storing historical certs}.
+Here, by \enquote{acceptable} we mean that the resulting loss in security (for example due to attacks as described in~\cref{sec:density reduction via boost-induced rollbacks}) is negligible.
+In that case, the implementation steps described in \cref{sec:implementation with genesis} would not be required anymore.
+In particular, Peras would not require any additional disk space.
+
+However, since the outcome of this (unstarted) research is unclear, both in terms of its outcome and the time frame required, the architecture presented in this document does not make use of this hypothetical simplifying assumption.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "peras-design"
+%%% End:
