@@ -173,7 +173,7 @@ We briefly discuss two alternatives to the design of vote and certificate diffus
   Concretely, the first protocol would be similar to ChainSync and diffuse just certificate IDs (i.e.\ round numbers) and the second protocol would be an instantiation of BlockFetch with certificate IDs instead of block points and certificates instead of blocks.
 
   However, this approach seems overly complicated for the purpose of certificate diffusion.
-  The primary motivation for having separate ChainSync and BlockFetch protocls is the \emph{header-body split} \parencite{shelley-data-diffusion-networking}, and ChainSync is specifically designed for stateful chain following, whereas certificates do not have an inherent chain structure (despite voting for blocks on a block chain).
+  The primary motivation for having separate ChainSync and BlockFetch protocols is the \emph{header-body split} \parencite{shelley-data-diffusion-networking}, and ChainSync is specifically designed for stateful chain following, whereas certificates do not have an inherent chain structure (despite voting for blocks on a block chain).
 \end{itemize}
 
 %%% Local Variables:
