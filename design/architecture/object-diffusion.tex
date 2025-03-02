@@ -151,11 +151,9 @@ They are notions that need to be made concrete for each implementation of the pr
 \item [\MsgRequestObjs{} {$([\argfont{id}])$}]
       The client requests objects by sending a list of object ids.
       The total size of the corresponding objects MUST not be bigger than the size limit in bytes.
-      \niols{Or maybe a bit less; should we take into account the size of the boilerplate?}
 
 \item [\MsgReplyObjs{} {$([\argfont{object}])$}]
       The server replies with the list of all the objects that were requested.
-      \niols{Maybe sometimes it is not possible to derive an \argfont{id} from an \argfont{object}? eg. with certificates that could be just a hash? In those cases, wouldn't we want to return a list of pairs \((\argfont{id}, \argfont{object})\)?}
 
 \item [\MsgDone]
       The server terminates the mini protocol.
@@ -180,84 +178,6 @@ They are notions that need to be made concrete for each implementation of the pr
   \caption{Object diffusion mini-protocol state transitions}
   \label{table:object-diffusion-transitions}
 \end{table}
-
-\subsection{Size limits and timeouts per state}
-\niols{FIXME}
-
-\Cref{table:object-diffusion-size-limits} specifies how many bytes can be sent in a given state; indirectly, this limits the payload size of each message.
-If a space limit is violated, the connection SHOULD be torn down.
-
-
-\Cref{table:object-diffusion-timeouts} specifies message timeouts in a given state.
-If a timeout is violated, the connection SHOULD be torn down.
-
-\begin{table}[h]
-  \begin{center}
-    \begin{tabular}{l|r}
-      \header{state}      & \header{size limit in bytes} \\\hline
-      \StInit             & \texttt{5760} \\
-      \StIdle             & \texttt{5760} \\
-      \StObjIdsBlocking    & \texttt{2500000} \\
-      \StObjIdsNonBlocking & \texttt{2500000} \\
-      \StObjs              & \texttt{2500000} \\
-    \end{tabular}
-    \caption{Size limits per state}
-    \label{table:object-diffusion-size-limits}
-  \end{center}
-\end{table}
-
-\begin{table}[h]
-  \begin{center}
-    \begin{tabular}{l|r}
-      \header{state}      & \header{timeout} \\\hline
-      \StInit             & - \\
-      \StIdle             & - \\
-      \StObjIdsBlocking    & - \\
-      \StObjIdsNonBlocking & \texttt{10}s \\
-      \StObjs              & \texttt{10}s \\
-    \end{tabular}
-    \caption{Timeouts per state}
-    \label{table:object-diffusion-timeouts}
-  \end{center}
-\end{table}
-
-\subsection{CDDL encoding specification}
-\label{object-diffusion-cddl}
-\niols{FIXME, but maybe it doesn't make sense at all if it is just wildly
-  generalised.}
-
-\lstset{
-  xleftmargin=2pt,
-  stepnumber=1,
-  belowcaptionskip=\bigskipamount,
-  captionpos=b,
-  escapeinside={*'}{'*},
-  language=haskell,
-  tabsize=2,
-  emphstyle={\bf},
-  commentstyle=\it,
-  stringstyle=\mdseries\rmfamily,
-  showspaces=false,
-  keywordstyle=\bfseries\rmfamily,
-  columns=flexible,
-  basicstyle=\small\sffamily,
-  showstringspaces=false,
-  morecomment=[l]\%,
-}
-\lstdefinelanguage{cddl}{
-  morekeywords={bool,uint,nint,int,float16,float32,float64,float,bstr,bytes,tstr,text},
-  morecomment=[l]{;},
-  morestring=[b]",
-}
-\lstdefinestyle{cddl}{
-  numbers=left,
-  language=cddl,
-  columns=fixed,
-}
-
-%% NOTE: lst imports are relative to the main file, hence the necessary
-%% `architecture/` prefix.
-\lstinputlisting[style=cddl]{architecture/object-diffusion.cddl}
 
 \subsection{Client and server implementation}
 
