@@ -1,6 +1,6 @@
 ## Peras design document
 
-The WIP Peras design document is available [here as a PDF](https://tweag.github.io/cardano-peras/peras-design.pdf).
+The Peras design document is available [here as a PDF](https://tweag.github.io/cardano-peras/peras-design.pdf).
 
 ### Building
 
