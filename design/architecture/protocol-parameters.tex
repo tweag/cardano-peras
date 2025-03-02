@@ -58,7 +58,8 @@ We indicate whether this flexibility is likely to be useful.
   The maximum age (in slots) of a block to be voted on at the beginning of a Peras round.
 
   This parameter is new compared to the CIP~\cite{peras-cip}.
-  It is motivated to allow validating votes/certificates ahead of the current chain, especially while syncing.\alex{link to corresponding appendix}
+  It is motivated to allow validating votes/certificates ahead of the current chain, especially while syncing.\footnote{
+  We note that the exact details of forecasting are still subject to discussions, in particular pending feedback by the Peras research team, cf.~\url{https://github.com/tweag/cardano-peras/issues/25}.}
 \item[\perasHealingSlots]
   The amount of slots needed to heal from a failed Peras voting round, depending on $\perasBoost$.
   A concrete value has yet to be chosen.
