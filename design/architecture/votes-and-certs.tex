@@ -34,8 +34,7 @@ A vote from round $r$ (starting in slot $s$) for a block in slot $t$ is \emph{va
   The cryptographic material must be valid, ensuring that the vote was indeed cast by an eligible pool.
 
   This requires the stake distribution, certain protocol parameters and the epoch nonce.
-  We suggest using the data that would be used to validate a header for slot $s$.
-  \alex{Appendix for forecasting caveat.}
+  The natural choice is to use the same data that would be used to validate a header for slot $s$.
 \item
   $s - \perasBlockMaxSlots \le t < s - \perasBlockMinSlots$.
 \item
