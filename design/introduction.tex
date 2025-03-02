@@ -1,0 +1,27 @@
+This document describes an architecture for implementing the pre-alpha version of the Ouroboros Peras protocol for the Cardano blockchain.
+Ouroboros Peras is a novel protocol that enables fast settlement under optimistic conditions.
+
+For a description of the problem of settlement/finality on Cardano, as well as possible use cases, we recommend to reading to the corresponding Cardano Problem Statement.
+\begin{center}
+  \url{https://github.com/cardano-foundation/CIPs/blob/master/CPS-0017/README.md}
+\end{center}
+For a description of the Peras protocol, its high-level dynamics and a formal specification, we refer to the Peras Cardano Improvement Proposal and the Peras website.
+\begin{center}
+  \url{https://github.com/cardano-foundation/CIPs/blob/master/CIP-0140/README.md}\\
+  \url{https://peras.cardano-scaling.org}
+\end{center}
+This document is based on the work of the Peras Innovation team that created the above resources.
+
+\paragraph{Overview.}
+We reify the high-level description of the protocol by showing how Peras can be integrated into the existing node architecture, while reasoning about lower-level security properties such as bounded resource usage under adversarial activity.
+We proceed by giving an outline implementation plan for \texttt{cardano-node}, the Haskell implementation, and define the tests necessary to validate the implementation.
+Finally, we portray the interactions of Peras with other Cardano features (Mithril and Ouroboros Leios), and list the identified risks and opportunities.
+
+\paragraph{Acknowledgements.}
+We would like to thank members of the Peras research team, the Peras and Leios Innovation teams, the IOE Network and Consensus teams, the IOG Mithril team and the Intersect Technical Steering Committee for fruitful discussions.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "peras-design"
+%%% End:
