@@ -1,0 +1,62 @@
+We present a series of tests for Peras to ensure its functionality when being implemented into \texttt{cardano-node}, the Haskell implementation, both under optimistic and adversarial conditions.
+
+We exclude considerations of testing the cryptographic scheme underlying votes and certificates.
+
+\section{Component-level tests}
+
+We describe how the components of the Peras architecture (both new and modified ones) can be tested.
+
+\begin{itemize}
+\item
+  The IOE Consensus team is currently collaborating with the IOE Formal Methods team in establishing \emph{conformance tests} for header validation, comparing the actual implementation to the formal specification in Agda \parencite{chapman2024applying}.
+  We advise to consider similar tests for ensuring the correctness of vote and certificate validation.
+\item
+  To test the enriched chain selection algorithm which accounts for weighted chains via boosted blocks, it is natural to modify the existing state machine test in lock-step style, which uses property tests to ensure the equivalence to a simple model implementation.
+
+  Similarly, we recommend state machine tests for the PerasVoteDB and the PerasCertDB\@.
+  In case of the latter, explicit fault injection can be used to check for appropriate behavior under e.g.~disk corruption that are otherwise hard to test.
+\item
+  The modification to the Cardano Genesis implementation (using weight to compare candidate chains) can be checked by adapting the existing extensive test suite for Genesis.
+  For example, the Genesis tests rely on generating a \emph{block tree} that indicates all possible chains that exist for this particular test run, and could hence be served via a (randomly generated) adversarial strategy.
+  For Peras, it is necessary to generate \emph{weighted} block trees such that the new logic is exercised non-trivially.
+\end{itemize}
+
+\section{Simulation tests with generated environments}
+
+We propose to simulate the behavior of an honest Peras node in a generated environment, in order to catch regressions in the overall dynamics of the system, as well as to exhibit scenarios that are hard to test due to requiring complicated setup and tooling in an integration test.
+
+\begin{itemize}
+\item
+  An optimistic environment where all nodes are behaving honestly.
+  In this case, all Peras rounds must be successful.
+\item
+  Temporarily decreased participation in voting, leading to unsuccessful rounds.
+  Here, the node must pause voting for some time, potentially include a certificate on chain, and once the cooldown period ends, resume again.
+\item
+  Environments involving adversarial behavior of pools with a given amount of stake.
+  These may either be specific strategies from a pre-defined list (such as equivocation attacks), or randomly generated \enquote{chaotic} adversaries.
+
+  Here, the properties to test for are the core guarantees of the system, i.e.\ safety and liveness.
+\item
+  The Peras conformance tests\footnote{\url{https://github.com/input-output-hk/peras-design/blob/63e4224c4f6c286c58121acabe366d9be1d90998/peras-simulation/Conformance.md}} provided by the Peras Innovation team also constitute an environment to test against.
+  In this case, success is decided by the conformance suite (backed by a model implementation).
+
+  This requires an appropriate layer of glue (for example, to translate between the pull-based mini-protocols and the push-based replies expected by the conformance test).
+\end{itemize}
+
+These simulations can leverage the \texttt{io-sim}\footnote{\url{https://github.com/input-output-hk/io-sim}} library for deterministic tests even in the presence of concurrency and time that is inherent in such a context.
+
+\section{Integration tests and benchmarks}
+
+The IOE Cardano Performance \& Tracing team maintains an elaborate cluster benchmarking setup using a variety of high-load scenarios.
+It is used to validate the performance of the node, in particular by catching regressions.
+Naturally, this setup can be extended to measure the impact of Peras on key metrics such as block diffusion time and resource usage per node, while monitoring that Peras behaves as expected, i.e.\ that all Peras rounds are successful (due to the absence of an adversary).
+
+We also recommend to consider setting up a dedicated testnet for Peras, similar to the past \enquote{Sanchonet} whose purpose was to assess the in-progress implementation of Voltaire governance.
+This enables an early experimentation environment for pool operators as well as developers wanting to integrate the settlement guarantees of Peras into their application.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "peras-design"
+%%% End:
