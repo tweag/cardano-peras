@@ -1,7 +1,6 @@
 \chapter{Attack scenarios}\label{chap:attack scenarios}
 
 The goal of this \namecref{chap:attack scenarios} is to give an overview of various attacks on Peras, which either motivate a Peras certain rule/requirement or highlight what we can expect from sufficiently strong attacker within our margin of security.
-\todo{Figure out if/in what capacity this should end up in the final version}
 
 \section{Attacks against Peras}
 
@@ -18,8 +17,8 @@ Additionally, this attack (and others that are about preventing a quorum) gets m
 
 \subsection{Honest vote splitting}\label{sec:honest vote splitting}
 
-\todo{Mention Russell's suggested modification here}
-In the pre-alpha version of Peras, honest nodes vote for the newest block on their selection that is at least \perasBlockMinSlots{} slots old.
+In the pre-alpha version of Peras, honest nodes vote for the newest block on their selection that is at least \perasBlockMinSlots{} slots old.%
+\footnote{There are potential variants of this rule (such as choosing the tip of the best chain made out of blocks that at least \perasBlockMinSlots{} slots old) that might mitigate the attack discussed here in certain scenarios, but they do not change the overall picture.}
 It is relatively easy for an adversary to cause different honest nodes to vote for different blocks.
 
 For example, this allows an adversary with $\alpha<0.25$ to prevent quorum formation with decent probability (which they couldn't do by simply abstaining) by splitting the honest votes such that neither block reaches quorum, causing the system to enter a cooldown period.
@@ -31,7 +30,6 @@ Concretely, consider the voting phase at the beginning of round $r$ starting in 
 
 Suppose that the adversary with stake $\alpha$ has a chain $C_2$ that is preferrable to $C_1$, and $D_1 \neq D_2$ where \[D_i = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,C_i))\] for $i\in\{1,2\}$.
 If the adversary now diffuses $C_2$ to only a subset of the honest nodes right before $r$ starts (such that the remaining honest nodes only receive $C_2$ after $r$ began), these nodes will vote for $D_2$, while the rest will vote for $D_1$.
-\todo{Add some TikZ drawings}
 
 We can calculate a lower bound on the probability that an adversary has such a chain $C_2$ by considering a particular outcome of the leader schedule that guarantees the existence of $C_2$ when the adversary simply abstains while honest chain is growing before round $r$.
 
@@ -71,14 +69,13 @@ We plot the propabilities of \cref{lemma:honest vote splitting prob} for realist
 We observe that for small values for \perasBlockMinSlots{}, even relatively weak adversaries can execute a vote splitting attack rather frequently.
 This is relevant in particular as it allows them to trigger a cooldown phase.
 
-\subsection{Density reduction via boost-induced rollbacks}\label{sec:density reduction via boost-induced rollbacks}\todo{Better name?}
+\subsection{Density reduction via boost-induced rollbacks}\label{sec:density reduction via boost-induced rollbacks}
 
 We now describe an adversarial strategy that results in the honest historical chain to have low density, but high weight, i.e.\ in the extreme case, there is one boosted block per Peras round, with every voting round being successful.
 In that case, a simple (private) fork purely made out of adversarial blocks has a good chance to have higher density (but significantly lower weight) than the honest chain.
 
 See \cref{sec:weighted genesis} for how this attack influences the Peras design.
 
-\todo{Add some TikZ drawings}
 Consider a Peras round $r$ starting in slot $s$.
 During round $r$, the adversary (with stake $\alpha$) does not diffuse any votes or blocks until shortly before the end of round $r$ in slot $s+\perasRoundSlots$.
 Let $C$ be the best chain that any honest node has selected in slot $s+\perasRoundSlots-1$.
@@ -119,8 +116,8 @@ Let us consider concretely how and under what conditions an attacker can execute
   Note that all blocks added to the chain in the meantime are adversarial, hence impacting chain quality.\footnote{However, such reductions in chain quality are not necessarily too unexpected in the presence of such strong adversaries, and the situation might overall still be better than with pure Praos.}
 \end{enumerate}
 
-\todo{More concrete calculations? Markov chain model to estimate the density?}
-
+These probabilities seem sufficiently large to us to take this attack seriously.
+A more detailed analysis (potentially simulating the resulting Markov chain) is out-of-scope for this document.
 
 \section{Attacks motivating aspects of the Peras design}
 
