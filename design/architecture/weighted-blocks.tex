@@ -40,6 +40,8 @@ Various components that currently consider chain \emph{length} must instead cons
   In Peras however, Chain Growth guarantees instead that \Tcp{} slots contain blocks having \emph{weight} of at least \kcp{} blocks on any chain, which does not imply that there actually are \kcp{} blocks.
   See \cref{sec:density reduction via boost-induced rollbacks} for more details on how the adversary can cause the chain to be of high weight, but low (unweighted) density.
 
+  As block counting is a part of ledger validation, it is not possible to directly change this rule to use weight instead, as the set of certificates is not availabe in this context, and it is not desirable to make block validation dependent on external data like certificates.
+
   It is conceivable that a more fine-grained analysis could result in the probability to have less than \kcp{} blocks (or an appropriately increased quantity) to still be acceptably low for this purpose, such that the HFC can continue to use block counting.
   We also not that block counting has been under closer scrutiny and been subject of discussions to potentially replace it for other, unrelated reasons.
 \end{description}

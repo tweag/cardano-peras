@@ -1,0 +1,89 @@
+We sketch a possible implementation plan to integrate the design presented in this document into \texttt{cardano-node}, the Haskell implementation of a Cardano node.
+However, similar considerations would plausibly apply to other implementations.
+
+We exclude the implementation of the underlying cryptography used for votes and certificates from this discussion, and assume the availability of appropriate Haskell bindings.
+In particular, the scheme described in~\cite{peras-cert-report} requires pools to register new keys, which necessitates appropriate tooling to generate and manage those.
+
+\section{Prototype without historical certificates}\label{sec:proto no certs}
+
+As a first step, Peras can be implemented without storing any historical certificates.
+This prevents syncing via Ouroboros Genesis with reduced trust assumptions, but syncing from trusted peers is still possible.
+In this form, Peras can already be used to run a testnet to start to empirically explore and test the implementation in a real-world environment.
+
+Such a prototype involves the following work items.
+\begin{enumerate}
+\item\label{enumi:proto no certs:1}
+  Implementation of votes and certificates (\cref{sec:votes certificates generalities}), the associated validation logic and serialization.
+\item\label{enumi:proto no certs:2}
+  Changes to the Cardano Ledger to include certificates in block bodies (\cref{sec:ledger changes}).
+
+  We propose to make the Ledger only minimally aware of certificates, as they are morally a Consensus concern and only included in block bodies due to their size.
+  More concretely, the Ledger logic would consider certificates to be opaque objects, with the actual validation logic being provided by the Consensus layer when it invokes the ledger rules.
+
+  The new protocol parameters (\cref{sec:protocol parameters}) which are subject to governance can initially be hard-coded, but we expect it to be a routine operation for the Ledger team to add them to a new Ledger era.
+\item\label{enumi:proto no certs:3}
+  Implementation of the (in-memory) PerasVoteDB (\cref{sec:vote db}) and associated vote minting logic (\cref{sec:vote mint}) and vote diffusion (\cref{sec:vote-diffusion}).
+
+  This requires defining the object diffusion mini-protocol using the \texttt{typed-protocols} library, and implementing appropriate client and server logic.
+  The client logic is more complicated, and can initially download all votes for every peer (similar to how Tx-Submission worked before recent work by the Network team\footnote{\url{https://github.com/IntersectMBO/ouroboros-network/pull/4887}}).
+\item\label{enumi:proto no certs:4}
+  The in-memory part of the PerasCertDB (\cref{sec:cert db}).
+\item\label{enumi:proto no certs:5}
+  The (straightforward) modification of the block minting logic to include certificates (\cref{sec:modified block mint}).
+\item\label{enumi:proto no certs:6}
+  Support for efficiently computing the \emph{weight} of chains, and making use of this functionality in chain selection and the BlockFetch decision logic (\cref{sec:weight not length}).
+\item\label{enumi:proto no certs:7}
+  Integration with the Hard Fork Combinator, see \cref{sec:weight not length}.
+\item\label{enumi:proto no certs:8}
+  Optionally, a restricted version of certificate diffusion that does not support receiving historical certificates (\cref{sec:certificate-diffusion}).
+  We recall that certificate diffusion between caught-up nodes is only necessary in certain scenarios involving adversarial activity.
+  For the purpose of using this prototype in a testnet, it therefore is possible to elide this step and instead implement it as part of fully implementing certificate diffusion in \cref{sec:implementation with genesis}.
+\end{enumerate}
+
+This work largely falls into the scope of the Consensus team, with interactions with the Ledger team (\ref{enumi:proto no certs:2}) and the Network team (\ref{enumi:proto no certs:3}).
+
+\section{Adding certificate diffusion and historical certificates for Ouroboros Genesis}\label{sec:implementation with genesis}
+
+To support syncing via Ouroboros Genesis, the following additional steps are necessary.
+\begin{enumerate}
+\item
+  Implementation of the on-disk part of the PerasCertDB (\cref{sec:cert db}).
+
+  For a straightforward initial implementation, we recommend to use a key-value store, such as LMDB, which is currently used by the UTxO-HD project to store the UTxO map on disk, or lsm-tree\footnote{\url{https://github.com/IntersectMBO/lsm-tree}}, which is currently developed by Well-Typed as a replacement for LMDB in the aforementioned use case.
+  We note the use cases of storing the UTxO map on disk and the PerasCertDB are pretty different, so certain features of these libraries that are important for the former case (such has supporting random access write-heavy workloads) are not relevant for us.
+
+  Alternatively, adapting and simplifying\footnote{For example, complications due to epoch boundary blocks are not relevant for the PerasCertDB.} the existing implementation of the ImmutableDB can be considered.
+\item
+  Full implementation of certificate diffusion (\cref{sec:certificate-diffusion}).
+\item
+  Update the Cardano Genesis implementation \parencite{genesis-implementation-documentation} to compare competing header chains using their weight (instead of their unweighted density) (\cref{sec:weight not length}).
+
+  Concretely, this requires changes to the Genesis Density Disconnection governor, the component that disconnects peers who offer a header chain that is definitely less dense/has less weight than another one.
+\item
+  Adjust chain selection to ensure that certificate acquisition does not fall behind block adoption (\cref{sec:storing historical certs}) as part of the \enquote{duty to remember} certificates.
+\end{enumerate}
+
+\section{Discussion of implementing Peras externally to the node}
+
+The implementation approach described in the preceding sections assumes that Peras will be directly integrated into the existing node.
+In this section, we briefly discuss to what extent Peras could be implemented externally as a separate component.
+This is motivated by Cardano features like Mithril (\cref{sec:mithril}) being implemented externally (using the \emph{Extensible Ouroboros Network Diffusion Stack}\footnote{Also known under the name \enquote{reusable diffusion}, cf.~\url{https://github.com/IntersectMBO/ouroboros-network/wiki/Reusable-Diffusion-Investigation}}), and Project Caryatid\footnote{\url{https://github.com/input-output-hk/caryatid}}, a prototype for a potential node architecture based on microservices.
+
+We note that the interaction between the core node component and an external Peras component must be \emph{bidirectional}, as the validity of votes and certificates and the voting logic are determined by the current ledger state (maintained by the node), and in turn, these certificates (from the Peras component) fundamentally affect the chain selection process of the node.
+Therefore, implementing Peras externally still requires non-trivial changes to the core node.
+This stands in contrast to e.g.\ Mithril, where the Mithril component requires certain data from the node (e.g.\ the stake distribution), but the node does not have to be aware of Mithril.
+
+In other words, the degree of coupling between a Peras component and the node will be relatively high, contrary to the usual requirement of loose coupling in a microservice architecture.
+Therefore, we anticipate that an implementation that integrates Peras directly into the existing node will be quicker to execute and easier to maintain.
+
+\medskip%
+Finally, we sketch how Peras could fit into a hypothetical future microservice architecture for the node with fine-grained components.
+In particular, assume the existence of a dedicated \emph{Consensus} component responsible for e.g.\ chain selection and block minting, which defers to other components for e.g.~block validation and maintenance of the transaction mempool.
+(This is similar to the separation of consensus and execution clients in Ethereum\footnote{\url{https://ethereum.org/en/developers/docs/nodes-and-clients/}}.)
+In this case, almost all of the changes mandated by Peras would only affect this Consensus component, with the exception of certificates contained in blocks to coordinate the end of a cooldown period.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "peras-design"
+%%% End:
