@@ -61,6 +61,9 @@ The node does not send requests for vote IDs or votes while it is syncing (in pa
 This protocol shares several similarities with Tx-Submission, and we anticipate that the implementation can benefit from the insights of the design in \texttt{cardano-node}.
 In particular, the IOE Network team has been reworking the inbound side of Tx-Submission\footnote{\url{https://github.com/IntersectMBO/ouroboros-network/pull/4887}} to more efficiently download transactions from different peers (avoiding repeated downloads).
 
+Finally, we mention that nodes that do not intend to participate in relaying traffic through the Cardano network (for example certain wallets or nodes used by dApp developers) can reduce bandwidth requirements both for them and their upstream peers by requesting certificates (\cref{sec:certificate-diffusion}) instead of votes.
+We propose to add an appropriate configuration flag to toggle this behavior.
+
 \subsection{Certificate diffusion mini-protocol}%
 \label{sec:certificate-diffusion}
 
