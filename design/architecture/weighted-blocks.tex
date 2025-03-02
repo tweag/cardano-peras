@@ -22,7 +22,11 @@ Various components that currently consider chain \emph{length} must instead cons
   However, this expected to only result in a small gain in efficiency, as ledger states corresponding to subsequent blocks only differ by a small amount in relation to the total size, and existing implementations exploit this fact by using implicit structural sharing or by explicitly maintaining these diffs.
 \item[Ouroboros Genesis rule]
   The Cardano Genesis implementation \parencite{genesis-implementation-documentation} performs density comparisons between competing header chains while syncing.
-  With Peras, this needs to be modified to use the \emph{weighted} density instead (cf.~\cref{sec:weighted genesis}).
+  With Peras, this needs to be modified to use the \emph{weighted} density instead (cf.~\cref{sec:storing historical certs,sec:weighted genesis}).
+
+  Concretely, the \emph{Genesis Density Disconnection} governor needs to be revised to become aware of certificates.
+  In general, disconnecting from one of two peers offering competing historical chains requires definite knowledge of all certificates in rounds that can boost a block in the first \sgen{} slots after their intersection.
+  We achieve this via the \perasBlockMaxSlots{} parameter (establishing an upper bound on the maximum relative age of a block that a certificate can boost) and the discussion of progress of certificate diffusion in \cref{sec:certificate-diffusion}.
 \item[BlockFetch decision logic]
   The BlockFetch decision logic is responsible for downloading blocks corresponding to candidate header chains that are preferable to the current selection.
   The comparison between candidate header chains and the current selection needs to take weight into account.
