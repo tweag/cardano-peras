@@ -21,13 +21,13 @@ Given that Peras is adding \emph{certificates} to the chain database, we now ske
 \end{itemize}
 
 \subsection{Reusing votes across Peras and Mithril}\label{sec:mithril reuse votes}
-Just like Mithril, Peras needs to diffuse votes in order to create certificate, which is a stake-based threshold multi-signature for the block that is being voted for.%
+Just like Mithril, Peras needs to diffuse votes in order to create certificates, which is a stake-based threshold multi-signature for the block that is being voted for.%
 \footnote{The Mithril team intends to use a protocol very similar to Tx-Submission, see~\cite{dmq-cip}.}
 Conceptually, it is therefore possible to use the same votes for Peras \emph{and} for Mithril, adding the data to be signed for both applications to individual votes (concretely, the point of the block that Peras is voting for, and e.g.\ the hash of a (stable) stake distribution for Mithril).
 Peras and Mithril would aggregate these votes into certificates independently from each other.
 
 The main benefit of this approach is that all pools would automatically and at essentially no extra cost for themselves on top of Peras (assuming that the data that Mithril requires to be signed is sufficiently lightweight, which should be the case for e.g.\ stake distributions) participate in Mithril voting.
-In particular, no bandwidth is wasted for duplicate
+In particular, no bandwidth is wasted for duplicate vote diffusion.
 
 Of course, this approach requires that Peras and Mithril use the same or compatible cryptography for votes and certificates.
 The current design for votes and certificates in Peras \parencite{peras-cert-report} is different from Mithril's certificates \parencite{chaidos2024mithril}; however, we understand that there is an effort to use a unified approach of stake-based threshold multi-signatures across various Cardano-related projects, in particular for Peras and Mithril.
@@ -48,7 +48,7 @@ Ouroboros Leios\footref{footnote:leios} is a high-throughput protocol for Cardan
 From a very high level point of view, Peras and Leios are orthogonal features:
 Leios is a significant change to the protocol with many new kinds of blocks as well as votes and certificates.
 However, in the end Leios, still establishes a chain made out of \emph{ranking blocks} that follows the longest chain rule as in Praos.
-Peras can still be applied to this chain (i.e.\ votes would be case for ranking blocks), providing faster settlement under optimistic conditions.
+Peras can still be applied to this chain (i.e.\ votes would be cast for ranking blocks), providing faster settlement under optimistic conditions.
 
 In other words, interacting with the Cardano blockchain via a transaction involves two steps:
 \begin{enumerate}
@@ -60,12 +60,12 @@ In other words, interacting with the Cardano blockchain via a transaction involv
 Leios accelerates step~\ref{enumi:leios:tx step 1} (by increasing throughput), while Peras speeds up step~\ref{enumi:leios:tx step 2} (by boosting the block or one of its descendants).
 
 On a lower level, Peras and Leios fundamentally compete for bandwidth in the system (as Leios is all about making full use of it, in contrast to Praos).
-The Leios innovation time is currently working on elaborate realistic simulations of Leios to assess its dynamics and performance profiles.
+The Leios innovation team is currently working on elaborate realistic simulations of Leios to assess its dynamics and performance profiles.
 Enriching these simulations with Peras (concretely, its vote diffusion) can provide further insights into this tradeoff.
 However, we note that a future version of Peras might incorporate a dedicated \emph{pre-agreement} mechanism of unclear specifics.
 
 Overall, there is no explicit dependency between Peras and Leios, but rather common dependencies like the work on a cryptographic scheme for votes and certificates.
-Moreover, Leios will likely also use a variant of Tx-Submission do diffuse its various kinds of new entities, which provides an opportunity for collaboration.
+Moreover, Leios will likely also use a variant of Tx-Submission to diffuse its various kinds of new entities, which provides an opportunity for collaboration.
 
 \subsection{Reusing votes}
 Like Peras and Mithril, Leios also makes use of stake-based threshold multi-signatures (in order to certify data availability), and needs to diffuse votes for this purpose.
