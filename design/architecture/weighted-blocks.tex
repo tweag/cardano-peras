@@ -8,6 +8,9 @@ Various components that currently consider chain \emph{length} must instead cons
 \item[Chain selection]
   Most prominently, chain selection must no longer select the longest, but instead the \emph{weightiest} chain, using all currently available certificates.
   In particular, the selection of a node can now additionally change solely due to the emergence of a new certificate, without any new blocks.
+
+  Note that if no block is boosted, the weighted chain selection will demote to the (unweighted) Praos chain selection.
+  Therefore, implementations can also use weighted chain selection for eras before the introduction of Peras, as no block can be boosted there.
 \item[Volatile vs.\ immutable chain]
   The node maintains its selection as an immutable prefix and a volatile suffix, where only the latter is subject to rollbacks.
   Without Peras, the volatile suffix is defined to be the \kcp{} most recent blocks.
