@@ -19,8 +19,8 @@ Concretely, we propose the following checks for a block body $B$ in round $r$ co
   The size of the certificate must be bounded.
   Concretely, we propose a protocol parameter \perasCertSizeLimit{} for the size of a certificate, and additionally, we let the size of the certificate count towards the maximum block body size.
 \end{enumerate}
-The only change to the ledger state is the addition of the round number of the last certificate on chain, and the stake distribution for the previous epoch in case \cert{} is in a previous epoch compared to $B$.%
-\footnote{The ledger state already keeps the stake distribution of the previous epoch around for its reward calculation.}
+The only change to the ledger state is the addition of the round number of the last certificate on chain, and the protocol parameters and stake distribution for the previous epoch in case \cert{} is in a previous epoch compared to $B$.%
+\footnote{The ledger state already keeps this data of the previous epoch around for its reward calculation.}
 
 \subsection{Analysis}
 Note that these rules allow the adversary to needlessly include certificates in chain even if there is no current/upcoming cooldown period.
