@@ -16,8 +16,8 @@ Concretely, we propose the following checks for a block body $B$ in round $r$ co
 \item
   The certificate \cert{} must be valid.
 \item
-  The round of \cert{} must be strictly greater than the round of the previous certificate on chain, and it must lie between $r-\perasCertMaxSlots$ and $r$, i.e.\
-  \[ r-\perasCertMaxSlots \le \round(\cert) \le r \;. \]
+  The round of \cert{} must be strictly greater than the round of the previous certificate on chain, and it must lie between $r-\perasCertMaxRounds$ and $r$, i.e.\
+  \[ r-\perasCertMaxRounds \le \round(\cert) \le r \;. \]
   This ensures that \cert{} is neither too old nor too new, such that the ledger state that $B$ is validated against contains the necessary information to validate $r$.
 \item
   The size of the certificate must be bounded.
