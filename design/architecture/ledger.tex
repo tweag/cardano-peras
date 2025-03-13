@@ -4,6 +4,10 @@ The Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} 
 
 Peras requires new protocol parameters, see \cref{sec:protocol parameters}, which should be a routine change.
 
+The cryptographic scheme for votes and certificates \parencite{peras-cert-report} will likely require pools to register new keys, which implies corresponding changes to pool (re-)registration.\footnote{
+  This also raises other questions like how to handle pools that did not register these new keys as Peras gets enabled.
+  A natural approach is to monitor the chain until pools of sufficient stake have done so, and only then enable Peras, ignoring the remaining pools until they have registered appropriate keys on chain.}
+
 Apart from that, the Ledger needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
 We note that certificate are morally part of the Consensus layer (in particular, validating them requires the epoch nonce, which no other ledger rule does); however, certificates are likely too large to be stored in a header.
 
