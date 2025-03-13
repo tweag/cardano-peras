@@ -131,7 +131,7 @@ In order to coordinate the \emph{end} of the cooldown period, a certificate is i
 When an honest node is elected in a slot in round $r$, it includes the latest certificate $\cert'$ it has seen if and only if all of the following hold:
 \begin{enumerate}
 \item\label{rule:block creation:a} The node has not seen a certificate $\cert$ with $\round(\cert)=r-2$.
-\item\label{rule:block creation:b} $r-\round(\cert') \le \perasCertMaxSlots$.
+\item\label{rule:block creation:b} $r-\round(\cert') \le \perasCertMaxRounds$.
 \item\label{rule:block creation:c} $\round(\cert') > \round(\cert^*)$.
 \end{enumerate}
 Here, rule~\ref{rule:block creation:c} makes sure that an honest node never includes a certificate that has already been included in our current selection.

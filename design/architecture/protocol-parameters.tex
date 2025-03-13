@@ -34,9 +34,9 @@ We indicate whether this flexibility is likely to be useful.
     \perasBlockMinSlots{} & \unit{\slot} & $L$ & \numrange{30}{90} & $\checkmark$ \\
     \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $T_{\mathrm{CQ}} = \kcp/\asc$ & $\checkmark$ \\
     \perasHealingSlots{} & \unit{\slot} & \Theal & t.b.d. & ✘ \\
-    \perasCertMaxSlots{} & \unit{\slot} & $A$ & $\Theal + \Tcq$ & ✘ \\
-    \perasIgnoranceRounds{} & round & $R$ & $\lceil A/U \rceil$ & ✘ \\
-    \perasCooldownRounds{} & round & $K$ & $\lceil (A+\Tcp)/U \rceil + 1$ & ✘ \\
+    \perasCertMaxRounds{} & round & $A$ & $\lceil (\Theal + \Tcq)/U \rceil$ & ✘ \\
+    \perasIgnoranceRounds{} & round & $R$ & $\lceil (\Theal + \Tcq)/U \rceil$ & ✘ \\
+    \perasCooldownRounds{} & round & $K$ & $\lceil (\Theal + \Tcq + \Tcp)/U \rceil + 1$ & ✘ \\
     \perasBoost{} & block & $B$ & \num{15} & $\checkmark$ \\
     \perasQuorum{} & weight & $\tau$ & $3/4$ & ✘ \\
     \perasN{} & committee seat & $N$ & \numrange{500}{1000} & $\checkmark$ \\
@@ -63,7 +63,7 @@ We indicate whether this flexibility is likely to be useful.
 \item[\perasHealingSlots]
   The amount of slots needed to heal from a failed Peras voting round, depending on $\perasBoost$.
   A concrete value has yet to be chosen.
-\item[\perasCertMaxSlots]
+\item[\perasCertMaxRounds]
   The maximum age of a certificate to be included in a block.
 \item[\perasIgnoranceRounds, \perasCooldownRounds]
   Lengths of the chain ignorance period and the cooldown period.
