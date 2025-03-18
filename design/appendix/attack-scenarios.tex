@@ -31,13 +31,13 @@ Concretely, consider the voting phase at the beginning of round $r$ starting in 
 Suppose that the adversary with stake $\alpha$ has a chain $C_2$ that is preferrable to $C_1$, and $D_1 \neq D_2$ where \[D_i = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,C_i))\] for $i\in\{1,2\}$.
 If the adversary now diffuses $C_2$ to only a subset of the honest nodes right before $r$ starts (such that the remaining honest nodes only receive $C_2$ after $r$ began), these nodes will vote for $D_2$, while the rest will vote for $D_1$.
 
-We can calculate a lower bound on the probability that an adversary has such a chain $C_2$ by considering a particular outcome of the leader schedule that guarantees the existence of $C_2$ when the adversary simply abstains while honest chain is growing before round $r$.
+We can calculate a lower bound on the probability that an adversary has such a chain $C_2$ by considering a particular outcome of the leader schedule that guarantees the existence of $C_2$ when the adversary simply abstains while the honest chain is growing before round $r$.
 
 \begin{enumerate}
 \item\label{enumi:honest vote splitting:a}
   There is at least one adversarial active slot in the interval $(h,s-\perasBlockMinSlots)$ where $h$ is the last honest active slot before $s-\perasBlockMinSlots$.
 \item\label{enumi:honest vote splitting:b}
-  There are at not more honest than adversarial active slots in the interval $[s-\perasBlockMinSlots, s)$.
+  There are not more honest than adversarial active slots in the interval $[s-\perasBlockMinSlots, s)$.
 \end{enumerate}
 Condition~\ref{enumi:honest vote splitting:a} guarantees that $D_1\neq D_2$, and condition~\ref{enumi:honest vote splitting:b} makes sure that $C_2$ is preferrable to $C_1$.
 
