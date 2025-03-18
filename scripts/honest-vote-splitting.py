@@ -34,7 +34,7 @@ alpha = np.linspace(0, 0.25, num=20)
 for perasBlockMinSlots in [30, 60, 90, 120, 150, 300]:
     Ps = np.vectorize(lambda a: Psuccess(a, perasBlockMinSlots))(alpha)
     ax1.plot(alpha, Ps, label=f"perasBlockMinSlots = {perasBlockMinSlots}")
-    expected = 90 / Ps / 3600
+    expected = 90 / Ps / 3600 / 24 / 7
     ax2.plot(alpha, expected, label=f"perasBlockMinSlots = {perasBlockMinSlots}")
 
 ax1.legend()
@@ -44,9 +44,9 @@ ax1.set_ylabel("attack success probability")
 
 ax2.legend()
 ax2.grid(True)
-ax2.set_ylim(0, 100)
 ax2.set_xlabel("adversarial stake")
-ax2.set_ylabel("expected time until successful attack [h]")
+ax2.set_ylabel("expected time until successful attack [week]")
+ax2.set_yscale("log")
 
 fig.tight_layout()
 fig.savefig("plot-honest-vote-splitting.png", dpi=300, bbox_inches="tight")
