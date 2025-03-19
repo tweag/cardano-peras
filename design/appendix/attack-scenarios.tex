@@ -63,7 +63,7 @@ However, it can also be instructive to set it to a concrete value (letting $H'$ 
   % see honest-vote-splitting.py
   \includegraphics[width=0.95\textwidth]{./appendix/plot-honest-vote-splitting.png}
   \centering
-  \caption{Probabilities (lower bounds) for \cref{lemma:honest vote splitting prob} for realistic parameters. The right plot assumes a slot length of one second and $\perasRoundSlots = 90$.}\label{fig:honest vote splitting prob}
+  \caption{Left plot: Probabilities (lower bounds) for \cref{lemma:honest vote splitting prob} for realistic parameters. Right plot: Upper bounds on the expected time until a successful attack, for a slot length of one second and $\perasRoundSlots = 90$, and making the simplifying assumption that the attack success rates for different rounds are independent.}\label{fig:honest vote splitting prob}
 \end{figure}
 We plot the propabilities of \cref{lemma:honest vote splitting prob} for realistic parameters in \cref{fig:honest vote splitting prob}.
 We observe that for small values for \perasBlockMinSlots{}, even relatively weak adversaries can execute a vote splitting attack rather frequently.
