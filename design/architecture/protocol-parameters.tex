@@ -53,7 +53,8 @@ We indicate whether this flexibility is likely to be useful.
 \item[\perasBlockMinSlots]
   Peras block selection offset, the minimum age (in slots) of a block to be voted on at the beginning of a Peras round.
 
-  Note that the rather small values of this parameter allow relatively weak adversary to execute \enquote{vote splitting attacks}, see \cref{sec:honest vote splitting} for more details.
+  Note that the rather small values of this parameter allow relatively weak adversary (i.e. $\le \qty{25}{\percent}$ stake) to execute \enquote{vote splitting attacks} that can force Peras into a cooldown period, see \cref{sec:honest vote splitting} for more details.
+  Larger values for \perasBlockMinSlots{} make such adversarially-induced cooldowns less likely, but they introduce additional settlement latency even in the optimistic case.
 \item[\perasBlockMaxSlots]
   The maximum age (in slots) of a block to be voted on at the beginning of a Peras round.
 

@@ -41,10 +41,12 @@ We can calculate a lower bound on the probability that an adversary has such a c
 \end{enumerate}
 Condition~\ref{enumi:honest vote splitting:a} guarantees that $D_1\neq D_2$, and condition~\ref{enumi:honest vote splitting:b} makes sure that $C_2$ is preferrable to $C_1$.
 
-We stress that this is not the only scenario where the attack can be executed; for example, we have not considered tiebreakers and honest short forks.
+We stress that this is not the only scenario where the attack can be executed; for example, we have not considered network delays, tiebreakers and honest short forks.
+In general, the success rate of a vote splitting attack reduces to a (slot-based) settlement question. \Cite{gavzi2023practical} provides upper bounds for \emph{block-based} settlement; plausibly, the approach there can be adapted to yield upper bounds for the scenario here, too.
 
 \begin{lemma}\label{lemma:honest vote splitting prob}
-  For an adversary with stake $\alpha$ the probability that the events~\ref{enumi:honest vote splitting:a} and~\ref{enumi:honest vote splitting:b} occur before some Peras round is given by \[ P(H\le A) \cdot P(A' \ge 1) \]
+  For an adversary with stake $\alpha$ the probability that the events~\ref{enumi:honest vote splitting:a} and~\ref{enumi:honest vote splitting:b} occur before some Peras round is given by
+  \[ P(H\le A) \cdot P(A' \ge 1) = P(H\le A) \cdot \left(1- \frac{\phi(1-\alpha)}{\asc}\right) \]
   where $H\sim\operatorname{Binom}(L,\phi(1-\alpha))$, $A\sim\operatorname{Binom}(L,\phi(\alpha))$, $A' \sim \operatorname{Binom}(H',\phi(\alpha))$, $H' \sim \operatorname{Geom}(\phi(1-\alpha))$\footnote{Here, we use the convention of counting the number of failures until the first success.}, and where $L= \perasBlockMinSlots$ and $\phi(\sigma) = 1-{(1-\asc)}^\sigma$ \parencite[(1)]{david2018ouroboros}.
 \end{lemma}
 \begin{proof}
@@ -54,6 +56,17 @@ We stress that this is not the only scenario where the attack can be executed; f
 
   The number of successive inactive slots until an active slot for a party with stake $\sigma$ is geometrically distributed via $\operatorname{Geom}(\phi(\sigma))$, so $H'$ counts the size of the interval $(h,s-L)$, and therefore $A' \sim \operatorname{Binom}(H',\phi(\alpha))$ counts the number of adversarial active slots in that interval.
   Thus, $P(\enquote{\ref{enumi:honest vote splitting:b}}) = P(A'\ge 1)$.
+
+  Finally, we have
+  \begin{align*}
+    P(A' \ge 1) &= \sum_{k\ge 0} \underbrace{P(H' = k)}_{{(1-\phi(1-\alpha))}^k \phi(1-\alpha)} \cdot \underbrace{P(A' \ge 1 \mid H' = k)}_{1-{(1-\phi(\alpha))}^k} \\
+                &= \phi(1-\alpha)\cdot \sum_{k\ge 0} {(1-\asc)}^{(1-\alpha)k} \left( 1- {(1-\asc)}^{\alpha k} \right) \\
+                &= \phi(1-\alpha)\cdot\sum_{k\ge 0} {(1-\asc)}^{(1-\alpha)k} - {(1-\asc)}^k \\
+                &= \phi(1-\alpha)\cdot \left(\sum_{k\ge 0} {\left({(1-\asc)}^{1-\alpha}\right)}^k - \sum_{k\ge 0} {(1-\asc)}^k \right) \\
+                &= \phi(1-\alpha)\cdot \left( \frac1{\phi(1-\alpha)} - \frac1{\asc} \right) \\
+                &= 1 - \frac{\phi(1-\alpha)}{\asc} \;.
+  \end{align*}
+  Note that $1-\phi(1-\alpha) / \asc \approx \alpha$.
 \end{proof}
 
 In \cref{lemma:honest vote splitting prob}, we assume that the gap $H'$, i.e.\ the length of the interval $(h,s-\perasBlockMinSlots)$, is sampled geometrically due to the leader schedule.
