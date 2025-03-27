@@ -31,12 +31,12 @@ We indicate whether this flexibility is likely to be useful.
     Name & Unit & Symbol & Feasible value & Governable? \\
     \midrule
     \perasRoundSlots{} & \unit{\slot} & $U$ & \num{90} & $\checkmark$ \\
-    \perasBlockMinSlots{} & \unit{\slot} & $L$ & \numrange{30}{90} & $\checkmark$ \\
+    \perasBlockMinSlots{} & \unit{\slot} & $L$ & \numrange{30}{900} & $\checkmark$ \\
     \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $T_{\mathrm{CQ}} = \kcp/\asc$ & $\checkmark$ \\
     \perasHealingSlots{} & \unit{\slot} & \Theal & t.b.d. & ✘ \\
-    \perasCertMaxRounds{} & round & $A$ & $\lceil (\Theal + \Tcq)/U \rceil$ & ✘ \\
     \perasIgnoranceRounds{} & round & $R$ & $\lceil (\Theal + \Tcq)/U \rceil$ & ✘ \\
     \perasCooldownRounds{} & round & $K$ & $\lceil (\Theal + \Tcq + \Tcp)/U \rceil + 1$ & ✘ \\
+    \perasCertMaxRounds{} & round & $A$ & \perasIgnoranceRounds{} & ✘ \\
     \perasBoost{} & block & $B$ & \num{15} & $\checkmark$ \\
     \perasQuorum{} & weight & $\tau$ & $3/4$ & ✘ \\
     \perasN{} & committee seat & $N$ & \numrange{500}{1000} & $\checkmark$ \\
@@ -64,11 +64,15 @@ We indicate whether this flexibility is likely to be useful.
 \item[\perasHealingSlots]
   The amount of slots needed to heal from a failed Peras voting round, depending on $\perasBoost$.
   A concrete value has yet to be chosen.
-\item[\perasCertMaxRounds]
-  The maximum age of a certificate to be included in a block.
 \item[\perasIgnoranceRounds, \perasCooldownRounds]
   Lengths of the chain ignorance period and the cooldown period.
   Determine for how long honest nodes will not vote after an unsuccessful Peras round.
+
+  We note that \Theal{} needs to be parameterized for a very strong adversary (in order to make up for a late boost/certificate that the adversary might have up their sleeve).
+  In contrast, \Tcq{} and \Tcp{} can be parameterized for weaker adversaries (i.e.~\qty{25}{\percent} stake or less), as they are only used to let honest nodes restart voting at the same time, which is not critical for safety.
+  See \cref{sec:attack cooldowns} for more details.
+\item[\perasCertMaxRounds]
+  The maximum age of a certificate to be included in a block.
 \item[\perasBoost]
   The extra chain weight that a certificate gives to a block.
 \item[\perasQuorum]

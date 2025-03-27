@@ -136,6 +136,57 @@ A more detailed analysis (potentially simulating the resulting Markov chain) is 
 
 Here, we list attacks that motivate (and are hence prevented by) certain rules of the Peras design.
 
+\subsection{Attacks motivating cooldown periods and their structure}\label{sec:attack cooldowns}
+
+\subsubsection{\enquote{Certificate-up-the-sleeve} attacks}
+
+Fundamentally, the concept of cooldown periods, i.e.\ the honest stopping to vote when a round failed to reach quorum before the next round, is required to defend against the adversary having a certificate \enquote{up their sleeve} by releasing their votes late.
+
+Concretely, an adversary can be in a position where they are in possession of votes of sufficient weight to complete a quorum for a given round, but they can do so at any time they wish by releasing the votes \emph{late}.
+This is trivial for an adversary with at least $1-\perasQuorum = \qty{25}{\percent}$ of the stake by abstaining, cf.~\cref{sec:abstaining during voting}, but even possible for weaker adversaries via vote splitting attacks, cf.~\cref{sec:honest vote splitting}.
+
+If honest nodes do not stop voting when a round failed to reach quorum, then adversaries can execute a \emph{balancing attack} by growing two forks with equal weight, violating safety in the form of the common prefix property.
+In the ideal case, one fork is relatively dense (say $(k+1) \cdot \perasBoost$ blocks), but does not contain any boosted blocks, while the other contains few blocks, but every block is boosted (say $k$ blocks, such that the total weight is also $(k+1)\cdot\perasBoost$).
+
+\medskip
+In the actual Peras protocol, this is prevented by stopping to vote when a round did not give rise to a quorum before the next round, and then waiting sufficiently long (\Theal{} slots) until the advantage gained by an adversary possibly having a certificate up their sleeve has been neutralized by running normal Praos.
+
+Note that the node can also restart earlier, say in some round $r$, if they observe a certificate for round $r-1$ before round $r$ starts.
+This is because sufficiently many honest nodes (having stake at least $\perasQuorum - \alpha > \qty{25}{\percent}$ where $\alpha<1/2$ is the adversarial stake) must have voted in round $r-1$ and hence the node just did not observe the certificate for round $r-2$ in time in contrast to these other nodes.
+Also see \cref{sec:attack block creation rule}.
+
+\subsubsection{Attacks on the honest voting restart rule}
+
+Naturally, we need a rule for honest nodes to \emph{restart} voting after waiting for at least \Theal{} slots.
+Note that whatever rule we choose, an adversary with at least $1-\perasQuorum = \qty{25}{\percent}$ stake can immediately cause us to fail to reach quorum again.
+However, we want to prevent adversaries with less stake from causing different honest to restart voting in different rounds, as this allows them to cause us to immediately re-enter a cooldown, akin to vote splitting attacks, cf.~\cref{sec:honest vote splitting}.
+It still might be acceptable if weak adversaries can achieve this with sufficiently probability, but it introduces yet another failure mode where Peras is ineffective temporarily.
+
+For example, the simple rule
+\begin{tcolorbox}
+  Restart voting \perasCooldownRounds{} rounds (or an integral multiple of that) after the round $r$ of the most recent observed certificate.
+\end{tcolorbox}
+\parindent0pt
+does not satisfy this property:
+An attacker controlling stake $\alpha$ with a certificate up their sleeve for round $r+1$ can release this certificate just before round $r+\perasCooldownRounds$ such that honest nodes with stake of at least $\perasQuorum - \alpha$ do not observe it when they decide to vote in that round, while the remaining honest nodes do.
+Therefore, some honest nodes restart voting in round $r+\perasCooldownRounds$, while the rest does so in round $r+\perasCooldownRounds+1$.
+The adversary now has a certificate up their sleeve for round $r+\perasCooldownRounds+1$, and can continue this attack as they wish, forcing an eternal cooldown.
+
+The actual Peras voting rules sidestep these problems with heavy machinery by relying on Praos as a consensus protocol, letting nodes include their most recent certificate on chain (also see \cref{sec:attack block creation rule}) during a cooldown period.
+Concretely, we have the following rules when deciding whether to restart voting in round $r$:
+\begin{description}
+\item[(VR-2A)] The latest observed certificate is at least \perasIgnoranceRounds{} old.
+
+  Here, (VR-2A) makes sure that a certificate indicating the start of this cooldown period has been included on-chain (this depends on whether/when the adversary decided to release the certificate up their sleeve).
+  Therefore, \perasIgnoranceRounds{} encompasses a chain quality window \Tcq{} in addition to \Theal{}.
+\item[(VR-2B)] The latest certificate in the current chain is from a round exactly $c\cdot \perasCooldownRounds$ ago for $c \in\mathbb{N}_{>0}$.
+
+  This makes sure that we restart at least \perasCooldownRounds{} (or a multiple of that if no quorum was reached on a previous restart) after the last unsuccessful round.
+  On top of \Theal{} and \Tcq{}, \perasCooldownRounds{} contains a chain growth window \Tcp{} guaranteeing common prefix, such that all honest nodes agree when to restart.
+\end{description}
+
+As noted above, it is acceptable to parameterize \Tcq{} and \Tcp{} in this context for an attacker with at most $1-\perasQuorum{} = \qty{25}{\percent}$ stake, allow to reduce the length of cooldown periods at least somewhat.
+
 \subsection{Attack on a variant of the block creation rule}\label{sec:attack block creation rule}
 
 Peras enters a \emph{cooldown period} when a round does not give rise to a certificate.
