@@ -4,6 +4,12 @@ We provide a preliminary discussion of the interactions of Peras with Mithril\fo
 
 Mithril is a protocol for generating stake-based threshold multi-signatures for certain entities related the Cardano blockchain, for example the stake distribution, the node database or even individual transactions.
 
+\subsection{Mithril certificates for more recent state}
+
+By design, Mithril can only sign data that all honest nodes agree on.
+Naturally, the faster finality guarantees by Peras therefore allow Mithril to sign data that is more recent.
+For example, Mithril-generated transaction inclusion proofs can arise more quickly under optimistic conditions, improving the user experience of applications integrating them.
+
 \subsection{Bootstrapping Peras certificates}
 Mithril\footref{footnote:mithril} is often used to bootstrap a node by fetching a pre-synced chain database which has been signed via Mithril instead of syncing manually from other nodes.
 Given that Peras is adding \emph{certificates} to the chain database, we now sketch how these could be handled by Mithril.
@@ -16,9 +22,26 @@ Given that Peras is adding \emph{certificates} to the chain database, we now ske
   Nodes that \emph{do} want/need to serve the historical chain to other nodes (e.g., pools) need to obtain all historical certificates.
   This is non-trivial, as there can be many different valid certificates for the same block in some round, and even further, honest nodes do not necessarily have the exact same collection of historical certificates, see~\cref{sec:certificate generalities}.
   This is in contrast to the immutable chain, on which all honest peers agree on eventually up to a specific slot.
-
-  It seems plausibly possible to us to work around these complications, but it requires further thought and discussion with the Mithril team.
 \end{itemize}
+
+One approach is to use Mithril to first sync the historical ImmutableDB, and then sync the historical certificates separately.
+For this, Mithril can provide the historical stake distributions, protocol parameters and epoch nonces, allowing to validate historical certificates without having to maintain an appropriate ledger state.
+Such a special \enquote{certificate sync} could be highly optimizied (in particular leveraging a high degree of concurrency), still being much faster than a regular full sync without Mithril.
+
+In its simplest form, this extra step of syncing historical certificates must take place before the node is started.
+As a further optimization, the node could be started immediately, with historical certificates being synchronized in the background.
+In this stage, the node enjoys all security properties of a caught-up node; however, it can not serve as an honest upstream peer for \emph{syncing} nodes, not counting towards the Honest Availability Assumption of Ouroboros Genesis \parencite{genesis-implementation-documentation}.
+A potential mitigation is to fully disallow connections from evidently syncing peers, or to only negotiate intersections before the tip of the CertDB, implicitly relying on the fact that no node can sync the chain faster than the serving node can sync just the historical certificates.
+
+Finally, an even more efficient approach might consist in defining a succinct representation of historically boosted blocks which can be signed and distributed via Mithril, but can be validated and consumed even by nodes not syncing via Mithril.
+However, this is only a rough sketch, and significant additional work to determine its feasibility would be required.
+
+\subsection{Reusing registered keys}\label{sec:mithril key reuse}
+
+In its current form, Mithril handles registration of new participants off-chain, not being able to benefit from the automatic handling of conflicting registrations enabled by the on-chain consensus.
+Plausibly, Peras and Mithril could share the underlying cryptographic scheme used for votes and certificates, enabling a simplification of Mithril at no extra cost.
+
+The current design for votes and certificates in Peras \parencite{peras-cert-report} is different from Mithril's certificates \parencite{chaidos2024mithril}; however, we understand that there is an effort to use a unified approach of stake-based threshold multi-signatures across various Cardano-related projects, in particular for Peras and Mithril.
 
 \subsection{Reusing votes across Peras and Mithril}\label{sec:mithril reuse votes}
 Just like Mithril, Peras needs to diffuse votes in order to create certificates, which is a stake-based threshold multi-signature for the block that is being voted for.%
@@ -26,11 +49,13 @@ Just like Mithril, Peras needs to diffuse votes in order to create certificates,
 Conceptually, it is therefore possible to use the same votes for Peras \emph{and} for Mithril, adding the data to be signed for both applications to individual votes (concretely, the point of the block that Peras is voting for, and e.g.\ the hash of a (stable) stake distribution for Mithril).
 Peras and Mithril would aggregate these votes into certificates independently from each other.
 
+However, the possibility and/or efficiency depends on the details of the chosen scheme for votes and certificates; in general, we might need to aggregate signatures for (partially) different messages, which is an unusal requirement.
+For example, it is not (directly) supported by~\cite{peras-cert-report}.
+
 The main benefit of this approach is that all pools would automatically and at essentially no extra cost for themselves on top of Peras (assuming that the data that Mithril requires to be signed is sufficiently lightweight, which should be the case for e.g.\ stake distributions) participate in Mithril voting.
 In particular, no bandwidth is wasted for duplicate vote diffusion.
 
-Of course, this approach requires that Peras and Mithril use the same or compatible cryptography for votes and certificates.
-The current design for votes and certificates in Peras \parencite{peras-cert-report} is different from Mithril's certificates \parencite{chaidos2024mithril}; however, we understand that there is an effort to use a unified approach of stake-based threshold multi-signatures across various Cardano-related projects, in particular for Peras and Mithril.
+Of course, this approach requires that Peras and Mithril use the same or compatible cryptography for votes and certificates as already mentioned in \cref{sec:mithril key reuse}.
 
 Another complication is the existence of Peras cooldown periods.
 As presented in the Peras CIP \parencite{peras-cip} and this document, honest nodes stop voting during such a cooldown period, which, even if rare, would also disable Mithril as a side effect, which is undesirable.
