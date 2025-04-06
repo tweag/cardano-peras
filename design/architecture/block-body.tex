@@ -1,15 +1,8 @@
-\section{Changes to the Ledger}\label{sec:ledger changes}
+\section{Changes to the block body}\label{sec:block body changes}
 
-The Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} needs minor modifications to accomodate Peras.
-
-Peras requires new protocol parameters, see \cref{sec:protocol parameters}, which should be a routine change.
-
-The cryptographic scheme for votes and certificates \parencite{peras-cert-report} will likely require pools to register new keys, which implies corresponding changes to pool (re-)registration.\footnote{
-  This also raises other questions like how to handle pools that did not register these new keys as Peras gets enabled.
-  A natural approach is to monitor the chain until pools of sufficient stake have done so, and only then enable Peras, ignoring the remaining pools until they have registered appropriate keys on chain.}
-
-Apart from that, the Ledger needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
-We note that certificate are morally part of the Consensus layer (in particular, validating them requires the epoch nonce, which no other ledger rule does); however, certificates are likely too large to be stored in a header.
+The block body needs to be modified to account for Peras certificates which are included on chain to coordinate the end of a cooldown period.
+We note that certificates are morally part of the Consensus layer; however, certificates are likely too large to be stored in a header.
+Therefore, block bodies for Peras optionally contain a certificate next to the sequence of transactions; note that a block body then no longer contains exclusively Ledger-related content.
 
 Concretely, we propose the following checks for a block body $B$ in round $r$ containing a certificate \cert{}:
 \begin{enumerate}
@@ -18,12 +11,12 @@ Concretely, we propose the following checks for a block body $B$ in round $r$ co
 \item
   The round of \cert{} must be strictly greater than the round of the previous certificate on chain, and it must lie between $r-\perasCertMaxRounds$ and $r$, i.e.\
   \[ r-\perasCertMaxRounds \le \round(\cert) \le r \;. \]
-  This ensures that \cert{} is neither too old nor too new, such that the ledger state that $B$ is validated against contains the necessary information to validate $r$.
+  This ensures that \cert{} is neither too old nor too new, such that the state that $B$ is validated against contains the necessary information to validate $r$.
 \item
   The size of the certificate must be bounded.
   Concretely, we propose a protocol parameter \perasCertSizeLimit{} for the size of a certificate, and additionally, we let the size of the certificate count towards the maximum block body size.
 \end{enumerate}
-The only change to the ledger state is the addition of the round number of the last certificate on chain, and the protocol parameters and stake distribution for the previous epoch in case \cert{} is in a previous epoch compared to $B$.%
+The only change to the (extended) ledger state is the addition of the round number of the last certificate on chain, and the protocol parameters and stake distribution for the previous epoch in case \cert{} is in a previous epoch compared to $B$.%
 \footnote{The ledger state already keeps this data of the previous epoch around for its reward calculation.}
 
 \subsection{Analysis}
@@ -50,7 +43,9 @@ Moreover, this monotonicity property also ensures that the adversary can (on ave
 \end{itemize}
 Finally, note that otherwise-honest nodes have no incentive to include such useless certificates, in particular as they usually could instead include more transactions (which pay fees) in their blocks.
 
-\subsection{Alternatives}
+\subsection{Mitigation and alternatives}
+We note that such adversarially included certificates are overt and hence easy to detect for a vigilant observer of the chain, enabling \emph{social} repercussions as a partial and therefore suboptimal mitigation.
+
 If this cost is considered to be unacceptable, a drastic measure would be to require pools to pay a comparable fee when they include a certificate in a block (which is a rare thing for honest nodes).
 However, such a fee for pools is unprecedented, and raises various unresolved questions regarding incentives and what to do when honest pools run out of funds to pay this new fee.
 
