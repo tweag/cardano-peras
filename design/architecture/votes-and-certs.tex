@@ -41,6 +41,10 @@ A vote from round $r$ (starting in slot $s$) for a block in slot $t$ is \emph{va
   The slots $s$ and $t$ are in the same era, or at least, the eras of $s$ and $t$ both support Peras.
 \end{itemize}
 
+The cryptographic scheme for votes and certificates \parencite{peras-cert-report} will likely require pools to register new keys, which implies corresponding changes to pool (re-)registration.\footnote{
+  This also raises other questions like how to handle pools that did not register these new keys as Peras gets enabled.
+  A natural approach is to monitor the chain until pools of sufficient stake have done so, and only then enable Peras, ignoring the remaining pools until they have registered appropriate keys on chain.}
+
 \subsection{Certificates}\label{sec:certificate generalities}
 
 Once a node observes votes of the same round for the same block with total weight of at least $\perasQuorum$, then it will create (via \emph{aggregation}) a corresponding (succinct) \emph{certificate} proving this fact.
