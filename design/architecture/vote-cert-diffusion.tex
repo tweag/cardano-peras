@@ -63,6 +63,17 @@ In particular, the IOE Network team has been reworking the inbound side of Tx-Su
 
 Finally, we mention that nodes that do not intend to participate in relaying traffic through the Cardano network (for example certain wallets or nodes used by dApp developers) can reduce bandwidth requirements both for them and their upstream peers by requesting certificates (\cref{sec:certificate-diffusion}) instead of votes.
 We propose to add an appropriate configuration flag to toggle this behavior.
+Alternatively, we can let votes flow from downstream nodes to upstream nodes (just like transactions), automatically preventing nodes with no downstream connections from receiving votes.
+
+\paragraph{Separate topology for vote diffusion.}
+
+Discussions with the IOG Networking team gave rise to the idea of having a separate network with a different topology tuned for vote diffusion instead of header/block diffusion.
+Concretely, the P2P network layer of cardano-node establishes a network topology by selecting peers based on a variety of factors, including performance metrics for fast header/block delivery, which would need to be adapted to vote diffusion.
+
+Vote diffusion exhibits different characteristics and requirements:
+In every round, many pools mint new votes, which must be diffused to all other pools, in contrast to block diffusion, where the block minted by a single pool needs to be diffused to all other pools.
+In addition, vote diffusion has a larger time budget than block diffusion ($\perasRoundSlots \approx \qty{90}{\s}$ compared to a mean block time of $1/\asc = \qty{20}{\s}$), allowing to prioritize throughput over latency.
+Finally, votes are rather small objects (comparable to headers, but much smaller than blocks in general), and uniform in size.
 
 \subsection{Certificate diffusion mini-protocol}%
 \label{sec:certificate-diffusion}
@@ -168,6 +179,8 @@ We briefly discuss two alternatives to the design of vote and certificate diffus
   However, the separation of votes and certificates actually allows the individual protocols to be simpler and more focused, and the aforementioned optimization does not seem relevant in practice, in particular as one still needs synchronization between the clients of different peers.
 
   Also, there is an advantage in reusing object-diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) due to its similarity to the existing Tx-Submission protocol, and the planned use for Mithril \parencite{dmq-cip} and Ouroboros Leios.
+
+  We note that incrementally mergable certificate schemes as described in~\cite{signature-merging} would strengthen the case for combining vote and certificate diffusion; however, exploration of such schemes is still in very early stages at this point.
 \item
   Certificate diffusion could use \emph{two} protocols similar to how chains are diffused in Cardano.
   Concretely, the first protocol would be similar to ChainSync and diffuse just certificate IDs (i.e.\ round numbers) and the second protocol would be an instantiation of BlockFetch with certificate IDs instead of block points and certificates instead of blocks.
