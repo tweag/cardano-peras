@@ -54,7 +54,7 @@ We now describe the dynamics of an honest node engaging as the client in vote di
   However, it still continues to offer these vote IDs/votes during the round, as it can be more efficient for downstream peers to download a few remaining votes to observe a quorum by themselves instead of downloading a certificate.
 \item
   The client always checks that the votes indeed correspond to the advertised vote IDs, and that the votes are in fact valid, and disconnects from the offending peer otherwise.
-  Together with the fact that the number of votes per round is bounded by the size of the Peras committe, this bounds the work of the client.
+  Together with the fact that the number of votes per round is bounded by the size of the Peras committee, this bounds the work of the client.
 \end{itemize}
 The node does not send requests for vote IDs or votes while it is syncing (in particular, it could not even validate them at this point), which can be determined by the Genesis State Machine \parencite{genesis-implementation-documentation} or a more ad-hoc criterion like the proximity of the chain tip to the current wall-clock time.
 
@@ -180,7 +180,7 @@ We briefly discuss two alternatives to the design of vote and certificate diffus
 
   Also, there is an advantage in reusing object-diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) due to its similarity to the existing Tx-Submission protocol, and the planned use for Mithril \parencite{dmq-cip} and Ouroboros Leios.
 
-  We note that incrementally mergable certificate schemes as described in~\cite{signature-merging} would strengthen the case for combining vote and certificate diffusion; however, exploration of such schemes is still in very early stages at this point.
+  We note that incrementally mergeable certificate schemes as described in~\cite{signature-merging} would strengthen the case for combining vote and certificate diffusion; however, exploration of such schemes is still in very early stages at this point.
 \item
   Certificate diffusion could use \emph{two} protocols similar to how chains are diffused in Cardano.
   Concretely, the first protocol would be similar to ChainSync and diffuse just certificate IDs (i.e.\ round numbers) and the second protocol would be an instantiation of BlockFetch with certificate IDs instead of block points and certificates instead of blocks.

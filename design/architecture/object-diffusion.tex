@@ -124,7 +124,7 @@ They are notions that need to be made concrete for each implementation of the pr
 \item [\argfont{object}] The abstract type of objects diffused by the protocol.
 \item [\argfont{id}] Identifier that uniquely identifies an object.
 \item [\argfont{objectIds}] An opaque type returned by the server when asked for object ids.
-  It is not explicitely a list of $\argfont{id}$, because the server may want to add metadata to the ids, and/or run a compression scheme to limit the size of its response.
+  It is not explicitly a list of $\argfont{id}$, because the server may want to add metadata to the ids, and/or run a compression scheme to limit the size of its response.
 \item [\argfont{responseToIds}] A function with type $\argfont{objectIds} \rightarrow [\argfont{id}]$.
 \item [\argfont{initialPayload}] An abstract payload that helps initialise the state of the server.
   For instance, a slot number before which the client does not care about the objects.
@@ -258,7 +258,7 @@ should exchange objects with fixed size.%
 
 \subsubsection{Blocking vs. non-blocking ids requests}
 
-When requesting object ids, a client has the choice between emmiting a blocking or a non-blocking request.
+When requesting object ids, a client has the choice between emitting a blocking or a non-blocking request.
 Blocking requests are kinder to the network because they avoid round-trips for nothing.
 However, they abandon the agency to the server, preventing the client to request objects in the meantime.
 

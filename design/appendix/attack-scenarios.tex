@@ -28,7 +28,7 @@ Write $\operatorname{tip}(C)$ for the tip of a chain $C$, and $\operatorname{tru
 
 Concretely, consider the voting phase at the beginning of round $r$ starting in slot $s$, with all honest nodes having selected chain $C_1$ just before.
 
-Suppose that the adversary with stake $\alpha$ has a chain $C_2$ that is preferrable to $C_1$, and $D_1 \neq D_2$ where \[D_i = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,C_i))\] for $i\in\{1,2\}$.
+Suppose that the adversary with stake $\alpha$ has a chain $C_2$ that is preferable to $C_1$, and $D_1 \neq D_2$ where \[D_i = \operatorname{tip}(\operatorname{trunc}(s-\perasBlockMinSlots,C_i))\] for $i\in\{1,2\}$.
 If the adversary now diffuses $C_2$ to only a subset of the honest nodes right before $r$ starts (such that the remaining honest nodes only receive $C_2$ after $r$ began), these nodes will vote for $D_2$, while the rest will vote for $D_1$.
 
 We can calculate a lower bound on the probability that an adversary has such a chain $C_2$ by considering a particular outcome of the leader schedule that guarantees the existence of $C_2$ when the adversary simply abstains while the honest chain is growing before round $r$.
@@ -39,7 +39,7 @@ We can calculate a lower bound on the probability that an adversary has such a c
 \item\label{enumi:honest vote splitting:b}
   There are not more honest than adversarial active slots in the interval $[s-\perasBlockMinSlots, s)$.
 \end{enumerate}
-Condition~\ref{enumi:honest vote splitting:a} guarantees that $D_1\neq D_2$, and condition~\ref{enumi:honest vote splitting:b} makes sure that $C_2$ is preferrable to $C_1$.
+Condition~\ref{enumi:honest vote splitting:a} guarantees that $D_1\neq D_2$, and condition~\ref{enumi:honest vote splitting:b} makes sure that $C_2$ is preferable to $C_1$.
 
 We stress that this is not the only scenario where the attack can be executed; for example, we have not considered network delays, tiebreakers and honest short forks.
 In general, the success rate of a vote splitting attack reduces to a (slot-based) settlement question. \Cite{gavzi2023practical} provides upper bounds for \emph{block-based} settlement; plausibly, the approach there can be adapted to yield upper bounds for the scenario here, too.
@@ -78,7 +78,7 @@ However, it can also be instructive to set it to a concrete value (letting $H'$ 
   \centering
   \caption{Left plot: Probabilities (lower bounds) for \cref{lemma:honest vote splitting prob} for realistic parameters. Right plot: Upper bounds on the expected time until a successful attack, for a slot length of one second and $\perasRoundSlots = 90$, and making the simplifying assumption that the attack success rates for different rounds are independent.}\label{fig:honest vote splitting prob}
 \end{figure}
-We plot the propabilities of \cref{lemma:honest vote splitting prob} for realistic parameters in \cref{fig:honest vote splitting prob}.
+We plot the probabilities of \cref{lemma:honest vote splitting prob} for realistic parameters in \cref{fig:honest vote splitting prob}.
 We observe that for small values for \perasBlockMinSlots{}, even relatively weak adversaries can execute a vote splitting attack rather frequently.
 This is relevant in particular as it allows them to trigger a cooldown phase.
 
@@ -94,7 +94,7 @@ During round $r$, the adversary (with stake $\alpha$) does not diffuse any votes
 Let $C$ be the best chain that any honest node has selected in slot $s+\perasRoundSlots-1$.
 The adversary arranges it such that during the voting phase of round $r$, no quorum is reached without the adversarial votes, and further, that honest votes with weight at most $\perasQuorum - \alpha$ are cast for a block $B$ that is \emph{not} on $C$.
 The idea now is for the adversary to diffuse its $\alpha\cdot\perasN$ votes for $B$ near the end of round $r$ such that round $r$ is considered successful and $B$ receives a boost.
-Then, under reasonable assumptions, the chain ending in $B$ is preferrable to $C$ (as the latter doesn't contain a block that was boosted during round $r$), so the adversary succeeded in creating a low density but high weight chain during round $r$.
+Then, under reasonable assumptions, the chain ending in $B$ is preferable to $C$ (as the latter doesn't contain a block that was boosted during round $r$), so the adversary succeeded in creating a low density but high weight chain during round $r$.
 
 \medskip
 Let us consider concretely how and under what conditions an attacker can execute this attack.
@@ -105,17 +105,17 @@ Let us consider concretely how and under what conditions an attacker can execute
   One way to accomplish this is to execute an honest vote splitting attack, see \cref{sec:honest vote splitting}.
 
   If $\alpha<0.25$, then the adversary must proceed exactly as described there, in particular, diffuse an appropriate chain right before round $r$ starts, in order to prevent a quorum purely made out of honest votes.
-  On the other hande, if $\alpha\ge 0.25$, preventing an honest quorum is trivial, see \cref{sec:abstaining during voting}, so the adversary also has the option to diffuse the better chain even after $r$ started.
+  On the other hand, if $\alpha\ge 0.25$, preventing an honest quorum is trivial, see \cref{sec:abstaining during voting}, so the adversary also has the option to diffuse the better chain even after $r$ started.
 \item
   The round length \perasRoundSlots{} must not be too long in relation to \perasBoost{}, i.e.
   \[ \perasBoost \ge \phi(1-\alpha)\cdot \perasRoundSlots \;. \]
   Otherwise, the honest chain built during round $r$ might have more weight than the block $B$ (plus additional adversarial blocks on top of $B$) despite not having a boost.
-  The attacker can still execute a less effective version of the attack by diffusing their votes signifcantly \emph{before} the end of round $r$.
+  The attacker can still execute a less effective version of the attack by diffusing their votes significantly \emph{before} the end of round $r$.
 
   However, for realistic/useful Cardano mainnet parameters, such as $\perasRoundSlots = 90$ and $\perasBoost = 15$, this is not a problem for the adversary.
 \item
   Once an adversary successfully performed the attack in a round, they can repeat it with good probability like this.
-  The idea is for the adversary to mint two blocks $B_1,B_2$ on top of $B$ between slot $s-\perasBlockMinSlots$ and $s+\perasRoundSlots -\perasBlockMinSlots$, where $B_1$ is preferrable to $B_2$.
+  The idea is for the adversary to mint two blocks $B_1,B_2$ on top of $B$ between slot $s-\perasBlockMinSlots$ and $s+\perasRoundSlots -\perasBlockMinSlots$, where $B_1$ is preferable to $B_2$.
   Then, they execute an honest vote splitting attack between $B_1$ and $B_2$ for round $r+1$, such that neither block reaches quorum just due to honest votes, but such that $B_2$ votes having weight $\perasQuorum - \alpha$ at least.
   This is exactly the necessary setup to continue with the attack.
 
