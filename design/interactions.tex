@@ -26,7 +26,7 @@ Given that Peras is adding \emph{certificates} to the chain database, we now ske
 
 One approach is to use Mithril to first sync the historical ImmutableDB, and then sync the historical certificates separately.
 For this, Mithril can provide the historical stake distributions, protocol parameters and epoch nonces, allowing to validate historical certificates without having to maintain an appropriate ledger state.
-Such a special \enquote{certificate sync} could be highly optimize (in particular leveraging a high degree of concurrency), still being much faster than a regular full sync without Mithril.
+Such a special \enquote{certificate sync} could be highly optimized (in particular leveraging a high degree of concurrency), still being much faster than a regular full sync without Mithril.
 
 In its simplest form, this extra step of syncing historical certificates must take place before the node is started.
 As a further optimization, the node could be started immediately, with historical certificates being synchronized in the background.
@@ -72,7 +72,7 @@ Ouroboros Leios\footref{footnote:leios} is a high-throughput protocol for Cardan
 
 From a very high level point of view, Peras and Leios are orthogonal features:
 Leios is a significant change to the protocol with many new kinds of blocks as well as votes and certificates.
-However, in the end Leios, still establishes a chain made out of \emph{ranking blocks} that follows the longest chain rule as in Praos.
+However, in the end, Leios still establishes a chain made out of \emph{ranking blocks} that follows the longest chain rule as in Praos.
 Peras can still be applied to this chain (i.e.\ votes would be cast for ranking blocks), providing faster settlement under optimistic conditions.
 
 In other words, interacting with the Cardano blockchain via a transaction involves two steps:

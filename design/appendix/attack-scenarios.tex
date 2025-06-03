@@ -140,7 +140,7 @@ Here, we list attacks that motivate (and are hence prevented by) certain rules o
 
 \subsubsection{\enquote{Certificate-up-the-sleeve} attacks}
 
-Fundamentally, the concept of cooldown periods, i.e.\ the honest stopping to vote when a round failed to reach quorum before the next round, is required to defend against the adversary having a certificate \enquote{up their sleeve} by releasing their votes late.
+Fundamentally, the concept of cooldown periods, i.e.\ honest nodes stopping to vote when a round failed to reach quorum before the next round, is required to defend against the adversary having a certificate \enquote{up their sleeve} by releasing their votes late.
 
 Concretely, an adversary can be in a position where they are in possession of votes of sufficient weight to complete a quorum for a given round, but they can do so at any time they wish by releasing the votes \emph{late}.
 This is trivial for an adversary with at least $1-\perasQuorum = \qty{25}{\percent}$ of the stake by abstaining, cf.~\cref{sec:abstaining during voting}, but even possible for weaker adversaries via vote splitting attacks, cf.~\cref{sec:honest vote splitting}.
@@ -160,7 +160,7 @@ Also see \cref{sec:attack block creation rule}.
 Naturally, we need a rule for honest nodes to \emph{restart} voting after waiting for at least \Theal{} slots.
 Note that whatever rule we choose, an adversary with at least $1-\perasQuorum = \qty{25}{\percent}$ stake can immediately cause us to fail to reach quorum again.
 However, we want to prevent adversaries with less stake from causing different honest to restart voting in different rounds, as this allows them to cause us to immediately re-enter a cooldown, akin to vote splitting attacks, cf.~\cref{sec:honest vote splitting}.
-It still might be acceptable if weak adversaries can achieve this with sufficiently probability, but it introduces yet another failure mode where Peras is ineffective temporarily.
+It still might be acceptable if weak adversaries can achieve this with sufficiently small probability, but it introduces yet another failure mode where Peras is ineffective temporarily.
 
 For example, the simple rule
 \begin{tcolorbox}
@@ -185,7 +185,7 @@ Concretely, we have the following rules when deciding whether to restart voting 
   On top of \Theal{} and \Tcq{}, \perasCooldownRounds{} contains a chain growth window \Tcp{} guaranteeing common prefix, such that all honest nodes agree when to restart.
 \end{description}
 
-As noted above, it is acceptable to parameterize \Tcq{} and \Tcp{} in this context for an attacker with at most $1-\perasQuorum{} = \qty{25}{\percent}$ stake, allow to reduce the length of cooldown periods at least somewhat.
+As noted above, it is acceptable to parameterize \Tcq{} and \Tcp{} in this context for an attacker with at most $1-\perasQuorum{} = \qty{25}{\percent}$ stake, allowing to reduce the length of cooldown periods at least somewhat.
 
 \subsection{Attack on a variant of the block creation rule}\label{sec:attack block creation rule}
 
@@ -211,7 +211,7 @@ Therefore, rule~\ref{rule:block creation:a} is not satisfied for any honest node
 
 In contrast, if we were to modify rule~\ref{rule:block creation:a} to be about the absence of a certificate in round $r-1$, then an adversary could force nodes to unnecessarily include a certificate on chain.
 Concretely, the adversary can diffuse its votes shortly before the start of round $r$, such that some honest nodes see a quorum for round $r-1$, while others do not.
-If the latter category of nodes is sufficiently small, then them not voting during round $r$ does not preclude the possibility of round $r$ being successful, in which case they will vote again in round $r$ as normal.
+If the latter category of nodes is sufficiently small, then them not voting during round $r$ does not preclude the possibility of round $r$ being successful, in which case they will vote again in round $r + 1$ as normal.
 However, the modified rule~\ref{rule:block creation:a} would still force them to include the most recent certificate on chain when they are elected before they receive the adversarial votes for round $r-1$, which we want to avoid.
 
 It may be useful to clarify that the harm of honest nodes unnecessarily including a certificate on chain is not necessarily the presence of the certificate itself.
