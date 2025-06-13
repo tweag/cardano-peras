@@ -179,8 +179,6 @@ We briefly discuss two alternatives to the design of vote and certificate diffus
   However, the separation of votes and certificates actually allows the individual protocols to be simpler and more focused, and the aforementioned optimization does not seem relevant in practice, in particular as one still needs synchronization between the clients of different peers.
 
   Also, there is an advantage in reusing object-diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) due to its similarity to the existing Tx-Submission protocol, and the planned use for Mithril \parencite{dmq-cip} and Ouroboros Leios.
-
-  We note that incrementally mergeable certificate schemes as described in~\cite{signature-merging} would strengthen the case for combining vote and certificate diffusion; however, exploration of such schemes is still in very early stages at this point.
 \item
   Certificate diffusion could use \emph{two} protocols similar to how chains are diffused in Cardano.
   Concretely, the first protocol would be similar to ChainSync and diffuse just certificate IDs (i.e.\ round numbers) and the second protocol would be an instantiation of BlockFetch with certificate IDs instead of block points and certificates instead of blocks.
@@ -188,6 +186,21 @@ We briefly discuss two alternatives to the design of vote and certificate diffus
   However, this approach seems overly complicated for the purpose of certificate diffusion.
   The primary motivation for having separate ChainSync and BlockFetch protocols is the \emph{header-body split} \parencite{shelley-data-diffusion-networking}, and ChainSync is specifically designed for stateful chain following, whereas certificates do not have an inherent chain structure (despite voting for blocks on a block chain).
 \end{itemize}
+
+Furthermore, there are options to improve vote diffusion by already \emph{partially} aggregating votes before the final certificates are created, such that nodes do not need to aggregate certificates out of votes themselves, but can save both bandwidth and computational power by reusing partial certificates they received.
+
+One option (used for example by Ethereum, see \cite{eth-horn-signature-collection}) is to form a number of subnets (via pub/sub topics), with every node joining only a few of these for diffusing votes.
+Every subnet has a number of elected aggregators (more than one for resilience against adversaries) which combine the votes of their subnet into partial certificates (attestations) and relay those to a global topic for everyone to observe.
+
+A first observation is that the current Cardano networking stack does not support setting up topologies only covering small subsets of all nodes which are necessary for this scheme.
+This is by design; \cite{shelley-data-diffusion-networking} discusses pub/sub systems, and among other problems, it notes that the concept of topics that are only subscribed to by a small relative fraction of all nodes is not useful for Ouroboros Praos, as both blocks and transactions need to be diffused to all pools.
+Therefore, further research and work would be needed here.
+
+Furthermore, with the vote and certificate schemes currently under consideration (\cref{sec:crypto votes agg}), partial certificates of non-disjoint parties (which is common in the scenario above) can not be merged without further increasing the size of the certificate.
+Also, there is additional complexity in determining how to best \enquote{pack} these partial certificates, see e.g.\ \cite{eth-attestation-aggregation-heuristics}.
+There \emph{are} \enquote{nicely mergeable} schemes that would avoid this downside, see \cref{sec:crypto votes agg}, however, they are still in early stages of research.
+
+More sophisticated vote diffusion mechanisms with incremental aggregation are described in \cite{begassat2019handel,baloochestani2024iniva}, but they require significant additional complexity related to forming an appropriate tree-based topology for their scheme.
 
 %%% Local Variables:
 %%% mode: latex
