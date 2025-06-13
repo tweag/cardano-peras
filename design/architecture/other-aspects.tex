@@ -1,4 +1,6 @@
-\section{Node-to-client protocols}
+\section{Additional considerations}
+
+\subsection{Node-to-client protocols}
 
 In order to make use of Peras and its improved settlement guarantees under optimistic conditions, applications need to monitor whether or how many of the block containing their transaction of interest and its descendants are boosted via a Peras certificate.
 
@@ -6,6 +8,14 @@ For this, we propose to run certificate diffusion (\cref{sec:certificate-diffusi
 For example, such a separate service can provide an easy-to-use API that can answer queries about recent blocks with concrete settlement probabilities based on the observed certificates.
 
 We do not see a strong use case for exposing votes as a node-to-client protocol; monitoring tools for Peras can likely use the node-to-node protocol directly.
+
+\subsection{Lighter chain syncing and following}
+
+Peras enables more lightweight chain syncing and following under optimistic conditions, i.e.\ when Peras is not in a cooldown period.
+Observing a valid Peras certificate boosting a block $B$ implies in particular that at least one honest node fully validated and selected $B$.
+Therefore, when adopting $B$ or any of its predecessors, it is sound to skip cryptographic checks like signature verification as well as script execution, as these do not influence the resulting ledger state, saving the bulk of the CPU work necessary to fully validate them.
+
+Here, Peras certificate play the same role as endorsement certificates in Leios, see~\cite[Section 4.4.2]{leios-design-goals-concepts}.
 
 %%% Local Variables:
 %%% mode: latex
