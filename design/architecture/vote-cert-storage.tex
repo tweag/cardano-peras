@@ -14,13 +14,18 @@ Restarting a node is realistically going to take longer than \perasRoundSlots{},
 
 \section{Certificate storage (PerasCertDB)}\label{sec:cert db}
 
-\subsection{In-memory storage of recent certificates}
+We propose a separation similar to that of the VolatileDB and ImmutableDB in the existing node architecture.
+
+\subsection{Storage of recent certificates}
 Various components of the node need quick access to all certificates applying to a particular candidate chain in order to compute its weight, cf.~\cref{sec:weight not length}.
 In addition, the Peras aspect of the block minting logic (\cref{sec:vote mint}) needs access to the most recent certificate.
 
-We propose to maintain an in-memory cache in the PerasCertDB of all certificates that can apply to a block that the node could select.
-Older certificates (e.g.\ those with a round that ends before the tip slot of the immutable chain) can be garbage-collected from this in-memory cache, which bounds the size of the cache.
-Therefore, as there is at most one certificate per round, this cache contains at most $\lceil \Tcp / \perasRoundSlots \rceil = 1440$ certificates, so in total \qty{28.8}{\mega\byte} for the proposed parameters (\cref{sec:protocol parameters}).
+We propose to maintain an on-disk storage with a complete in-memory cache in the PerasCertDB of all certificates that can apply to a block that the node could select.
+Older certificates (e.g.\ those with a round that ends before the tip slot of the immutable chain) can be garbage-collected from this store, which bounds its size:
+As there is at most one certificate per round, this cache contains at most $\lceil \Tcp / \perasRoundSlots \rceil = 1440$ certificates, so in total \qty{28.8}{\mega\byte} for the proposed parameters (\cref{sec:protocol parameters}).
+The on-disk storage exists only to avoid re-downloading the certificates upon node restart; it is otherwise not used and can therefore be extremely simple (in particular, it is simply read entirely into memory on startup, and does not require random reads), such as one file per certificate.
+
+If certificates end up being really small, say less than \qty{1}{\kilo\byte} (which is the case for one of the candidate schemes in \cref{chap:req cands certs}), then it might be acceptable to not store recent certificates on disk as their total size would be less than \qty{1}{\mega\byte}.
 
 \subsection{On-disk storage of historical certificates}
 Nodes serving the historical chain need to retain all past certificates in order to provide them to peers syncing from them via Ouroboros Genesis, see \cref{sec:weighted genesis}.
