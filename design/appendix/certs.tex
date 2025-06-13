@@ -25,7 +25,7 @@ There is no eligibility check, every pool is allowed to vote.
 A pool can vote by signing the hash of the block that is to be boosted, which are then diffused in a gossip network, such that all honest nodes observe all honest votes in time.
 Finally, a certificate is simply the concatenation of enough votes for the same block such that the combined stake of all pools whose votes are included is at least \perasQuorum{}.
 
-\section{Requirements}
+\section{Requirements}\label{sec:cert reqs}
 
 The functional requirement is that the scheme manages to result in a certificate available to every node if and only if pools with stake at least \perasQuorum{} voted for the same block.
 In more detail, we want, assuming an adversary with less than \qty{50}{\percent} stake:
@@ -78,7 +78,7 @@ In addition, we have the following requirements/goals:
 \item
   Accountability.
 
-  This is required for a reward scheme\alex{link} for Peras, and also to make e.g.\ certificate equivocation attacks \emph{overt}, enabling potential social slashing.
+  This is required for a reward scheme for Peras (cf.\ \cref{chap:rewards}), and also to make e.g.\ certificate equivocation attacks \emph{overt}, enabling potential social slashing.
   In particular, this implies that the size of certificates are (asymptotically) linear in the number of eligible pools, but with a small constant factor (e.g.\ a bitset).
 \end{enumerate}
 

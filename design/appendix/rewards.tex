@@ -1,0 +1,41 @@
+\chapter{Sketch of a reward system for voting}\label{chap:rewards}
+
+This section contains preliminary thoughts on how to design a reward system for Peras voting.
+This is a highly complicated endeavor in mechanism design, see for example \cite{zhang2024max} for issues in Ethereum's incentive system for attestations, so this is only intended to be a starting point.
+
+\medskip
+First, we note that there are incentives for SPOs to honestly follow the Peras protocol rules even without an explicit monetary reward system.
+
+Concretely, the stronger finality guarantees provided by Peras are themselves an incentive for the pool operators as a whole to make sure that Peras is working well (and not in an eternal cooldown period due to low participation).
+However, the benefits of faster finality are weak in the beginning (when few applications such as Layer 2's already make use of Peras), resulting in a chicken-and-egg problem.
+Furthermore, this kind of incentive obviously has a chance to suffer from \emph{tragedy of the commons}-like problems, where a single operator might stop participating in Peras without any noticeable effect, until many operators follow suit and participation becomes too low.
+
+More directly, Peras voting is likely going to be \emph{accountable}, meaning that anyone, in particular people delegating their stake, can check whether/what a particular pool is voting for.
+This can lead to both social pressure, as well as re-delegation of stake if a delegator is unhappy with the behavior of their pool with respect to Peras.
+However, this is far from ideal, as it requires significant technical knowledge and vigilance on the side of delegators.
+
+Also, there is the question whether the marginal additional cost of participating in Peras is actually very large.
+There are only modest increases in bandwidth and storage requirements, which will likely stay below what is included in fixed-price plans by \enquote{discount} providers, so the marginal cost might well be zero for a significant fraction of the pool operators.
+If not, further research is needed to determine the absolute magnitude of rewards necessary to offset these costs.
+
+\medskip
+Let us now sketch a basic reward mechanism for Peras voting.
+
+We note that the vote and certificate scheme must provide fair eligibility and accountability (\cref{sec:cert reqs}), and we require on-chain track record of who participated in Peras voting.
+
+If a round gives rise to a quorum, then the resulting certificate can be included on chain, and everyone voting for the correct block gets rewarded (proportional to their stake).
+Otherwise, pseudo-certificates (which do not reach weight \perasQuorum{}, but still are above a given threshold) may be included, resulting in (smaller) rewards for the respective signers.
+A restrictive design option would be to only allow pseudo-certificates if they are targeting a predecessor of the block containing them, making it less appealing for adversaries to vote for alternative forks.
+However, this might allow adversaries who strategically diffuse forks, cf.\ \cref{sec:honest vote splitting}, to prevent certain honest pools from receiving rewards.
+
+It seems difficult to reliably enforce pools to include certificates on chain as part of the ledger rules.
+As an alternative, including (pseudo-)certificates in a block could be itself incentivized, with the minting pool creating rewards for including evidence of vote participation for as many pools/past rounds as possible.
+
+Generally, due to block space constraints and low chain quality under high adversarial activity, it can probably not be guaranteed that \emph{all} certificates of successful rounds end up on chain.
+This problem might be alleviated by the higher throughput of Leios (\cref{sec:leios}).
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:
