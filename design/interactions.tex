@@ -22,6 +22,8 @@ Given that Peras is adding \emph{certificates} to the chain database, we now ske
   Nodes that \emph{do} want/need to serve the historical chain to other nodes (e.g., pools) need to obtain all historical certificates.
   This is non-trivial, as there can be many different valid certificates for the same block in some round, and even further, honest nodes do not necessarily have the exact same collection of historical certificates, see~\cref{sec:certificate generalities}.
   This is in contrast to the immutable chain, on which all honest peers agree on eventually up to a specific slot.
+
+  This might not be a concern if all certificates are guaranteed to (eventually) end up on-chain, for example as part of a reward system, cf.\ \cref{chap:rewards}.
 \end{itemize}
 
 One approach is to use Mithril to first sync the historical ImmutableDB, and then sync the historical certificates separately.
