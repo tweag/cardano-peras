@@ -1,0 +1,199 @@
+\chapter{Requirements and candidates for certificates}\label{chap:req cands certs}
+
+Peras requires a stake-based threshold multisignature (STM) scheme \parencite{chaidos2024mithril}, just like Mithril and Leios (\cref{chap:interactions}).
+In every round (when not in a cooldown period), the honest pools are jointly trying to produce a certificate (a STM) that proves that at least $\perasQuorum = \qty{75}{\percent}$ of all nodes agree on which block shall receive a boost.
+On a high level, this involves the following steps each round, where we assume that each pool already selected its candidate for receiving a boost.%
+\footnote{In pre-alpha Peras, this is a simple local operation. In the future, with pre-agreement, this will require a dedicated agreement protocol.}
+\begin{enumerate}
+\item
+  \emph{Eligibility.}
+  Each pool checks whether it is \emph{eligible} to participate in the creation of a certificate this round.
+\item
+  \emph{Voting.}
+  Each eligible pool creates a \emph{vote}, which convinces other nodes of the pool's choice of the block to be boosted.%
+  \footnote{We discuss vote equivocations in \cref{sec:attack equivocations}.}
+\item
+  \emph{Diffusion.}
+  Votes are diffused among nodes in some way, such that honest pools learn whether a quorum was reached this round.
+\item
+  \emph{Certificate creation.}
+  Finally, if indeed at least \perasQuorum{} of all pools by stake agreed on which block to boost (and the corresponding votes were diffused in a timely manner), every honest node is now able to obtain a certificate that convinces any third party of this fact.
+\end{enumerate}
+
+For illustration, a very simple (but inefficient) scheme using only ordinary signatures works like this:
+There is no eligibility check, every pool is allowed to vote.
+A pool can vote by signing the hash of the block that is to be boosted, which are then diffused in a gossip network, such that all honest nodes observe all honest votes in time.
+Finally, a certificate is simply the concatenation of enough votes for the same block such that the combined stake of all pools whose votes are included is at least \perasQuorum{}.
+
+\section{Requirements}
+
+The functional requirement is that the scheme manages to result in a certificate available to every node if and only if pools with stake at least \perasQuorum{} voted for the same block.
+In more detail, we want, assuming an adversary with less than \qty{50}{\percent} stake:
+\begin{description}
+\item[Soundness]
+  A valid certificate for a block implies that at least \perasQuorum{} of all pools by stake agree on boosting this block.
+\item[Completeness]
+  If honest pools with at least \perasQuorum{} stake agree on boosting a block, then a certificate for this block does arise.
+\end{description}
+Soundness needs to be guaranteed except with negligible probability, as an adversary can otherwise equivocate certificates, which is catastrophic for the current Peras design.
+On the other hand, completeness errors are not fatal, but they do force Peras to go into a lengthy cooldown period unnecessarily, which can also be caused by other means (cf.~\cref{sec:honest vote splitting}).
+A certain probability of completeness failure might be acceptable if it results in an improvement of a non-functional requirement.
+
+In addition, we have the following requirements/goals:
+\begin{enumerate}
+\item\label{enumi:cert reqs fairness}
+  The expected representation of a party in the committee should be proportional to its stake, in order to guarantee a fair distribution of work, in particular when considering rewards.
+\item
+  The cryptographic operations of creating and verifying votes and certificates shall be as fast as possible.
+
+  Concretely, votes need to be diffused within $\perasRoundSlots \approx \qty{90}{\s}$ in a gossip network using validated forwarding, where they will be validated many times. Signing and verification durations of less than \qty{10}{\milli\s} are definitely sufficient for this purpose.
+
+  On the other hand, certificates only need to be validated while syncing as well as when they are in a block body, which is only done very rarely by honest nodes, namely during a cooldown period, but can happen more often due to adversarial activity, cf.~\cref{sec:bock body analysis}.
+  Certificates can be trivially validated in parallel to checking the ledger rules, so certificates should not take much longer than validating (large) blocks.
+  Empirically, full block validation can take up to a few hundreds of milliseconds.
+\item
+  Vote diffusion shall use minimal bandwidth.
+  A useful point of comparison is the actual block throughput, which currently is bounded by \qty{88}{\kibi\byte} per \qty{20}{\s}.
+
+  This requirement becomes more salient under Leios, which aims to make full use of the available bandwidth, as opposed to Praos, cf.~\cref{sec:leios}.
+\item
+  Security against adaptive adversaries.
+
+  An \emph{adaptive} adversary can act based on information observed during the execution of the protocol.
+
+  Concretely, this requirement affects the eligibility procedure if it contains a random element.
+  Namely, if the randomness that an honest pool uses to decide if it is eligible is public knowledge before the honest pool acts, then the attacker can corrupt precisely the eligible pools.
+  This is problematic because the attacker (including its corrupted nodes) can now be (potentially significantly) overrepresented among the eligible nodes relative to the total stake it controls.
+  This can be avoided by using \emph{private} randomness (e.g.\ via a verifiable random function) instead of public randomness (like the Cardano epoch nonce), as is the case for Praos block leader election.
+\item
+  Forward secrecy.
+
+  When an attacker corrupts a pool, it should be impossible for the adversary to create votes on its behalf for the past, as this might allow the adversary to create (even conflicting) certificates boosting blocks on an alternative fork, threatening the safety of syncing nodes, cf.~\cref{sec:weighted genesis}.
+  This is usually achieved by using key-evolving signatures \parencite{bellare1999forward}.
+\item
+  Certificates shall not be too large.
+
+  Certificates need to be stored indefinitely (\cref{sec:storing historical certs}) and occasionally need to be diffused as part of a block (\cref{sec:block body changes}).
+  Therefore, at the very least, they should not be \emph{larger} then the current maximum block size (\qty{88}{\kibi\byte}).
+\item
+  Accountability.
+
+  This is required for a reward scheme\alex{link} for Peras, and also to make e.g.\ certificate equivocation attacks \emph{overt}, enabling potential social slashing.
+  In particular, this implies that the size of certificates are (asymptotically) linear in the number of eligible pools, but with a small constant factor (e.g.\ a bitset).
+\end{enumerate}
+
+\section{Analysis of options}
+
+\subsection{Eligibility via committee selection}
+
+\emph{Committee selection} as defined in \cite{gavzi2023fait} is precisely what we want for an eligibility scheme.
+Roughly, a (weighted) committee selection scheme is an algorithm that selects a (weighted) subset of a given (expected) target size out of a set of parties with a given stake distribution.
+The security of a scheme is characterized by the (hopefully small) probability that an adversary controlling parties with a given amount of stake can be overrepresented by more than a given maximum.
+
+One trivial weighted committee selection scheme is to select all parties with their stake as their weight.
+This scheme has perfect security (no chance of overrepresentation), but is inefficient, as all parties are eligible, leading to high bandwidth usage and computational overhead.
+It is one extreme in the size-security tradeoff of committee election schemes.
+
+\Cite{gavzi2023fait} describes the following committee election schemes, which we briefly describe and contextualize.
+Some schemes here are unweighted, while others are weighted.
+It is trivial to transform an unweighted scheme $F$ into a weighted one via aggregation (called $\operatorname{A}^F$ in \cite{gavzi2023fait}).
+\begin{enumerate}
+\item
+  $\operatorname{IID}$ selects exactly $n$ committee members by repeatedly selecting a party with each one having probability to be selected equal to their stake.
+
+  In the simple case, this is implemented using public randomness, such as the Cardano epoch nonce, which means that we are less resilient against adaptive adversaries.
+
+  Using repeated single secret leader election \parencite{boneh2020single}, perfect resilience against adaptive adversaries can be restored, but this introduces significant additional overhead in many dimensions and is therefore likely not an option.
+\item
+  $\operatorname{LS}$ (for \enquote{local sortition}) selects $n$ committee members \emph{on average}, by letting each party independently sample from a Poisson distribution with their stake as the mean, with the result being their number of seats in the committee.
+
+  This scheme can be easily implemented using private randomness via a verifiable random function (VRF).
+  However, it has a worse size-security tradeoff compared to $\operatorname{IID}$.
+
+  Furthermore, in contrast to $\operatorname{IID}$ if $\operatorname{IID}$ is implemented with public randomness, votes as well as certificates now need to contain eligibility (VRF) proofs, which can dominate the certificate size, see~\cref{sec:eligibility proofs}.
+\item
+  $\operatorname{FA1}^F$, $\operatorname{FA2}^F$ and $\operatorname{wFA}^F$ are so-called \emph{fait accompli} schemes that, in contrast to $\operatorname{IID}$ and $\operatorname{LS}$, exploit the structure of the stake distribution to provide a better size-security tradeoff.
+  These schemes \emph{deterministically} allocate committee seats to the largest stake pools (up to a limit).
+  For these seats, the adversary can not achieve an overrepresentation, greatly improving the security of the system.
+  The rest of the committee seats are allocated using a specified fallback scheme $F$, i.e.\ $\operatorname{IID}$ or $\operatorname{LS}$.
+
+  Note that these schemes inherit the reslilience against adaptive adversaries from their fallback scheme $F$, so the respective up- and downsides apply, but less prominently, as the adaptive adversary can not achieve an overrepresentation in the deterministically-assigned seats.
+  Also note that deterministically-assigned seats do not require eligibility proofs, even if $F$ does.
+
+  $\operatorname{wFA}^{\operatorname{LS}}$%
+  \footnote{Note that there are some minor unresolved questions around $\operatorname{wFA}^{\operatorname{LS}}$, namely that as written in \cite{gavzi2023fait}, it can not be implemented using private randomness, and \cite{gavzi2023fait} does not provide a way to analyze its concrete security (beyond being not worse than $\operatorname{LS}$).}
+  is analyzed in \cite{peras-cert-report}, which concludes that committee sizes of \numrange{500}{1000} result in roughly \qty{80}{\percent} deterministic/persistent committee seats.
+  Note that it is possible to simply force a given percentage of votes (with potentially suboptimal effects on the security of the scheme).
+
+  A downside of these schemes is that their improved size-security tradeoff depends on the structure of the stake distribution; generally, a stake distribution with a huge number of parties that all have equal stake is the worst case.
+  However, already existing stake shift assumptions as well as the Cardano reward system (incentivizing $k = 500$ equally sized pools, which is rather small) mean that it is acceptable to assume that the structure of the stake distribution does not change \emph{too} rapidly in the near- to medium-term future.
+\end{enumerate}
+
+All of these schemes have the property that parties are present in committees in proportion to their stake on average (requirement \ref{enumi:cert reqs fairness}), i.e.\ they are \emph{perfect} in the language of \cite{gavzi2023fait}.
+
+Further potential options for eligibility sampling are:
+\begin{enumerate}
+\item
+  \cite{alpenglow} proposes a committee election scheme supposedly improving on $\operatorname{FA1}$, which seems worth investigating.
+\item
+  Weight reduction \parencite{tonkikh2024swiper,cryptoeprint:2025/1076} is an extension of the fait accompli schemes above, where \emph{all} committee seats are assigned deterministically.
+  Concretely, for a set of parties with a given stake distribution, where any subset with at most $\alpha$ stake might be adversarial, the goal is to find new non-negative integer weights for each party such that the adversary has at most $\beta$ weight in this context, all while minimizing the sum of these integer weights%
+  \footnote{Note that in our context, we would rather minimize the number of non-zero weights, as there is no need for a single party to send multiple votes (corresponding to its assigned integer weight), but rather just one, as other parties can simply recompute every party's weight. However, as also observed in \cite{cryptoeprint:2025/1076}, there does not seem to be work in this area.}.
+  Equivalently, the problem might be stated as minimizing $\beta-\alpha$ for a given bound on the sum of the integer weights.
+
+  An advantage of this approach is that we get perfect security as long as the adversary has at most $\alpha$ stake.
+  A disadvantage is that due to the complete determinism, very small pools never get a chance to participate in voting (and in particular will never get rewards).
+  For the same reason, larger pools might be consistently over-/underrepresented compared to their underlying stake.
+\end{enumerate}
+
+\subsection{Cryptographic schemes for votes and vote aggregation}
+
+A vote is a signature on the hash (potentially also including the slot) of the block that is to be boosted.
+A certificate needs to prove that pools of sufficient stake signed the same hash.
+The simplest option (concatenating signatures) is very inefficient (as already mentioned in the strawman scheme above), as the certificate size now needs to contain $n$ signatures where $n$ is the number of eligible parties, and even with an efficient committee selection scheme, we still have at least $n\ge 500$.
+
+The following options are available to improve on this:
+\begin{enumerate}
+\item\label{enumi:cert crypto snarks}
+  Using generic verifiable computation/SNARKs with any signature scheme, such as the existing KES keys for block signing.
+  This allows a certificate to be of constant size, but the constants (both regarding size and proving/verification time) are large.
+  We are not in a position to summarize the current status quo in this fast-moving area; while it seems like a promising option in the long-term, it might not be ideal for Peras at this stage.
+\item
+  Using ALBA \parencite{chaidos2024approximate}, which allows certificates to only contain a (well-chosen) subset of all signatures.
+  Sadly, certificates created using ALBA are either very large (comparable to the concatenation scheme for realistic parameters), or suffer from significant completeness errors which make them unappealing in the context of Peras.
+  We refer to a GitHub discussion\footnote{\url{https://github.com/cardano-scaling/alba/discussions/17}} for more details.
+  Also, ALBA certificates do not feature accountability.
+\item
+  Using a multisignature scheme, where multiple signatures on the same message can be combined into a \emph{single} signature.
+  A certificate then contains this single aggregated signature, as well as a representation of all signing parties, for example as a bitset (yielding accountability).
+  \Cite{peras-cert-report} uses BLS signatures \parencite{boneh2004short}, with the key metrics reported in \cref{fig:vote cert metrics}, which are quite practical.
+
+  However, BLS signatures are not forward-secure.
+  Pixel signatures \parencite{drijvers2020pixel} can be considered as a (slightly less efficient) drop-in replacement for BLS signatures featuring forward secrecy, keeping the constant-size aggregation property.
+  Pixel is a key-evolving signature scheme, with the nice property that the maximum number of evolutions $T$ affects only the private key size, but neither the public key size or signature size, which makes values like $T = 2^{32}$ practical, in contrast to the MMM scheme \parencite{malkin2001composition} used for Cardano headers.
+\item
+  Going further than multi-signatures, certain schemes allow to efficiently merge partially aggregated signatures, which is a desirable feature for further optimizing the bandwidth and efficiency of vote diffusion, cf.\ \cref{sec:vote cert alternatives}.
+
+  Note that for BLS or Pixel signatures, one can only merge aggregated signatures without inflating the size when the sets of signers are disjoint, as one otherwise needs to track the multiplicity of each signer, preventing the use of e.g.\ a bitset.
+
+  Such schemes are subject to ongoing research \parencite{signature-merging,cryptoeprint:2025/144}, but they are still at early stages, similar to \ref{enumi:cert crypto snarks}.
+\end{enumerate}
+
+\subsection{Cryptographic schemes for eligibility proofs}\label{sec:eligibility proofs}
+
+When using $\operatorname{LS}$ (potentially as a fallback scheme), votes and certificates need to track eligibility proofs.
+Individual eligibility proofs are naturally provided by verifiable random functions (VRFs), such as ECVRF \parencite{goldberg2023vrf_rfc9381}, which is already used by Cardano for block leader election, or VRFs based on unique signatures such as BLS \parencite{boneh2004short}.
+
+For certificates, eligibility proofs for all (non-deterministically assigned) signers need to be present.
+The simplest but least efficient option is to concatenate VRF proofs, which is currently deployed by Mithril (\cref{sec:mithril}).
+More efficient options are for example described in \cite[Section 5.3]{chaidos2024mithril} and \cite{fleischhacker2024jackpot}.
+
+\subsection{Candidate schemes}
+
+Based on the above, we are currently considering to use $\operatorname{wFA}^{\operatorname{IID}}$ or $\operatorname{wFA}^{\operatorname{LS}}$ with Pixel signatures (and concatenating eligibility proofs in the case of $\operatorname{wFA}^{\operatorname{LS}}$), achieving fair eligibility, security against adaptive adversaries (good, but not quite optimal in the case of $\operatorname{wFA}^{\operatorname{IID}}$), forward secrecy and accountability, as well as reasonable vote and certificate sizes and computational efficiency of their operations.
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-engine: xetex
+%%% TeX-master: "../peras-design"
+%%% End:
