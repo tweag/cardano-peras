@@ -68,7 +68,7 @@ On the other hand, we assume that \emph{equivocating} certificates, i.e.\ two ce
 This assumption is justified by an appropriate parameterization of \perasQuorum{} and \perasN{}, such that an adversary never attains sufficient weight in the committee to equivocate certificates.\footnote{Future work on the Peras protocol might relax this assumption and hence allow a less conservative parameterization.
   However, certain design decisions (especially around certificate diffusion) in this document would need to be reconsidered to properly handle equivocating certificates, as we decided not to prematurely complicate the design without a clear picture of the required semantics.}
 
-\subsection{Realizing votes and certificates}
+\subsection{Realizing votes and certificates}\label{sec:realizing votes certs}
 
 We discuss the possible cryptographic schemes for votes and certificates in \cref{chap:req cands certs} in detail.
 Here, we use the scheme from \cite{peras-cert-report} for concreteness and only summarize a few key metrics in \cref{fig:vote cert metrics}, while noting that these are still subject to change\footnote{In particular, certificates might get significantly smaller ($\le \qty{1}{\kilo\byte}$).}; however, we do not expect them to get significantly worse.
