@@ -24,6 +24,12 @@ As Peras is ineffective (due to its cooldown periods) until a significant number
 However, nodes can already create (if the pool owner registered a key on chain) and relay votes during this period, without the resulting certificates (if any) actually taking any effect.
 This allows to monitor the dynamics and various statistics of vote diffusion in the \enquote{real world} before Peras goes fully live.
 
+\subsection{KES agent integration}
+
+Votes and certificates are likely going to use key-evolving signatures underneath, cf. \cref{sec:crypto votes agg} for improved resilience against long-range attacks (cf.\ \cite{david2018ouroboros} and \cref{sec:storing historical certs}), just like the existing KES scheme used for block signing.
+Soon, the Haskell cardano-node will support a KES agent\footnote{\url{https://github.com/input-output-hk/kes-agent}} to actually deliver on the promise that an attacker who corrupts a node does not get access to past signing keys.
+Naturally, it would therefore be desirable to let the KES key used by Peras also be handled by the KES agent, see \url{https://github.com/input-output-hk/kes-agent/issues/52}.
+
 %%% Local Variables:
 %%% mode: latex
 %%% TeX-engine: xetex
