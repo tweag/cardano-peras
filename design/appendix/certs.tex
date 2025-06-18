@@ -48,7 +48,7 @@ In addition, we have the following requirements/goals:
 
   Concretely, votes need to be diffused within $\perasRoundSlots \approx \qty{90}{\s}$ in a gossip network using validated forwarding, where they will be validated many times. Signing and verification durations of less than \qty{10}{\milli\s} are definitely sufficient for this purpose.
 
-  On the other hand, certificates only need to be validated while syncing as well as when they are in a block body, which is only done very rarely by honest nodes, namely during a cooldown period, but can happen more often due to adversarial activity, cf.~\cref{sec:bock body analysis}.
+  On the other hand, certificates only need to be validated while syncing as well as when they are in a block body, which is only done very rarely by honest nodes, namely during a cooldown period, but can happen more often due to adversarial activity, cf.~\cref{sec:block body analysis}.
   Certificates can be trivially validated in parallel to checking the ledger rules, so certificates should not take much longer than validating (large) blocks.
   Empirically, full block validation can take up to a few hundreds of milliseconds.
 \item

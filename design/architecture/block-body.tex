@@ -19,7 +19,7 @@ Concretely, we propose the following checks for a block body $B$ in round $r$ co
 The only change to the (extended) ledger state is the addition of the round number of the last certificate on chain, and the protocol parameters and stake distribution for the previous epoch in case \cert{} is in a previous epoch compared to $B$.%
 \footnote{The ledger state already keeps this data of the previous epoch around for its reward calculation.}
 
-\subsection{Analysis}\label{sec:bock body analysis}
+\subsection{Analysis}\label{sec:block body analysis}
 Note that these rules allow the adversary to needlessly include certificates in chain even if there is no current/upcoming cooldown period.
 This does not impact the purpose of on-chain certificates:
 If the system does enter a cooldown (via honest nodes stopping to vote), the adversary will run out of certificates to include on chain due to the monotonicity property of round numbers.
