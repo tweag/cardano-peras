@@ -13,7 +13,7 @@ Furthermore, it is necessary to prevent block synchronization from outpacing cer
 \footnote{We do not expect certificate validation to become the bottleneck of syncing, as $\perasRoundSlots \cdot \asc = \num{4.5}$ and \numrange{4}{5} blocks empirically take longer to validate than a certificate.
   Also, we note that certificates can be trivially validated in parallel.}
 To accomplish this, we propose to temporarily stop selecting blocks if doing so would cause the immutable tip of the chain to advance while certificate acquisition is lagging behind.
-This is very a mechanism very similar to the \emph{Limit on Eagerness} in the Cardano Genesis implementation \parencite{genesis-implementation-documentation}, which avoids permanently committing to any chain if a disagreement between competing header chains is yet to be resolved by a density comparison.
+This is a mechanism very similar to the \emph{Limit on Eagerness} in the Cardano Genesis implementation \parencite{genesis-implementation-documentation}, which avoids permanently committing to any chain if a disagreement between competing header chains is yet to be resolved by a density comparison.
 
 %%% Local Variables:
 %%% mode: latex
