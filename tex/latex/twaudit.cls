@@ -308,6 +308,7 @@ I'll pass it to '\TWA@Base' just in case.}
 % hyperref MUST be loaded first. Check section 14.1 of cleveref manual.
 \usepackage[pdfpagelabels,plainpages=false]{hyperref}
 \usepackage{cleveref}
+\usepackage[numbered,open]{bookmark}
 
 %% Recommented to give more professionally-looking tables.
 \renewcommand{\arraystretch}{1.2}
