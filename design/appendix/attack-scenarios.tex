@@ -239,7 +239,7 @@ In the implementation, relying on this rule instead of \densityOfCompetingChains
   This increases disk and outbound bandwidth requirements.
 \end{itemize}
 However, this complexity is necessary, as \cref{sec:density reduction via boost-induced rollbacks} describes an attack that would be possible if we were to keep using \densityOfCompetingChains{} instead of implementing \weightedDensityOfCompetingChains{}.
-Concretely, the adversary can use the attack to let the honest chain to have less than $\phi(\alpha) \cdot \sgen$ blocks (i.e.\ the average number of blocks on a chain they can create completely by themselves) in a window of $\sgen$ slots, despite having higher weight.
+Concretely, the adversary can use the attack to let the honest chain have less than $\phi(\alpha) \cdot \sgen$ blocks (i.e.\ the average number of blocks on a chain they can create completely by themselves) in a window of $\sgen$ slots, despite having higher weight.
 Once successful, the adversary can cause syncing nodes to commit to the adversarial chain permanently, violating safety.
 
 \subsection{Spamming equivocating votes}\label{sec:attack equivocations}
