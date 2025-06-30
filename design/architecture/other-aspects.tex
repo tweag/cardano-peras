@@ -7,6 +7,8 @@ In order to make use of Peras and its improved settlement guarantees under optim
 For this, we propose to run certificate diffusion (\cref{sec:certificate-diffusion}) also as a node-to-client protocol, such that clients can process these themselves for their use case.
 For example, such a separate service can provide an easy-to-use API that can answer queries about recent blocks with concrete settlement probabilities based on the observed certificates.
 
+Potentially, one could add a simple protocol that reports the weight on top of a (volatile) block, as the node already maintains the data necessary for this functionality.
+
 We do not see a strong use case for exposing votes as a node-to-client protocol; monitoring tools for Peras can likely use the node-to-node protocol directly.
 
 \subsection{Lighter chain syncing and following}
