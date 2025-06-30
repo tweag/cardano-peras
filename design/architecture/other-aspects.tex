@@ -23,8 +23,11 @@ Here, Peras certificate play the same role as endorsement certificates in Leios,
 
 Votes and certificates will require pool operators to register new cryptographic keys, cf.\ \cref{sec:realizing votes certs}.
 As Peras is ineffective (due to its cooldown periods) until a significant number of SPOs have done so, we propose to only enable Peras after another (intra-era) hard fork.
+
 However, nodes can already create (if the pool owner registered a key on chain) and relay votes during this period, without the resulting certificates (if any) actually taking any effect.
-This allows to monitor the dynamics and various statistics of vote diffusion in the \enquote{real world} before Peras goes fully live.
+More generally, it is possible to already enable all aspects of Peras \emph{except} the weighted aspect of chain selection.
+
+This allows to monitor the dynamics and various statistics of Peras as well as to catch potential bugs in the \enquote{real world} before going fully live.
 
 \subsection{KES agent integration}
 
