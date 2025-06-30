@@ -189,7 +189,7 @@ We briefly discuss two alternatives to the design of vote and certificate diffus
 
 Furthermore, there are options to improve vote diffusion by already \emph{partially} aggregating votes before the final certificates are created, such that nodes do not need to aggregate certificates out of votes themselves, but can save both bandwidth and computational power by reusing partial certificates they received.
 
-One option (used for example by Ethereum, see \cite{eth-horn-signature-collection}) is to form a number of subnets (via pub/sub topics), with every node joining only a few of these for diffusing votes.
+One option (used for example by Ethereum, see \cite{eth-horn-signature-collection}) is to form a number of subnets (via pub/sub topics), with every pool joining only one of these for diffusing their vote.
 Every subnet has a number of elected aggregators (more than one for resilience against adversaries) which combine the votes of their subnet into partial certificates (attestations) and relay those to a global topic for everyone to observe.
 
 A first observation is that the current Cardano networking stack does not support setting up topologies only covering small subsets of all nodes which are necessary for this scheme.
