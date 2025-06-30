@@ -15,10 +15,8 @@ Such a prototype involves the following work items.
 \item\label{enumi:proto no certs:1}
   Implementation of votes and certificates (\cref{sec:votes certificates generalities}), the associated validation logic and serialization.
 \item\label{enumi:proto no certs:2}
-  Changes to the Cardano Ledger to include certificates in block bodies (\cref{sec:block body changes}).
-
-  We propose to make the Ledger only minimally aware of certificates, as they are morally a Consensus concern and only included in block bodies due to their size.
-  More concretely, the Ledger logic would consider certificates to be opaque objects, with the actual validation logic being provided by the Consensus layer when it invokes the ledger rules.
+  Changes to the block body to include certificates therein (\cref{sec:block body changes}).
+  This requires introducing the notion of a Consensus-specific segment in the block body (which, until now, has been purely a Ledger concern).
 
   The new protocol parameters (\cref{sec:protocol parameters}) which are subject to governance can initially be hard-coded, but we expect it to be a routine operation for the Ledger team to add them to a new Ledger era.
 \item\label{enumi:proto no certs:3}
