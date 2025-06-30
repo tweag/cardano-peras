@@ -75,6 +75,11 @@ graph TD
 
   TestnetCaughtUp[Testnet supporting caught-up Peras]
   style TestnetCaughtUp stroke:lime
+
+  TestnetCaughtUp -. "See 'Further required changes' below" .-> PerasMainnet
+
+  PerasMainnet[Peras is ready for mainnet]
+  style PerasMainnet stroke:olive,stroke-dasharray:5
 ```
 
 ### Minimal Testnet without Voting
