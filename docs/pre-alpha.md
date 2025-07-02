@@ -6,13 +6,13 @@
 
  - **Small latency until blocks can be boosted and hence benefit from faster settlement.**
 
-   Peras only enables improved settlement guarantees for a block if that block (or a descendant) is boosted due to a Peras certificate. One important Peras protocol parameter is the *block selection offset* `L`/`perasBlockMinSlots`. Honest nodes will only ever vote for blocks at the beginning of a Peras round that are least `perasBlockMinSlots` old. Therefore, for this purpose, a small value is desirable.
+   Peras only enables improved settlement guarantees for a block if that block (or a descendant) is boosted due to a Peras certificate. One important Peras protocol parameter is the *block selection offset* `L`, aka `perasBlockMinSlots`. Honest nodes will only ever vote for blocks at the beginning of a Peras round that are least `perasBlockMinSlots` old. Therefore, for this purpose, a small value is desirable.
 
    For example, if `perasBlockMinSlots = 300`, then a block only even has a chance to benefit from a boost after `300 slots = 5 minutes`, whereas for `perasBlockMinSlots = 60`, the block can already be boosted after a minute.
 
  - **Resilience against weak attackers trying to force Peras into a cooldown.**
 
-   When a Peras round is unsuccessful, i.e. did not result in a certificate, Peras enters a lengthy cooldown period (likely >1 day[^long-cooldown]) during which honest votes do not vote and therefore Peras is effectively disabled, returning to Praos temporarily.
+   When a Peras round is unsuccessful, i.e. did not result in a certificate, Peras enters a lengthy cooldown period (likely >1 day[^long-cooldown]) during which honest nodes do not vote and therefore Peras is effectively disabled, returning to Praos temporarily.
 
    [^long-cooldown]: See [appendix A.2.1 in the Peras report](https://tweag.github.io/cardano-peras/peras-design.pdf#section.A.2) for an explanation why cooldown periods are this long.
 
@@ -28,8 +28,10 @@ For preliminary calculations of concrete probabilities in this trade-off, see [a
 
 ## Pre-agreement
 
-*Pre-agreement* is an enrichment to Peras enabling us to resolve the trade-off in the following way: In pre-alpha Peras, rounds can only either result in a boost for a block, or fail, in which case a cooldown is triggered. Pre-agreement enables a third possibility: A round does not boost a block, but it also does not trigger a cooldown. More specifically, weak adversaries (<25%) can not cause cooldowns anymore, except for a very small probability independent of `perasBlockMinSlots`.
+*Pre-agreement* is an enrichment to Peras enabling us to resolve the trade-off in the following way. In pre-alpha Peras, rounds can only either result in a boost for a block, or fail, in which case a cooldown is triggered. Pre-agreement enables a third possibility: A round does not boost a block, but it also does not trigger a cooldown. More specifically, weak adversaries (<25%) can not cause cooldowns anymore, except for a very small probability independent of `perasBlockMinSlots`.
 
 Under the hood, pre-agreement consists of running an (iterated) binary Byzantine Agreement protocol, see https://www.youtube.com/watch?v=HRJzwoArqg4&t=1055s for an explanation.
 
 The downside of pre-agreement is that it makes the protocol more complex, albeit in a confined way because it only affects what to vote for, and increases the bandwidth consumed by Peras even when there isn't any attacker, potentially even requiring an extension of the round length (the details have not yet been analyzed, so no concrete numbers).
+
+There is not yet any schedule for implementing pre-agreement.
