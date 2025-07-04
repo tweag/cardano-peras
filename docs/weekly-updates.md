@@ -1,5 +1,17 @@
 # Weekly status updates
 
+## 2025-07-04
+
+ - Wrote a [document](./pre-alpha.md) explaining pre-alpha Peras
+
+ - Submitted an update to the Peras CIP: https://github.com/cardano-foundation/CIPs/pull/1048
+
+ - Started scaffolding for Peras certs and PerasCertDB: https://github.com/tweag/cardano-peras/issues/59 https://github.com/IntersectMBO/ouroboros-consensus/pull/1581
+
+ - Started implementing basic object diffusion https://github.com/tweag/cardano-peras/issues/57
+
+ - [@tbagrel1](https://github.com/tbagrel1) started onboarding as a new team member 🙌
+
 ## 2025-06-27
 
  - Merged [various updates](https://github.com/tweag/cardano-peras/pull/52) to the Peras report, including:
