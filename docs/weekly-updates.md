@@ -1,5 +1,19 @@
 # Weekly status updates
 
+## 2025-07-11
+
+ - Finished initial scaffolding of Peras certs and PerasCertDB https://github.com/tweag/cardano-peras/issues/59
+
+   Implemented a basic state machine test for the PerasCertDB https://github.com/IntersectMBO/ouroboros-consensus/pull/1582
+
+ - Implemented baseline microbenchmark for calculating weight of chains https://github.com/IntersectMBO/ouroboros-consensus/pull/1583
+
+ - Started designing weighted chain comparisons and weighted chain selection https://github.com/tweag/cardano-peras/issues/62
+
+ - More work basic object diffusion https://github.com/tweag/cardano-peras/issues/57, in particular regarding protocol polymorphism
+
+ - Update to Peras CIP got merged https://github.com/cardano-foundation/CIPs/pull/1048
+
 ## 2025-07-04
 
  - Wrote a [document](./pre-alpha.md) explaining pre-alpha Peras
