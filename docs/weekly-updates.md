@@ -1,5 +1,17 @@
 # Weekly status updates
 
+## 2025-07-18
+
+Half of the team was on vacation this week, so only a short update.
+
+ - Progress on weighted chain comparisons and weighted chain selection https://github.com/tweag/cardano-peras/issues/62
+
+    - Merged supporting refactoring in the Consensus layer https://github.com/IntersectMBO/ouroboros-consensus/pull/1591
+
+    - Enriched BlockFetch decision logic to allow weighted chain comparisons https://github.com/tweag/cardano-peras/issues/62
+
+    - Draft PR for weighted chain comparisons (including weighted chain selection) in the Consensus layer https://github.com/IntersectMBO/ouroboros-consensus/pull/1594
+
 ## 2025-07-11
 
  - Finished initial scaffolding of Peras certs and PerasCertDB https://github.com/tweag/cardano-peras/issues/59
