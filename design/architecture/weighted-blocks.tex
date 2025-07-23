@@ -33,6 +33,12 @@ Various components that currently consider chain \emph{length} must instead cons
 \item[BlockFetch decision logic]
   The BlockFetch decision logic is responsible for downloading blocks corresponding to candidate header chains that are preferable to the current selection.
   The comparison between candidate header chains and the current selection needs to take weight into account.
+\item[Genesis State Machine]
+  The Genesis State Machine determines whether the node considers itself to be caught-up or syncing \parencite{genesis-implementation-documentation}.
+  In particular, in order to transition from the \texttt{Syncing} to the \texttt{CaughtUp} state, the node waits until all of its ChainSync peers have sent \texttt{MsgAwaitReply} (indicating that we have seen their entire chain), and that we have selected a chain that is at least as good as any of the ChainSync candidates.
+
+  Naturally, the notion of preference between chains here needs to be changed to account for weight.
+  Additionally, in order to continue to ensure that we have selected an optimal chain at the time when we conclude that we are caught-up, the aforementioned transition rule must additionally wait until we have received all certificates for rounds up until now, by ensuring that no peer has more certificates to give to us via certificate diffusion, cf.~\cref{sec:certificate-diffusion}.
 \item[Hard Fork Combinator]
   The Hard Fork Combinator (HFC) is Cardano's mechanism for transparently handling transitions between different Cardano eras.
   Before enacting an era transition decided by on-chain governance, the HFC requires at least \kcp{} blocks after the \emph{voting deadline}, i.e.\ the last slot that could still affect the on-chain governance.\footnote{
