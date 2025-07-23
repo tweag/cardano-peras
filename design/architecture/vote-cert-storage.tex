@@ -23,7 +23,7 @@ In addition, the Peras aspect of the block minting logic (\cref{sec:vote mint}) 
 We propose to maintain an on-disk storage with a complete in-memory cache in the PerasCertDB of all certificates that can apply to a block that the node could select.
 Older certificates (e.g.\ those with a round that ends before the tip slot of the immutable chain) can be garbage-collected from this store, which bounds its size:
 As there is at most one certificate per round, this cache contains at most $\lceil \Tcp / \perasRoundSlots \rceil = 1440$ certificates, so in total \qty{28.8}{\mega\byte} for the proposed parameters (\cref{sec:protocol parameters}).
-The on-disk storage exists only to avoid re-downloading the certificates upon node restart; it is otherwise not used and can therefore be extremely simple (in particular, it is simply read entirely into memory on startup, and does not require random reads), such as one file per certificate.
+The on-disk storage allows us to choose a more appealing chain during initial chain selection (in case our VolatileDB contains multiple candidates, out of which only one has high weight), and to avoid re-downloading the certificates upon node restart; it is otherwise not used and can therefore be extremely simple (in particular, it is simply read entirely into memory on startup, and does not require random reads), such as one file per certificate.
 
 If certificates end up being really small, say less than \qty{1}{\kilo\byte} (which is the case for one of the candidate schemes in \cref{chap:req cands certs}), then it might be acceptable to not store recent certificates on disk as their total size would be less than \qty{1}{\mega\byte}.
 
