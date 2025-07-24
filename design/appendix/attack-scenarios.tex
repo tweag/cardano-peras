@@ -132,6 +132,32 @@ Let us consider concretely how and under what conditions an attacker can execute
 These probabilities seem sufficiently large to us to take this attack seriously.
 A more detailed analysis (potentially simulating the resulting Markov chain) is out-of-scope for this document.
 
+\subsection{Compromised voting keys}
+
+Suppose that an honest stake pool is compromised, exposing its private keys to an adversary.
+On a high level, the security analysis of the protocol simply considers such a pool to be adversarial.
+
+Note that, due to the use of forward-secure cryptography via key-evolving signatures \parencite{bellare1999forward} (also see \cref{sec:cert reqs}), and assuming an otherwise good operational record, the adversary can only act on the compromised pool's behalf by signing new blocks or voting from the time of the attack onward (modulo the granularity of key evolution), but \emph{not} before.
+
+However, as raised in \cite[Section 2.2.4]{kant2020shelley}, it is still desirable to allow an honest pool operator to revoke the compromised keys and mitigate the adversarial impact as much as possible, without requiring any action from delegators.
+
+The approach used by Cardano today relies on the pool operator maintaining a \emph{cold key} on a separate machine that is assumed to remain secure even if the stake pool is compromised.
+\begin{itemize}
+\item
+  Regarding the hot block signing key, the pool operator can immediately create a new operational certificate using the cold key with an incremented \emph{issue number}, which takes precedence over the compromised key in a specific sense affecting both the tiebreaker in the chain order as well as header validity; see \cite[Section 3.3.7 and 3.3.8]{kant2020shelley}.
+\item
+  Regarding the VRF signing key, the adversary gains knowledge of the leader schedule of the compromised pool until the operator registers a new VRF signing key on-chain (which requires the cold key).
+\end{itemize}
+
+Regarding the Peras voting key, as with the VRF signing key, the adversary can vote just like the honest operator until a new key has been registered on-chain.
+During this period, however, the actual impact of these adversarial votes is limited:
+Honest nodes will still only download at most one (potentially equivocating) vote per election seat, cf.~\cref{sec:attack equivocations}, so there is no increased bandwidth usage.
+However, this rule can prevent an honest node from seeing a quorum purely based on votes in case it first receives an equivocating adversarial vote for a useless block.
+But as long as at least one honest node observes a quorum, it will diffuse the resulting certificate instead, ensuring the success of the round.
+
+Using operational certificates for Peras voting could further improve the mitigation of key exposure (namely by making sure that a vote with a higher issue number definitely propagates to all honest peers).
+However, this would greatly inflate the size of votes and especially certificates (due to the lack of efficient aggregation) without significantly more complicated cryptography, cf.~\cref{chap:req cands certs}.
+
 \section{Attacks motivating aspects of the Peras design}
 
 Here, we list attacks that motivate (and are hence prevented by) certain rules of the Peras design.
