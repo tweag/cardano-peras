@@ -61,6 +61,9 @@ To support syncing via Ouroboros Genesis, the following additional steps are nec
   Adjust chain selection to ensure that certificate acquisition does not fall behind block adoption (\cref{sec:storing historical certs}) as part of the \enquote{duty to remember} certificates.
 \end{enumerate}
 
+An optional further step is to implement lighter chain syncing and following, cf.~\cref{sec:lighter chain syncing following}.
+Note that, as described there, this also requires changes to the Devoted BlockFetch component of Ouroboros Genesis \parencite{genesis-implementation-documentation}.
+
 \section{Discussion of implementing Peras externally to the node}
 
 The implementation approach described in the preceding sections assumes that Peras will be directly integrated into the existing node.
