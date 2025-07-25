@@ -1,5 +1,17 @@
 # Weekly status updates
 
+## 2025-07-25
+
+ - Finalized PR optimizing fragment intersections https://github.com/IntersectMBO/ouroboros-network/pull/5157
+
+   This is an operation that will happen on every chain comparison, so it needs to be fast.
+
+ - Implemented chain selection for certificates https://github.com/tweag/cardano-peras/issues/68
+
+ - Added basic tests for weighted chain selection https://github.com/tweag/cardano-peras/issues/69
+
+ - Smoke test for a very simple version of object diffusion https://github.com/IntersectMBO/ouroboros-consensus/tree/peras/object-diffusion
+
 ## 2025-07-18
 
 Half of the team was on vacation this week, so only a short update.
