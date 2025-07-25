@@ -4,8 +4,8 @@
 This section presents a generic object diffusion mini-protocol. Heavily inspired
 by Tx-Submission~\cite[Section~3.9]{network-spec-150} and the related
 \enquote{Decentralized Message Queue} CIP \parencite{dmq-cip}, we hope to use it
-for certificate and vote diffusion. This protocol aims are synchronising a data
-base of objects (e.g., for Tx-Submission, their mempool) between peers:
+for certificate and vote diffusion. This protocol aims at synchronising a
+database of objects (e.g., for Tx-Submission, their mempool) between peers:
 %
 \begin{itemize}
 \item
@@ -213,7 +213,7 @@ maintain a FIFO that mirrors the server's FIFO but only contains the object ids
 
 After the client requests new object ids, the server replies with a list of
 object ids and puts these objects in its FIFO. The server may reply with less
-ids that requested, indicating that it has no more objects after those. As part
+ids than requested, indicating that it has no more objects after those. As part
 of a request, a client also acknowledges a number of objects from the beginning
 of the server's FIFO that it is no longer interested in. The server then removes
 them from its FIFO. The server checks that the size of the FIFO, {\em i.e.}\ the
@@ -267,7 +267,7 @@ We propose the following rule to govern this decision:
 If the pipeline of that specific client-server pair contains only \MsgRequestObjs{} messages, and these messages span over all the objects in the FIFO that we have not yet obtained, then send \MsgRequestObjIdsB. Otherwise, send \MsgRequestObjIdsNB.
 
 Note that this criterion covers the simpler case of empty pipelines and FIFO.
-Note that, if we send \MsgRequestObjIdsB{} while the messages in the pipeline do not cover all of the objects in the FIFO that we are missing, then we might get stuck with ids that we will not be able to process until the server gets net ones.
+Note that, if we send \MsgRequestObjIdsB{} while the messages in the pipeline do not cover all of the objects in the FIFO that we are missing, then we might get stuck with ids that we will not be able to process until the server gets new ones.
 This point holds also if we have requested the objects from other peers, as they might fail to deliver.
 Finally, note that, if we send \MsgRequestObjIdsB{} while there are messages in the pipeline that are not \MsgRequestObjs, then we might receive new ids that we will not be able to process (with this server) until the server gets new ones.
 
