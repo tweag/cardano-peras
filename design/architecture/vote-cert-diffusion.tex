@@ -39,7 +39,7 @@ Additionally, it serves the votes corresponding to the unacknowledged vote IDs.
 We now describe the dynamics of an honest node engaging as the client in vote diffusion with its peers, assuming that it is caught-up.
 \begin{itemize}
 \item
-  The node continually requests more vote IDs from its peers (with a limit on unacknowledged votes), using non-blocking or blocking requests depending on whether there are are outstanding unacknowledged votes.
+  The node continually requests more vote IDs from its peers (with a limit on unacknowledged votes), using non-blocking or blocking requests depending on whether there are outstanding unacknowledged votes.
 \item
   The client disconnects from the server if the round of the vote ID is from the future or the past (modulo some acceptable clock skew), cf.~\cref{sec:votes certs from the future,sec:votes certs from the past}.
 \item
