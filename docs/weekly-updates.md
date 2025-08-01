@@ -2,6 +2,28 @@
 
 ## 2025-07-25
 
+The components necessary for the Minimal Testnet without Voting (see the [roadmap](./roadmap-draft.md)) are taking shape:
+
+ - Regarding weighted chain comparisons and weighted chain selection:
+
+    - Engaged with the Networking team in reviewing https://github.com/IntersectMBO/ouroboros-network/pull/5161 which enables weighted chain comparisons in the BlockFetch decision logic.
+
+      Also merged https://github.com/IntersectMBO/ouroboros-network/pull/5157.
+
+    - Implemented weight-based immutability criterion https://github.com/tweag/cardano-peras/issues/71.
+
+      This allows our volatile chain fragment to be shorter than `k` blocks when Peras is not in a cooldown period, and improves resource bounding arguments of the node which rely on the age of the immutable tip (which for example is relevant for bounding the size of the VolatileDB).
+
+    - Improved documentation and general polishing of weights and weight calculations https://github.com/IntersectMBO/ouroboros-consensus/pull/1609
+
+ - Regarding certificate diffusion:
+
+    - Wiring between the generic object diffusion mini-protocol implementation and the PerasCertDB https://github.com/IntersectMBO/ouroboros-consensus/pull/1615
+
+    - Started extending the basic smoke tests to sync two PerasCertDBs.
+
+## 2025-07-25
+
  - Finalized PR optimizing fragment intersections https://github.com/IntersectMBO/ouroboros-network/pull/5157
 
    This is an operation that will happen on every chain comparison, so it needs to be fast.
