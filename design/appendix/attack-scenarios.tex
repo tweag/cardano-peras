@@ -150,6 +150,18 @@ The approach used by Cardano today relies on the pool operator maintaining a \em
 \end{itemize}
 
 Regarding the Peras voting key, as with the VRF signing key, the adversary can vote just like the honest operator until a new key has been registered on-chain.
+With the current Ledger rules \parencite[Section 9.4 \enquote{Stake Pool Rules}]{shelley-ledger-specs}, this takes between two and three epochs (depending on when the transaction with the stake pool registration certificate gets included on-chain), which corresponds to \numrange{10}{15} days.
+We briefly mention two possibilities of reducing this period.
+\begin{enumerate}
+\item
+  The reason for \emph{one} epoch in this delay is to allow delegators to respond to changes in pool parameters such as pool cost.
+  This motivation does not apply to the scenario of this section (in fact, the same can be said for the VRF key), so it could simply be skipped in this case to reduce the delay to \numrange{5}{10} days.
+\item
+  Instead of storing the public key for Peras voting in the pool parameters which only change on epoch boundaries, the Ledger could maintain Peras-specific fine-grained snapshots tracking the set of Peras voting keys for every Peras round.
+  Then, to verify votes in a Peras round, the keys from the latest snapshot which is at least one stability version old (compared to the onset of the round) are used.
+  At the cost of additional Ledger complexity, the delay could therefore be reduced to a stability window (\qty{36} hours),
+\end{enumerate}
+
 During this period, however, the actual impact of these adversarial votes is limited:
 Honest nodes will still only download at most one (potentially equivocating) vote per election seat, cf.~\cref{sec:attack equivocations}, so there is no increased bandwidth usage.
 However, this rule can prevent an honest node from seeing a quorum purely based on votes in case it first receives an equivocating adversarial vote for a useless block.
