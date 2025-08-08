@@ -14,7 +14,7 @@ Various components that currently consider chain \emph{length} must instead cons
 \item[Volatile vs.\ immutable chain]
   The node maintains its selection as an immutable prefix and a volatile suffix, where only the latter is subject to rollbacks.
   Without Peras, the volatile suffix is defined to be the \kcp{} most recent blocks.
-  With Peras, it is instead defined to be the shortest suffix containing blocks of weight at least \kcp{}.\footnote{
+  With Peras, it is instead defined to be the longest suffix containing blocks of weight at most \kcp{}.\footnote{
     Note that it is acceptable (but overly conservative) to not capitalize on this observation, and still consider the last \kcp{} blocks to be volatile (as long as this doesn't cause our immutable tip to ever recede).}
 
   When Peras is not in a cooldown phase, this means that the length of the volatile suffix decreases from \kcp{} blocks to
