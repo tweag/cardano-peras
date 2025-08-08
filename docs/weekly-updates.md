@@ -1,6 +1,18 @@
 # Weekly status updates
 
-## 2025-07-25
+## 2025-08-08
+
+ - Met with the IOR researchers regarding Peras.
+
+    - Discussed avenues for improved settlement calculations for the parameterization dashboard https://github.com/tweag/cardano-peras/issues/54
+
+    - Communicated a minor protocol change in the voting rule, potentially enabling further simplifications.
+
+ - Continued work on minimizing exposure of the immutability criterion, in particular targeting the LedgerDB https://github.com/tweag/cardano-peras/issues/71 https://github.com/IntersectMBO/ouroboros-consensus/pull/1619
+
+ - A lot of code review, preparing submission of pull requests for review by the IOG Consensus team.
+
+## 2025-08-01
 
 The components necessary for the Minimal Testnet without Voting (see the [roadmap](./roadmap-draft.md)) are taking shape:
 
