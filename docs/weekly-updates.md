@@ -1,5 +1,19 @@
 # Weekly status updates
 
+## 2025-08-15
+
+Most of the team is/was on vacation this week.
+
+ - Opened https://github.com/tweag/cardano-peras/issues/88 after further discussions with the IOR researchers regarding the possibility to avoid having to store historical certificates. However, to assess the feasibility of this idea, further work is necessary.
+
+ - Walkthrough of https://github.com/IntersectMBO/ouroboros-consensus/pull/1619 with the IOG Consensus team.
+
+ - Reviewed and merged PRs implementing weighted chain selection and weighted immutability (https://github.com/IntersectMBO/ouroboros-consensus/pull/1621 and https://github.com/IntersectMBO/ouroboros-consensus/pull/1594).
+
+ - Discussions and API changes for certificate diffusion https://github.com/IntersectMBO/ouroboros-consensus/pull/1615
+
+ - Briefly discussed potential usage of Peras certificates in light clients and ZK proofs.
+
 ## 2025-08-08
 
  - Met with the IOR researchers regarding Peras.
