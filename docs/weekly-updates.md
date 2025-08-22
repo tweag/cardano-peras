@@ -1,5 +1,13 @@
 # Weekly status updates
 
+## 2025-08-22
+
+Most of the team is/was on vacation this week.
+
+ - Continued work on certificate diffusion https://github.com/IntersectMBO/ouroboros-consensus/pull/1615
+
+ - Started to integrate the certificate diffusion mini-protocol into the Network layer https://github.com/tweag/cardano-peras/issues/78, paving the way to preliminary Peras cluster runs.
+
 ## 2025-08-15
 
 Most of the team is/was on vacation this week.
