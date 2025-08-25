@@ -158,7 +158,7 @@ We briefly mention two possibilities of reducing this period.
   This motivation does not apply to the scenario of this section (in fact, the same can be said for the VRF key), so it could simply be skipped in this case to reduce the delay to \numrange{5}{10} days.
 \item
   Instead of storing the public key for Peras voting in the pool parameters which only change on epoch boundaries, the Ledger could maintain Peras-specific fine-grained snapshots tracking the set of Peras voting keys for every Peras round.
-  Then, to verify votes in a Peras round, the keys from the latest snapshot which is at least one stability version old (compared to the onset of the round) are used.
+  Then, to verify votes in a Peras round, the keys from the latest snapshot which is at least one stability window old (compared to the onset of the round) are used.
   At the cost of additional Ledger complexity, the delay could therefore be reduced to a stability window (\qty{36} hours),
 \end{enumerate}
 
@@ -197,7 +197,7 @@ Also see \cref{sec:attack block creation rule}.
 
 Naturally, we need a rule for honest nodes to \emph{restart} voting after waiting for at least \Theal{} slots.
 Note that whatever rule we choose, an adversary with at least $1-\perasQuorum = \qty{25}{\percent}$ stake can immediately cause us to fail to reach quorum again.
-However, we want to prevent adversaries with less stake from causing different honest to restart voting in different rounds, as this allows them to cause us to immediately re-enter a cooldown, akin to vote splitting attacks, cf.~\cref{sec:honest vote splitting}.
+However, we want to prevent adversaries with less stake from causing different honest nodes to restart voting in different rounds, as this allows them to cause us to immediately re-enter a cooldown, akin to vote splitting attacks, cf.~\cref{sec:honest vote splitting}.
 It still might be acceptable if weak adversaries can achieve this with sufficiently small probability, but it introduces yet another failure mode where Peras is ineffective temporarily.
 
 For example, the simple rule
