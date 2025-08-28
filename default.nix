@@ -87,7 +87,7 @@ pkgs.stdenv.mkDerivation {
     pkgs.which
   ];
   shellHook = ''
-    export TEXMFHOME=$(pwd):$TEXMFHOME
+    export TEXMFHOME=$(pwd)''${TEXMFHOME:+:}''${TEXMFHOME:-}
   '';
 
   buildPhase = ''
