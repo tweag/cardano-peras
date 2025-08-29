@@ -1,5 +1,21 @@
 # Weekly status updates
 
+## 2025-08-29
+
+Most of the team is/was on vacation this week.
+
+ - Finalized initial implementation of certificate diffusion https://github.com/IntersectMBO/ouroboros-consensus/pull/1615
+
+ - Wrote up interactions between the HFC and Peras at era boundaries https://github.com/tweag/cardano-peras/issues/92
+
+   These will need to be addressed eventually, but they are not blocking the near-term implementation.
+
+ - Discussed development approach in the presence of other experimental feature (Nested Transactions/Leios/Phalanx).
+
+   Agreement was reached to merge the features continually as they are developed, while gating them behind feature flags while they are still experimental. This avoids the need for long-running branches.
+
+   The Peras team will work on propagating a set of feature flags to the ecosystem. https://github.com/tweag/cardano-peras/issues/96
+
 ## 2025-08-22
 
 Most of the team is/was on vacation this week.
