@@ -80,12 +80,12 @@ The coming subsections give more details on the mini-protocol.
       \tikzstyle{every state}=[fill=red,draw=none,text=white]
       \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
       \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
-      \node[state]                   (B) at ( 9, -4) {\StDone};
+      \node[state]                   (B) at (4, 0) {\StDone};
       \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
       \node[state, myblue]          (D) at (-4, -4) {\StObjIdsNonBlocking};
       \node[state, myblue]          (E) at ( 0,  4) {\StObjs};
       \draw (I)  edge[above]                    node[above]{\MsgInit}                                                 (A);
-      \draw (C)  edge[above]                    node[below]{\MsgDone}                                                 (B);
+      \draw (A)  edge[above]                    node[above]{\MsgDone}                                                 (B);
       \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestObjIdsB}               (C);
       \draw (C)  edge[right, bend left=15]      node[fill = white, anchor = center, above = 2pt]{\MsgReplyObjIds}     (A);
       \draw (D)  edge[right, bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
@@ -157,7 +157,8 @@ They are notions that need to be made concrete for each implementation of the pr
       The server replies with the list of all the objects that were requested.
 
 \item [\MsgDone]
-      The server terminates the mini protocol.
+      The client terminates the mini protocol.
+      This is used when a hot peer is demoted.
 \end{description}
 
 \Cref{table:object-diffusion-transitions} presents the state transitions and the associated messages.
