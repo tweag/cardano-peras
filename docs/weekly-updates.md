@@ -1,5 +1,17 @@
 # Weekly status updates
 
+## 2025-09-05
+
+ - Implemented serialization of Peras certificates https://github.com/IntersectMBO/ouroboros-consensus/pull/1658
+
+ - Wired up Peras certificate diffusion https://github.com/IntersectMBO/ouroboros-consensus/pull/1663
+
+ - Started designing an API for certificate validation https://github.com/IntersectMBO/ouroboros-consensus/pull/1655
+
+ - Improved CI invariant checking https://github.com/IntersectMBO/ouroboros-consensus/pull/1651
+
+ - Merged a PR simplifying the integration of weighted chain selection https://github.com/IntersectMBO/ouroboros-consensus/pull/1619
+
 ## 2025-08-29
 
 Most of the team is/was on vacation this week.
