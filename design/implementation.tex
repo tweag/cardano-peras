@@ -48,7 +48,7 @@ To support syncing via Ouroboros Genesis, the following additional steps are nec
   Implementation of the on-disk part of the PerasCertDB (\cref{sec:cert db}).
 
   For a straightforward initial implementation, we recommend to use a key-value store, such as LMDB, which is currently used by the UTxO-HD project to store the UTxO map on disk, or lsm-tree\footnote{\url{https://github.com/IntersectMBO/lsm-tree}}, which is currently developed by Well-Typed as a replacement for LMDB in the aforementioned use case.
-  We note the use cases of storing the UTxO map on disk and the PerasCertDB are pretty different, so certain features of these libraries that are important for the former case (such as supporting random access write-heavy workloads) are not relevant for us.
+  We note that the use cases of storing the UTxO map on disk and the PerasCertDB are pretty different, so certain features of these libraries that are important for the former case (such as supporting random access write-heavy workloads) are not relevant for us.
 
   Alternatively, adapting and simplifying\footnote{For example, complications due to epoch boundary blocks are not relevant for the PerasCertDB.} the existing implementation of the ImmutableDB can be considered.
 \item
