@@ -20,3 +20,17 @@ Pull requests against `peras-staging` branches must
  - labelled to indicate that they are Peras-specific (if such a label exists).
 
 The PR title may additionally include a `[WIP]` to indicate to the Peras team that it is still work-in-progress (as the draft status cannot be used to signal that).
+
+### Merging
+
+Once a PR has been reviewed and is ready, it can be merged through the GitHub UI after marking it as `Ready to review`. However, this may notify repository maintainers about changes that i) were not meant for them to review, and ii) are already merged by the time they check.
+
+To avoid this, we usually merge PRs by pushing directly into `peras-staging`:
+
+```bash
+git checkout peras-staging
+git merge --ff-only peras/your-fancy-new-feature
+git push origin peras-staging
+```
+
+GitHub will recognize that the PR’s commits are included in the target branch and automatically close it. Note, however, that this bypasses the configured [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue). Using `--ff-only` ensures the merge does not introduce conflicts and helps prevent `peras-staging` from ending up in a broken state.
