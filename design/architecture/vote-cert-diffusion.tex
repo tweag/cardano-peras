@@ -62,7 +62,7 @@ This protocol shares several similarities with Tx-Submission, and we anticipate 
 In particular, the IOE Network team has been reworking the inbound side of Tx-Submission\footnote{\url{https://github.com/IntersectMBO/ouroboros-network/pull/4887}} to more efficiently download transactions from different peers (avoiding repeated downloads).
 
 Finally, we mention that nodes that do not intend to participate in relaying traffic through the Cardano network (for example certain wallets or nodes used by dApp developers) can reduce bandwidth requirements both for them and their upstream peers by requesting certificates (\cref{sec:certificate-diffusion}) instead of votes.
-We propose to add an appropriate configuration flag to toggle this behavior.
+We propose to add an appropriate configuration flag to control this behavior, either causing the node to always request votes, or to only request votes if the node has inbound peers, or to not request votes at all (downloading just certificates instead).
 Alternatively, we can let votes flow from downstream nodes to upstream nodes (just like transactions), automatically preventing nodes with no downstream connections from receiving votes.
 
 \paragraph{Separate topology for vote diffusion.}
