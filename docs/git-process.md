@@ -34,3 +34,12 @@ git push origin peras-staging
 ```
 
 GitHub will recognize that the PR’s commits are included in the target branch and automatically close it. Note, however, that this bypasses the configured [merge queue](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue). Using `--ff-only` ensures the merge does not introduce conflicts and helps prevent `peras-staging` from ending up in a broken state.
+
+If `git merge --ff-only` fails, it means your branch cannot be fast-forwarded onto the tip of `peras-staging` as there is at least one divergent commit. To fix this, rebase your feature branch on top of `peras-staging` and then force-push the updated history. This will trigger a new round of CI checks. Once those pass, you should be able to merge with `--ff-only` cleanly.
+
+```bash
+git checkout peras/your-fancy-new-feature
+git fetch origin
+git rebase origin/peras-staging
+git push --force-with-lease origin peras/your-fancy-new-feature
+```
