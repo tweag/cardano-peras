@@ -1,5 +1,17 @@
 # Weekly status updates
 
+## 2025-09-12
+
+ - We scheduled our first public demo, see the "Peras" channel on the IOG Discord for how to join.
+
+ - Initialized a minimal library with the notion of experimental feature flags, allowing parallel development of Peras and other upcoming features like Leios/Phalanx/... (https://github.com/IntersectMBO/cardano-base/pull/547)
+
+ - Enriched the Hard Fork Combinator with the concept of Peras rounds https://github.com/IntersectMBO/ouroboros-consensus/pull/1606
+
+ - Improved the randomized testing of weighted chain selection via `quickcheck-state-machine` https://github.com/IntersectMBO/ouroboros-consensus/pull/1670
+
+ - Separated and polished the existing work into easily reviewable chunks for upstream consideration
+
 ## 2025-09-05
 
  - Implemented serialization of Peras certificates https://github.com/IntersectMBO/ouroboros-consensus/pull/1658
