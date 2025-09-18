@@ -25,20 +25,7 @@ fi
 # Checkout specific commits/branches
 git -C src/cardano-base        checkout 5c18017546dc1032e76a985c45fe7c3df2a76616
 git -C src/ouroboros-network   checkout peras/10.5
-git -C src/ouroboros-consensus checkout peras/10.5
-
-# Cherry-pick the changes from #1684 into ouroboros-consensus/peras/10.5
-pushd src/ouroboros-consensus
-
-PR=1684
-BASE_BRANCH=peras-staging
-git fetch origin "$BASE_BRANCH" pull/"$PR"/head:pr-"$PR"
-mapfile -t PR_COMMITS < <(git log --format="%H" --reverse origin/"$BASE_BRANCH"..pr-"$PR")
-
-git reset --hard origin/peras/10.5 # for idempotency
-git -c user.name="none" -c user.email="none" cherry-pick "${PR_COMMITS[@]}"
-
-popd
+git -C src/ouroboros-consensus checkout peras/10.5-with-cert-conjuring
 
 # Build the needed binaries inside cardano-node
 pushd src/cardano-node

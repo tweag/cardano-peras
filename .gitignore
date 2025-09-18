@@ -311,3 +311,8 @@ TSWLatexianTemp*
 
 # glossaries
 *.glstex
+
+# demo files
+scripts/demo/src/
+scripts/demo/bin/
+scripts/demo/testnet/
