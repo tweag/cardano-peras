@@ -123,7 +123,7 @@ It is trivial to transform an unweighted scheme $F$ into a weighted one via aggr
   $\operatorname{wFA}^{\operatorname{LS}}$%
   \footnote{Note that there are some minor unresolved questions around $\operatorname{wFA}^{\operatorname{LS}}$, namely that as written in \cite{gavzi2023fait}, it can not be implemented using private randomness, and \cite{gavzi2023fait} does not provide a way to analyze its concrete security (beyond being not worse than $\operatorname{LS}$).}
   is analyzed in \cite{peras-cert-report}, which concludes that committee sizes of \numrange{500}{1000} result in roughly \qty{80}{\percent} deterministic/persistent committee seats.
-  Note that it is possible to simply force a given percentage of votes (with potentially suboptimal effects on the security of the scheme).
+  Note that it is possible to simply force a given percentage of seats to be assigned deterministically (with potentially suboptimal effects on the size-security-tradeoff of the scheme).
 
   A downside of these schemes is that their improved size-security tradeoff depends on the structure of the stake distribution; generally, a stake distribution with a huge number of parties that all have equal stake is the worst case.
   However, already existing stake shift assumptions as well as the Cardano reward system (incentivizing $k = 500$ equally sized pools, which is rather small) mean that it is acceptable to assume that the structure of the stake distribution does not change \emph{too} rapidly in the near- to medium-term future.
