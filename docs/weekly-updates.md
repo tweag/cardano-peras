@@ -1,5 +1,27 @@
 # Weekly status updates
 
+## 2025-09-19
+
+ - Started to develop tooling to graphically showcase certificate diffusion and weighted chain selection in a custom testnet. https://github.com/tweag/cardano-peras/issues/115
+
+   This required backporting our changes to the most recent `ouroboros-consensus` release that was integrated into `cardano-node`, which was non-trivial as this last happened in May. https://github.com/tweag/cardano-peras/issues/125
+
+   We also worked on improvements to `cardano-testnet` to accomodate this use case.
+
+ - Merged PR improving the QuickCheck generators for the ChainDB `quickcheck-state-machine` test. https://github.com/IntersectMBO/ouroboros-consensus/pull/1670
+
+ - Polished and submitted our Peras changes so far for upstream review to the IOG Consensus team:
+
+    - https://github.com/IntersectMBO/ouroboros-consensus/pull/1673
+    - https://github.com/IntersectMBO/ouroboros-consensus/pull/1674
+    - https://github.com/IntersectMBO/ouroboros-consensus/pull/1678
+    - https://github.com/IntersectMBO/ouroboros-consensus/pull/1679
+    - https://github.com/IntersectMBO/ouroboros-consensus/pull/1681
+
+ - We finalized our PR adding the ObjectDiffusion mini-protocol, adding codec tests and fixing serialization bugs. https://github.com/IntersectMBO/ouroboros-network/pull/5181
+
+ - The IOG Cryptography reached out, and we aligned on the cryptography required by Peras as well as the intersection with other workstreams like Leios and Mithril. https://github.com/tweag/cardano-peras/issues/128
+
 ## 2025-09-12
 
  - We scheduled our first public demo, see the "Peras" channel on the IOG Discord for how to join.
