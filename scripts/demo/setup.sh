@@ -38,9 +38,9 @@ if [[ ! -f ../../bin/cardano-cli ]] || [[ -n "$REBUILD_CARDANO_CLI" ]]; then
   cp "$(nix develop -c cabal list-bin cardano-cli)" ../../bin/cardano-cli
 fi
 
-# cardano-testnet @master
+# cardano-testnet @cardano-testnet-fix-numpools-test
 if [[ ! -f ../../bin/cardano-testnet ]] || [[ -n "$REBUILD_CARDANO_TESTNET" ]]; then
-  git checkout master
+  git checkout cardano-testnet-fix-numpools-test
   nix develop -c cabal clean
   nix develop -c cabal build cardano-testnet
   cp "$(nix develop -c cabal list-bin cardano-testnet)" ../../bin/cardano-testnet
