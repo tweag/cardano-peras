@@ -4,7 +4,7 @@
     "ConwayGenesisFile": "conway-genesis.json",
     "EnableLogMetrics": false,
     "EnableLogging": true,
-    "EnableP2P": false,
+    "EnableP2P": true,
     "ExperimentalHardForksEnabled": true,
     "ExperimentalProtocolsEnabled": true,
     "LastKnownBlockVersion-Alt": 0,
