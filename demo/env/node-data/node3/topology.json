@@ -1,0 +1,21 @@
+{
+  "bootstrapPeers": [],
+  "localRoots": [
+    {
+      "accessPoints": [
+        {
+          "address": "127.0.0.1",
+          "port": 4001
+        },
+        {
+          "address": "127.0.0.1",
+          "port": 4002
+        }
+      ],
+      "advertise": false,
+      "trustable": true,
+      "valency": 2
+    }
+  ],
+  "publicRoots": []
+}
