@@ -1,5 +1,17 @@
 # Weekly status updates
 
+## 2025-09-26
+
+ - Prepared for the demo on 2025-09-29, see the "Peras" channel on the IOG Discord for how to join.
+
+   In particular, we packaged a self-contained testnet for showcasing weighted chain selection and related features https://github.com/tweag/cardano-peras/pull/132
+
+ - Merged the first purely Peras-related PR after addressing review comments by the IOG Consensus team. https://github.com/IntersectMBO/ouroboros-consensus/pull/1673
+
+ - Submitted the PerasCertDB for review by the IOG Consensus team. https://github.com/IntersectMBO/ouroboros-consensus/pull/1674
+
+ - Registered PerasVoteDiffusion as a mini-protocol. https://github.com/IntersectMBO/ouroboros-network/pull/5201
+
 ## 2025-09-19
 
  - Started to develop tooling to graphically showcase certificate diffusion and weighted chain selection in a custom testnet. https://github.com/tweag/cardano-peras/issues/115
