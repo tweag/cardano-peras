@@ -21,9 +21,10 @@
         pkgs = import inputs.nixpkgs { inherit system; };
       in
       {
-        packages = {
+        packages = rec {
           default = import ./default.nix { inherit pkgs; };
           demo = import ./demo { inherit pkgs system; };
+          demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
         };
         devShells.default = import ./default.nix { inherit pkgs; };
       }

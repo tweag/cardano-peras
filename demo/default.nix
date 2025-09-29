@@ -62,6 +62,12 @@ let
     in
     patchedProject.hsPkgs.cardano-node.components.exes.cardano-node;
 
+  # Template testnet files
+  testnet = pkgs.runCommandLocal "testnet" { } ''
+    mkdir -p $out
+    cp -r ${./env}/. $out
+  '';
+
 in
 pkgs.writeShellApplication {
   name = "demo";
@@ -69,11 +75,13 @@ pkgs.writeShellApplication {
     cardano-node
     toxiproxy
     jq
+    coreutils
+    procps
   ];
   runtimeEnv = {
     CARDANO_NODE = "${cardano-node}/bin/cardano-node";
     STATIC_FILES = "${deps.ouroboros-consensus}/static";
-    TESTNET_ENV = ./env;
+    TESTNET_ENV = "${testnet}";
   };
   text = builtins.readFile ./launch.sh;
 }
