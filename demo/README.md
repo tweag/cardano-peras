@@ -1,4 +1,15 @@
-# Peras Demo
+# Peras Demos
+
+## 2025-09-29
+
+### Slides and Recordings
+
+ - [Slides](https://docs.google.com/presentation/d/1jfzJSgQ5LMDR8w6WGSjjPg6vb6kQekWv16fdttjS5Iw/edit)
+ - [Recording](https://drive.google.com/file/d/17mW08TV0JirL-LTUXj_7Q06rP_sfody3/view)
+ - [Chat](https://drive.google.com/file/d/1_F2dNzicKq476iYmDMP3dKghfltwS0Tu/view)
+ - [Gemini summary (no warranty)](https://docs.google.com/document/d/1BfzHcUD6XMUD898ruRnyUas1aSJzd9cMO7EnsY7wKbE/edit)
+
+### Interactive demo
 
 We have prepared a small interactive demo to showcase the first milestone of this project. You can find the meeting slides [here](https://docs.google.com/presentation/d/1jfzJSgQ5LMDR8w6WGSjjPg6vb6kQekWv16fdttjS5Iw/edit) for more information.
 

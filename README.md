@@ -8,6 +8,7 @@ This repository currently contains:
  - [Design document](https://tweag.github.io/cardano-peras/peras-design.pdf)
  - [Draft implementation roadmap](./docs/roadmap-draft.md)
  - [Weekly updates](./docs/weekly-updates.md)
+ - [Past demos](./demo/README.md)
 
 ## Resources on Peras
 
