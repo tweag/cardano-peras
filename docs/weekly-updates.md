@@ -1,5 +1,19 @@
 # Weekly status updates
 
+## 2025-10-02
+
+ - Delivered the first public demo. See [here](../demo/README.md#2025-09-29) for recordings and more.
+
+   In particular, we discussed details of the Peras cryptography and committee selection, in particular w.r.t. alignment with Leios and Mithril, with several action items.
+
+ - Internal meetings on the intrinsics of the Peras voting rules.
+
+   We prepared some [new documentation material](https://github.com/tweag/cardano-peras/pull/138) for that purpose.
+
+ - Submitted the object diffusion mini-protocol and the registration of certificate and vote diffusion for upstream review https://github.com/IntersectMBO/ouroboros-network/pull/5202
+
+   We also discussed this briefly in the IOG Network meeting.
+
 ## 2025-09-26
 
  - Prepared for the demo on 2025-09-29, see the "Peras" channel on the IOG Discord for how to join.
