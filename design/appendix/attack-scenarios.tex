@@ -312,13 +312,13 @@ While possible and sound, it is not necessary to discard equivocating votes rece
 Additionally, this approach requires us to diffuse of certificates in addition to votes in general (even between caught-up peers).
 To see why, consider two honest nodes $H_1,H_2$ and an adversarial node $A$ which are pairwise connected.
 Suppose that we are in round $r$, both $H_1$ and $H_2$ are only one vote short of a quorum for the block $B$ in round $r$, and all honest votes for round $r$ have already been diffused.
-Now the adversary sends $H_1$ and $H_2$ a new vote ID $\mi{vid}$, and then equivocates $\mi{vid}$ to send a vote $v_B$ for $B$ to $A$, but a vote $v_{B'}$ for a block $B' \neq B$ to $A'$.
-Now $A$ observes a quorum for $B$ in round $r$, creating a certificate, while $A'$ does not.
-The vote diffusion mechanism described above causes $A'$ to not request a vote for $\mi{vid}$ from $A$, because $A'$ already has received $v_{B'}$.\footnote{Potentially, if $A'$ implements the optimization mentioned above, i.e.\ to download votes for the same vote id from multiple peers opportunistically, they might download $v_B$ from $A$, but this is not something we can rely on in general.}
-Overall, the honest nodes $A$ and $A'$ now disagree whether round $r$ was successful, which they would not have if they had exchanged all equivocating votes.
+Now the adversary sends $H_1$ and $H_2$ a new vote ID $\mi{vid}$, and then equivocates $\mi{vid}$ to send a vote $v_B$ for $B$ to $H_1$, but a vote $v_{B'}$ for a block $B' \neq B$ to $H_2$.
+Now $H_1$ observes a quorum for $B$ in round $r$, creating a certificate, while $H_2$ does not.
+The vote diffusion mechanism described above causes $H_2$ to not request a vote for $\mi{vid}$ from $A$, because $H_2$ already has received $v_{B'}$.\footnote{Potentially, if $H_2$ implements the optimization mentioned above, i.e.\ to download votes for the same vote id from multiple peers opportunistically, they might download $v_B$ from $A$, but this is not something we can rely on in general.}
+Overall, the honest nodes $H_1$ and $H_2$ now disagree whether round $r$ was successful, which they would not have if they had exchanged all equivocating votes.
 
 However, by letting nodes also exchange \emph{certificates} in addition to votes (in a separate protocol, see \cref{sec:certificate-diffusion}), this scenario can be avoided.
-Concretely, $A'$ would ask $A$ for a certificate for round $r$, and then download the certificate for $B$.
+Concretely, $H_2$ would ask $H_1$ for a certificate for round $r$, and then download the certificate for $B$.
 It does not matter that the certificate was built using an equivocating vote; in general, depending on the cryptographic scheme used for building certificates, it can even be impossible to detect this.
 By construction, there can be at most one certificate per round, so there is no risk of equivocating certificates.
 
