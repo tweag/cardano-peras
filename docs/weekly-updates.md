@@ -1,5 +1,15 @@
 # Weekly status updates
 
+## 2025-10-10
+
+ - Continued investigation a strategy for efficient vote diffusion, examining the related recently developed logic for transaction diffusion by the IOG Network team and adapting it for our purposes. https://github.com/tweag/cardano-peras/issues/140
+
+ - Implemented a new Peras-related criterion for the Genesis State Machine. https://github.com/IntersectMBO/ouroboros-consensus/pull/1669
+
+ - Merged https://github.com/IntersectMBO/ouroboros-consensus/pull/1674 after addressing the review comments by the IOG Consensus team.
+
+ - Submitted https://github.com/IntersectMBO/ouroboros-consensus/pull/1678 for weighted chain selection for review by the IOG Consensus team.
+
 ## 2025-10-02
 
  - Delivered the first public demo. See [here](../demo/README.md#2025-09-29) for recordings and more.
