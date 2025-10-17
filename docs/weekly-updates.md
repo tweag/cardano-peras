@@ -1,5 +1,19 @@
 # Weekly status updates
 
+## 2025-10-17
+
+ - Finished an initial draft of the inbound vote decision logic https://github.com/IntersectMBO/ouroboros-consensus/pull/1698, which now needs to be tested and benchmarked.
+
+ - Started to work on adding Peras certificates to block bodies https://github.com/tweag/cardano-peras/issues/141
+
+   We will synchronize with the Ledger team on this, and also keep the Leios team in the loop as they also need to include certificates in block bodies.
+
+ - Mob review of https://github.com/IntersectMBO/ouroboros-consensus/pull/1678 with the IOG Consensus team, to be continued next week
+
+ - Implemented recording of certificate arrival times, which is necessary for the refined voting rule https://github.com/IntersectMBO/ouroboros-consensus/pull/1703
+
+ - Held an internal session discussing the details of cooldown periods, and how the voting/forging rules are designed to guarantee them.
+
 ## 2025-10-10
 
  - Continued investigation a strategy for efficient vote diffusion, examining the related recently developed logic for transaction diffusion by the IOG Network team and adapting it for our purposes. https://github.com/tweag/cardano-peras/issues/140
