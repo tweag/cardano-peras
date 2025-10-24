@@ -1,5 +1,17 @@
 # Weekly status updates
 
+## 2025-10-24
+
+ - Started implementing the Peras voting rules https://github.com/tweag/cardano-peras/issues/116 https://github.com/IntersectMBO/ouroboros-consensus/pull/1723
+
+ - Continued working on adding Peras certificates to block bodies https://github.com/tweag/cardano-peras/issues/141
+
+   Met with Alexey Kuleshevich (IOG Ledger team lead) to discuss possible Ledger↔Consensus interfaces. In particular, there is a new flow of data due to block validation now requiring the epoch nonce from the header state. See https://github.com/tweag/cardano-peras/issues/152.
+
+ - Finished an [implementation design document](https://github.com/IntersectMBO/ouroboros-consensus/blob/peras/experimental-object-diffusion-inbound-v2/ouroboros-consensus/src/ouroboros-consensus/Ouroboros/Consensus/MiniProtocol/ObjectDiffusion/Inbound/V2.md) for efficient Peras Vote Diffusion.
+
+ - Prepared for the public demo on 2025-10-27, see the "Peras" channel on the IOG Discord for how to join.
+
 ## 2025-10-17
 
  - Finished an initial draft of the inbound vote decision logic https://github.com/IntersectMBO/ouroboros-consensus/pull/1698, which now needs to be tested and benchmarked.
