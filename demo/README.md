@@ -1,5 +1,12 @@
 # Peras Demos
 
+## 2025-10-27
+
+ - [Slides](https://docs.google.com/presentation/d/1GKMUFtl9rJZdz1c8t_GI_yktcsdXFCzJUU3XHOVxtcU/edit)
+ - [Recording](https://drive.google.com/file/d/1QYO81Y8UOi_xynq9HnbZB4WTDNg5mpdP/view)
+ - [Chat](https://drive.google.com/file/d/1fByr44aBJVEMcCG8QB1QUrfoyofbJ57I/view)
+ - [Gemini summary](https://docs.google.com/document/d/1d5sWZ54R5POeNz8hZl9zoMIwfP04u4skMiXG0DyMEuk/edit)
+
 ## 2025-09-29
 
 ### Slides and Recordings
