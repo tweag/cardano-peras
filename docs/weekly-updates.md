@@ -1,5 +1,25 @@
 # Weekly status updates
 
+## 2025-11-7
+
+ - Started realigning team efforts to tackle the most urgent tasks after unexpected circumstances.
+
+ - Started working on a [small change](https://github.com/IntersectMBO/ouroboros-consensus/pull/1750) to store the most recent certificate seen in the PerasCertDB such that it's not affected by garbage collection.
+
+ - Started working on a [state machine test suite](https://github.com/IntersectMBO/ouroboros-consensus/pull/1751) for the Peras voting rules. The idea is to evaluate if we can effectively test some local properties that should hold regardless of the global state of the blockchain, e.g., "if a node doesn't vote for two consecutive rounds, then it _must_ not vote for at least _R_ rounds (cooldown)."
+
+## 2027-10-31
+
+ - Merged the initial (pure) implementation of the Peras [voting rules](github.com/IntersectMBO/ouroboros-consensus/pull/1723)
+
+ - Made a [small change](https://github.com/IntersectMBO/ouroboros-consensus/pull/1742) to allow for ChainDB state machine tests to use a security parameter larger than 2. This parameter will later be [generated on the fly](https://github.com/IntersectMBO/ouroboros-consensus/issues/1682).
+
+ - [Enhanced header state](https://github.com/IntersectMBO/ouroboros-consensus/pull/1739) to keep track of the previous epoch nonce, which will be necessary later on to validate slightly old certificates.
+
+ - Started working on a [rebase](https://github.com/IntersectMBO/ouroboros-consensus/pull/1748) of our `peras-staging` branch to include the latest changes from `main`, including the already-merged Peras #1, #2, and #3 PRs.
+
+ - Continued working on a benchmarking suite for the version 2 of the ObjectDiffusion mini protocol (inbound side only).
+
 ## 2025-10-24
 
  - Started implementing the Peras voting rules https://github.com/tweag/cardano-peras/issues/116 https://github.com/IntersectMBO/ouroboros-consensus/pull/1723
