@@ -1,5 +1,15 @@
 # Weekly status updates
 
+## 2025-11-14
+
+ - Thomas Bagrel ([@tbagrel1](https://github.com/tbagrel1)) successfully defended his [Ph.D. thesis](https://www.doctorat.univ-lorraine.fr/fr/soutenances/bagrel-thomas)! 🙌🙌🙌
+
+ - Prepared and released the [Peras #4](https://github.com/IntersectMBO/ouroboros-consensus/pull/1679) PR for review of the ouroboros-consensus team, including the initial implementation of the ObjectDiffusion mini protocol.
+
+ - Continued working on the [version 2](https://github.com/IntersectMBO/ouroboros-consensus/pull/1698) of the ObjectDiffusion mini protocol (inbound side only).
+
+ - Started working on the machinery needed to [store certificate in blocks](https://github.com/tweag/cardano-peras/issues/141), needed to coordinate the end of a cooldown period.
+
 ## 2025-11-7
 
  - Started realigning team efforts to tackle the most urgent tasks after unexpected circumstances.
