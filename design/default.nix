@@ -1,5 +1,6 @@
-{ pkgs ? import <nixpkgs> { } }:
-
+{
+  pkgs,
+}:
 let
   fs = pkgs.lib.fileset;
   fontsConf = pkgs.makeFontsConf {
@@ -71,10 +72,10 @@ let
   ]);
 in
 pkgs.stdenv.mkDerivation {
-  name = "main";
+  name = "design";
   src = fs.toSource {
     root = ./.;
-    fileset = fs.union ./design ./tex;
+    fileset = ./.;
   };
   env.FONTCONFIG_FILE = "${fontsConf}";
   buildInputs = [
@@ -93,7 +94,6 @@ pkgs.stdenv.mkDerivation {
   buildPhase = ''
     runHook preBuild
     export TEXMFHOME=$PWD
-    cd ./design
     latexmk peras-design.tex
     runHook postBuild
   '';
