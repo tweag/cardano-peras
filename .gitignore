@@ -312,3 +312,9 @@ TSWLatexianTemp*
 
 # glossaries
 *.glstex
+
+### Dashboard ###
+dashboard/node_modules/
+dashboard/dist/
+
+
