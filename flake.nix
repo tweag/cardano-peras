@@ -14,19 +14,36 @@
   };
 
   outputs =
-    inputs:
-    inputs.flake-utils.lib.eachDefaultSystem (
+    {
+      nixpkgs,
+      flake-utils,
+      ...
+    }:
+    flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import inputs.nixpkgs { inherit system; };
+        pkgs = import nixpkgs { inherit system; };
+
+        demo = import ./demo { inherit pkgs system; };
+        demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
+        design = import ./design { inherit pkgs; };
       in
       {
-        packages = rec {
-          default = import ./default.nix { inherit pkgs; };
-          demo = import ./demo { inherit pkgs system; };
-          demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
+        packages = {
+          inherit
+            demo
+            demo-docker
+            design
+            ;
+          default = design;
         };
-        devShells.default = import ./default.nix { inherit pkgs; };
+        devShells = {
+          inherit
+            demo
+            design
+            ;
+          default = design;
+        };
       }
     );
 }
