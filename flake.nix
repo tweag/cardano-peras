@@ -24,6 +24,7 @@
       let
         pkgs = import nixpkgs { inherit system; };
 
+        dashboard = import ./dashboard { inherit pkgs; };
         demo = import ./demo { inherit pkgs system; };
         demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
         design = import ./design { inherit pkgs; };
@@ -31,6 +32,7 @@
       {
         packages = {
           inherit
+            dashboard
             demo
             demo-docker
             design
@@ -39,6 +41,7 @@
         };
         devShells = {
           inherit
+            dashboard
             demo
             design
             ;

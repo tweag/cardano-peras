@@ -18,12 +18,14 @@ jobs:
         uses: cachix/install-nix-action@v30
       - name: Build design document
         run: nix build --print-build-logs --out-link result-design .#design
+      - name: Build dashboard
+        run: nix build --print-build-logs --out-link result-dashboard .#dashboard
       - name: Prepare artifact directory
         run: |
-          mkdir dist
+          mkdir -p dist dist/dashboard
           cp -r --no-preserve=mode,ownership result-design/* dist
+          cp -r --no-preserve=mode,ownership result-dashboard/* dist/dashboard
       - name: Upload artifacts
-        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
