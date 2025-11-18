@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "version": "",
+  "name": "peras-dashboard",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
@@ -53,6 +53,5 @@
     "not dead",
     "not ie 11"
   ],
-  "_id": "@",
-  "readme": "ERROR: No README data found!"
+  "_id": "@"
 }
