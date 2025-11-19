@@ -2,15 +2,20 @@
   pkgs,
 }:
 let
-  fs = pkgs.lib.fileset;
+  # Precomputed hash for the pnpm dependencies. Needs to be updated when
+  # dependencies change. The easiest way is to replace it with:
+  # `pkgs.lib.fakeHash` and run `nix-build` to get the actual hash.
+  hash = "sha256-xXIZlW2E5U1u3d4xGcJr6c/hGNxL+y6tmFJzg8aI5i4=";
 in
 pkgs.stdenv.mkDerivation (final: {
   pname = "dashboard";
   version = "0.1.0";
-  src = fs.toSource {
-    root = ./.;
-    fileset = fs.gitTracked ./.;
-  };
+  src =
+    with pkgs.lib.fileset;
+    toSource {
+      root = ./.;
+      fileset = gitTracked ./.;
+    };
   nativeBuildInputs = [
     pkgs.pnpm
     pkgs.pnpm.configHook
@@ -23,10 +28,11 @@ pkgs.stdenv.mkDerivation (final: {
   '';
   pnpmDeps = pkgs.pnpm.fetchDeps {
     inherit (final) pname version src;
-    hash = "sha256-SDoZwNp/2/3ZwLD9GCefQDheUIZsyzTSikb66VeL5k0=";
+    inherit hash;
   };
   buildPhase = ''
     runHook preBuild
+    pnpm run lint
     pnpm build
     runHook postBuild
   '';

@@ -1,17 +1,19 @@
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineProps } from 'vue'
 
-export default defineComponent({
-  name: 'UnderConstruction',
-  props: {
-    title: String
-  }
-})
+defineProps<{
+  title: string
+}>()
 </script>
 
 <template>
-  <main class="container-fluid" id="under-construction">
-    <img id="logo" alt="Tweag logo" width="50%" src="../assets/tweag_logo.svg">
+  <main id="under-construction" class="container-fluid">
+    <img
+      id="logo"
+      alt="Tweag logo"
+      width="50%"
+      src="../assets/tweag_logo.svg"
+    />
     <h1>{{ title }}</h1>
     <p><i>This website is currently under construction.</i></p>
   </main>
