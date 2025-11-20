@@ -7,16 +7,16 @@ export interface DataPoint {
   y: number
 }
 
-export interface Axis {
+export interface Curve {
   label: string
   data: DataPoint[]
 }
 
 const props = defineProps<{
-  axes: Axis[],
-  labels: { x: string, y: string },
+  curves: Curve[]
+  labels: { x: string; y: string }
   palette?: string[]
-  margin?: number,
+  margin?: number
 }>()
 
 const plot = ref(null)
@@ -32,9 +32,7 @@ const render = async () => {
   const palette = props.palette ?? d3.schemeCategory10
 
   // Clear previous contents
-  d3.select(plot.value)
-    .selectAll('*')
-    .remove()
+  d3.select(plot.value).selectAll('*').remove()
 
   // Create SVG element
   const svgElem = d3
@@ -43,21 +41,21 @@ const render = async () => {
     .attr('width', width)
     .attr('height', height)
 
-  // Draw axes
-  const allPoints = props.axes.flatMap(axis => axis.data)
-  const xMin = d3.min(allPoints, d => d.x)
-  const yMin = d3.min(allPoints, d => d.y)
-  const xMax = d3.max(allPoints, d => d.x)
-  const yMax = d3.max(allPoints, d => d.y)
+  // Draw curves
+  const allPoints = props.curves.flatMap((curve) => curve.data)
+  const xMin = d3.min(allPoints, (d) => d.x)
+  const yMin = d3.min(allPoints, (d) => d.y)
+  const xMax = d3.max(allPoints, (d) => d.x)
+  const yMax = d3.max(allPoints, (d) => d.y)
 
-  const axes = svgElem.append('g').attr('class', 'axes')
+  const curves = svgElem.append('g').attr('class', 'curves')
 
   const xScale = d3
     .scaleLinear()
     .domain([xMin, xMax])
     .range([margin, width - margin])
   const xAxis = d3.axisBottom(xScale)
-  axes
+  curves
     .append('g')
     .attr('transform', `translate(0, ${height - margin})`)
     .call(xAxis)
@@ -73,7 +71,7 @@ const render = async () => {
     .domain([yMin, yMax])
     .range([height - margin, margin])
   const yAxis = d3.axisLeft(yScale)
-  axes
+  curves
     .append('g')
     .attr('transform', `translate(${margin}, 0)`)
     .call(yAxis)
@@ -88,17 +86,17 @@ const render = async () => {
   // Draw data
   const toLine = d3
     .line<DataPoint>()
-    .x(d => xScale(d.x))
-    .y(d => yScale(d.y))
+    .x((d) => xScale(d.x))
+    .y((d) => yScale(d.y))
 
   const lines = svgElem.append('g').attr('class', 'lines')
 
   lines
     .selectAll('path.line')
-    .data(props.axes)
+    .data(props.curves)
     .join('path')
     .attr('class', 'line')
-    .attr('d', axis => toLine(axis.data))
+    .attr('d', (axis) => toLine(axis.data))
     .attr('fill', 'none')
     .attr('stroke', (_, idx) => palette[idx % palette.length])
     .attr('stroke-width', 2)
@@ -107,7 +105,7 @@ const render = async () => {
   const legends = svgElem.append('g').attr('class', 'legends')
   legends
     .selectAll('rect.legend')
-    .data(props.axes)
+    .data(props.curves)
     .join('rect')
     .attr('class', 'legend')
     .attr('x', margin + 10)
@@ -117,14 +115,12 @@ const render = async () => {
     .attr('fill', (_, idx) => palette[idx % palette.length])
   legends
     .selectAll('text.legend-label')
-    .data(props.axes)
+    .data(props.curves)
     .join('text')
     .attr('class', 'legend-label')
     .attr('x', margin + 40)
     .attr('y', (_, idx) => margin + idx * 25 + 15)
-    .text(axis => axis.label)
-
-  // TODO: tooltips, etc.
+    .text((axis) => axis.label)
 }
 
 // Initial render and watch for data changes
@@ -134,7 +130,7 @@ onMounted(() => {
   observer.observe(plot.value)
   onUnmounted(() => observer.disconnect())
 })
-watch(() => props.axes, render)
+watch(() => props.curves, render)
 </script>
 
 <template>

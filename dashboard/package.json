@@ -5,7 +5,9 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "lint:fix": "vue-cli-service lint --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,vue,json,css,scss}\""
   },
   "dependencies": {
     "@picocss/pico": "^2.1.1",
@@ -27,8 +29,10 @@
     "@vue/eslint-config-standard": "^6.1.0",
     "@vue/eslint-config-typescript": "^9.1.0",
     "eslint": "^7.32.0",
+    "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-promise": "^5.1.0",
     "eslint-plugin-vue": "^8.0.3",
     "typescript": "~4.5.5"
@@ -38,21 +42,31 @@
     "env": {
       "node": true
     },
+    "parser": "vue-eslint-parser",
     "parserOptions": {
       "parser": "@typescript-eslint/parser",
-      "ecmaVersion": 2020
+      "ecmaVersion": "latest",
+      "sourceType": "module"
     },
-    "plugins": [
-      "vue",
-      "@typescript-eslint"
-    ],
     "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended",
-      "@vue/standard",
-      "@vue/typescript/recommended"
+      "plugin:vue/vue3-recommended",
+      "plugin:@typescript-eslint/recommended",
+      "prettier",
+      "plugin:prettier/recommended"
     ],
-    "rules": {}
+    "plugins": [
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": ["error"],
+      "vue/multi-word-component-names": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/space-before-function-paren": "off",
+      "space-before-function-paren": "off",
+      "comma-dangle": "off",
+      "semi": "off",
+      "quotes": "off"
+    }
   },
   "browserslist": [
     "> 1%",

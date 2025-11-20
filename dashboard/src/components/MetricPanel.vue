@@ -1,21 +1,24 @@
 <script setup lang="ts">
 import { defineProps, computed } from 'vue'
-import D3Plot, { Axis } from './D3Plot.vue'
-import PlotControls from './PlotControls.vue'
+import D3Plot, { Curve } from './D3Plot.vue'
+import PlotControls, { PlotControlProps } from './PlotControls.vue'
 
-const props = defineProps<{
+export interface MetricProps {
   title: string
   description: string
   labels: { x: string; y: string }
-  controls: Record<string, number>
-  compute:(controls: Record<string, number>) => Axis[]
-}>()
+  globals: Record<string, PlotControlProps>
+  controls: Record<string, PlotControlProps>
+  compute: (param: Record<string, number>) => Curve[]
+}
 
-// Compute axes data based on control values
-const axes = computed(() => {
+const props = defineProps<MetricProps>()
+
+// Compute curves data based on global and metric-specific control values
+const curves = computed(() => {
+  const allControls = { ...props.globals, ...props.controls }
   const controlValues = Object.fromEntries(
-    Object.entries(props.controls)
-      .map(([key, control]) => [key, control.value])
+    Object.entries(allControls).map(([key, control]) => [key, control.value])
   )
   return props.compute(controlValues)
 })
@@ -24,16 +27,12 @@ const axes = computed(() => {
 <template>
   <article class="container">
     <details closed>
-      <summary><b>{{ title }}</b></summary>
+      <summary>
+        <b>{{ title }}</b>
+      </summary>
       <p>{{ description }}</p>
-      <D3Plot
-        :labels="labels"
-        :axes="axes"
-        >
-      </D3Plot>
-      <PlotControls
-        :controls="controls"
-      />
+      <D3Plot :labels="labels" :curves="curves"> </D3Plot>
+      <PlotControls :controls="controls" />
     </details>
   </article>
 </template>

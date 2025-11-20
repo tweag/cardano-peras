@@ -1,18 +1,38 @@
 <script setup lang="ts">
-import SampleMetric1 from './components/SampleMetric1.vue'
-import SampleMetric2 from './components/SampleMetric2.vue'
+import { defineProps, reactive } from 'vue'
+import { PlotControlProps } from './components/PlotControls.vue'
+import MetricPanel, { MetricProps } from './components/MetricPanel.vue'
+import GlobalControls from './components/GlobalControls.vue'
+
+const props = defineProps<{
+  title: string
+  footer?: string
+  globals: Record<string, PlotControlProps>
+  metrics: MetricProps[]
+}>()
+
+const globalControls = reactive(props.globals)
 </script>
 
 <template>
   <header class="container-fluid">
-    <h1>Peras Dashboard</h1>
+    <h1>{{ title }}</h1>
   </header>
   <main>
-    <SampleMetric1 />
-    <SampleMetric2 />
+    <GlobalControls :controls="globalControls" />
+    <MetricPanel
+      v-for="(metric, index) in metrics"
+      :key="index"
+      :title="metric.title"
+      :description="metric.description"
+      :labels="metric.labels"
+      :globals="globalControls"
+      :controls="reactive(metric.controls)"
+      :compute="metric.compute"
+    />
   </main>
-  <footer class="container-fluid">
-    Footer content
+  <footer v-if="footer" class="container-fluid">
+    {{ footer }}
   </footer>
 </template>
 
