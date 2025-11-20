@@ -21,6 +21,10 @@ const props = defineProps<{
 
 const plot = ref(null)
 
+const primaryColor = getComputedStyle(document.documentElement)
+  .getPropertyValue('--pico-color')
+  .trim()
+
 const render = async () => {
   if (!plot.value) return
   await nextTick()
@@ -62,7 +66,7 @@ const render = async () => {
     .append('text')
     .attr('x', width / 2)
     .attr('y', margin / 2)
-    .attr('fill', 'black')
+    .attr('fill', primaryColor)
     .attr('text-anchor', 'middle')
     .text(props.labels.x)
 
@@ -79,7 +83,7 @@ const render = async () => {
     .attr('transform', 'rotate(-90)')
     .attr('x', -height / 2)
     .attr('y', -margin / 2)
-    .attr('fill', 'black')
+    .attr('fill', primaryColor)
     .attr('text-anchor', 'middle')
     .text(props.labels.y)
 
