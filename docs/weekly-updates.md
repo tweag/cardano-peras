@@ -1,5 +1,19 @@
 # Weekly status updates
 
+## 2025-11-21
+
+ - Refined the [scope](https://github.com/tweag/cardano-peras/issues/170) and started the development of the [Peras Dashboard](https://github.com/tweag/cardano-peras/compare/main...dashboard), to be preliminary hosted [here](https://tweag.github.io/cardano-peras/dashboard/).
+
+ - Coordinated with Alexey Kuleshevich (IOG Ledger team lead) how to integrate the changes needed to store certificates in blocks into Ledger, and started working on the concrete [issues](https://github.com/IntersectMBO/cardano-ledger/issues?q=state%3Aopen%20label%3A%22peras%22%20is%3Aissue) he prepared for us.
+
+ - Started working on the implementation of the [PerasVoteDB](https://github.com/IntersectMBO/ouroboros-consensus/pull/1768) and its associated voting thread.
+
+ - Went through another round of reviews and fixes on [Peras #4](https://github.com/IntersectMBO/ouroboros-consensus/pull/1679) after presenting ObjectDiffusion V1 to the IOG Consensus team.
+
+ - Went through a final round of reviews and fixes for the experimental [ObjectDiffusion V2](https://github.com/IntersectMBO/ouroboros-consensus/pull/1698) mini protocol.
+
+ - Prepared for the public demo on 2025-11-24, see the "Peras" channel on the IOG Discord for how to join.
+
 ## 2025-11-14
 
  - Thomas Bagrel ([@tbagrel1](https://github.com/tbagrel1)) successfully defended his [Ph.D. thesis](https://www.doctorat.univ-lorraine.fr/fr/soutenances/bagrel-thomas)! 🙌🙌🙌
