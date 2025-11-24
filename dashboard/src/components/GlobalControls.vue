@@ -11,7 +11,7 @@ defineProps<{
   <article class="container">
     <details closed>
       <summary><b>Global parameters</b></summary>
-      <p>Lorem ipsum ...</p>
+      <p>Peras protocol parameters</p>
       <PlotControls :controls="controls" />
     </details>
   </article>

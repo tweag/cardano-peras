@@ -71,7 +71,7 @@ const render = async () => {
 
   const yScale = props.logScale?.y ? d3.scaleLog() : d3.scaleLinear()
   yScale.domain([yMin, yMax]).range([height - margin, margin])
-  const yAxis = d3.axisLeft(yScale)
+  const yAxis = d3.axisLeft(yScale).tickFormat(d3.format('.1e'))
   curves
     .append('g')
     .attr('transform', `translate(${margin}, 0)`)
@@ -110,7 +110,7 @@ const render = async () => {
     .join('rect')
     .attr('class', 'legend')
     .attr('x', margin + 10)
-    .attr('y', (_, idx) => margin + idx * 25)
+    .attr('y', (_, idx) => height - (margin + idx * 25) - 25)
     .attr('width', 20)
     .attr('height', 20)
     .attr('fill', (_, idx) => palette[idx % palette.length])
@@ -120,7 +120,7 @@ const render = async () => {
     .join('text')
     .attr('class', 'legend-label')
     .attr('x', margin + 40)
-    .attr('y', (_, idx) => margin + idx * 25 + 15)
+    .attr('y', (_, idx) => height - (margin + idx * 25) - 10)
     .text((axis) => axis.label)
 }
 
