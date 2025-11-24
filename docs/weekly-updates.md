@@ -1,5 +1,21 @@
 # Weekly status updates
 
+## 2025-11-28
+
+ - Delivered the third public demo, [slides](https://docs.google.com/presentation/d/18mBH7hy4qYG9rtxHPHvqo2go7-fPkdRM/edit?usp=sharing&ouid=104005107553680790622&rtpof=true&sd=true)
+
+ - Merged [Peras #4](http://github.com/IntersectMBO/ouroboros-consensus/pull/1679) after a final round of reviews and small fixes.
+
+ - Opened and merged [Peras #6](https://github.com/IntersectMBO/ouroboros-consensus/pull/1772), including some changes to the ChainDB state machine tests that improve the chances of observing the chain selection algorithm switching to a shorter chain.
+
+ - Opened [Peras #7](https://github.com/IntersectMBO/ouroboros-consensus/pull/1780) to integrate the ability of using feature flags in the consensus node kernel.
+
+ - Migrated all the remaining commits from the `peras-staging` branch on `ouroboros-consensus` into [semi-independent PRs](https://github.com/IntersectMBO/ouroboros-consensus/issues?q=state%3Aopen%20%22%5C%5BPeras%22%20label%3Aperas) targeting `main`.
+
+ - Implemented the first iteration of the [PerasVoteDB](https://github.com/IntersectMBO/ouroboros-consensus/pull/1768), needed to store and aggregate votes into certificates.
+
+ - Continued working developing different metrics for the Peras dashboard.
+
 ## 2025-11-21
 
  - Refined the [scope](https://github.com/tweag/cardano-peras/issues/170) and started the development of the [Peras Dashboard](https://github.com/tweag/cardano-peras/compare/main...dashboard), to be preliminary hosted [here](https://tweag.github.io/cardano-peras/dashboard/).
