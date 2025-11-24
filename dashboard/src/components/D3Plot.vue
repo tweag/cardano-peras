@@ -15,6 +15,7 @@ export interface Curve {
 const props = defineProps<{
   curves: Curve[]
   labels: { x: string; y: string }
+  logScale?: { x?: boolean; y?: boolean }
   palette?: string[]
   margin?: number
 }>()
@@ -54,10 +55,8 @@ const render = async () => {
 
   const curves = svgElem.append('g').attr('class', 'curves')
 
-  const xScale = d3
-    .scaleLinear()
-    .domain([xMin, xMax])
-    .range([margin, width - margin])
+  const xScale = props.logScale?.x ? d3.scaleLog() : d3.scaleLinear()
+  xScale.domain([xMin, xMax]).range([margin, width - margin])
   const xAxis = d3.axisBottom(xScale)
   curves
     .append('g')
@@ -70,10 +69,8 @@ const render = async () => {
     .attr('text-anchor', 'middle')
     .text(props.labels.x)
 
-  const yScale = d3
-    .scaleLinear()
-    .domain([yMin, yMax])
-    .range([height - margin, margin])
+  const yScale = props.logScale?.y ? d3.scaleLog() : d3.scaleLinear()
+  yScale.domain([yMin, yMax]).range([height - margin, margin])
   const yAxis = d3.axisLeft(yScale)
   curves
     .append('g')

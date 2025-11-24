@@ -5,6 +5,10 @@ export default {
     x: 'Bars',
     y: 'Foos per bar',
   },
+  logScale: {
+    x: true,
+    y: true,
+  },
   controls: {
     baz: {
       type: 'slider',

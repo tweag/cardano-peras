@@ -9,6 +9,7 @@ export interface MetricProps {
   labels: { x: string; y: string }
   globals: Record<string, PlotControlProps>
   controls: Record<string, PlotControlProps>
+  logScale?: { x?: boolean; y?: boolean }
   compute: (param: Record<string, number>) => Curve[]
 }
 
@@ -31,7 +32,7 @@ const curves = computed(() => {
         <b>{{ title }}</b>
       </summary>
       <p>{{ description }}</p>
-      <D3Plot :labels="labels" :curves="curves"> </D3Plot>
+      <D3Plot :labels="labels" :curves="curves" :log-scale="logScale"> </D3Plot>
       <PlotControls :controls="controls" />
     </details>
   </article>
