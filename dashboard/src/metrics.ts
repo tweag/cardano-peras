@@ -1,3 +1,5 @@
+import { jStat } from 'jstat'
+
 // Create a discrete representation of a continuous function f
 export function discretize(
   f: (x: number) => number,
@@ -38,6 +40,16 @@ export function pRollbackAfterOneBoost(
   const sum = s2.reduce((acc, x) => acc + x, 0)
   s = s2.map((x) => x / sum)
   return pEvolve(n, p, q, s, 1000)[0]
+}
+
+export function pNoHonestQuorum(
+  tau: number,
+  committeeSize: number,
+  adversaryStakeFraction: number
+) {
+  const quorum = tau * committeeSize
+  const honestStake = 1 - adversaryStakeFraction
+  return jStat.binomial.cdf(quorum, committeeSize, honestStake) as number
 }
 
 function pEvolve(

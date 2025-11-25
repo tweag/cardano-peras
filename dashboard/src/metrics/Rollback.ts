@@ -2,7 +2,8 @@ import { discretize, pRollbackAfterOneBoost } from '../metrics'
 
 export default {
   title: 'Probability of rollback after one boost',
-  description: 'Compared to rollback probability after ',
+  description:
+    'The probability of rolling back a block that has itself or a descendant boosted',
   axes: {
     x: {
       label: 'Weight of Peras certificate',
