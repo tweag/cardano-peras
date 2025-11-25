@@ -3,7 +3,7 @@ import { defineProps } from 'vue'
 
 export interface PlotControlProps {
   name?: string
-  type: 'slider' | 'selector'
+  type: 'slider' | 'selector' | 'spinner'
   value: number
   min?: number
   max?: number
@@ -26,7 +26,11 @@ defineProps<{
         :title="control.tooltip || ''"
       >
         {{ control.tooltip ? 'ⓘ' : '' }}
-        {{ `${control.name ? control.name : name}: ${control.value}` }}
+        {{
+          (control.name ? control.name : name) +
+          // Show current value for controls that normally don't display it
+          (control.type == 'slider' ? `: ${control.value}` : '')
+        }}
       </label>
       <!-- Slider control -->
       <input
@@ -58,6 +62,16 @@ defineProps<{
           {{ option.label }}
         </option>
       </select>
+      <!-- Spinner control -->
+      <input
+        v-else-if="control.type === 'spinner'"
+        :id="name"
+        v-model.number="control.value"
+        type="number"
+        :min="control.min"
+        :max="control.max"
+        :step="control.step"
+      />
     </div>
   </div>
 </template>

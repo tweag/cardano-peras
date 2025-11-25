@@ -1,13 +1,15 @@
 export default {
   title: 'Metric #1 (The mythical foo-bar correlation)',
   description: 'This metric showcases this and that.',
-  labels: {
-    x: 'Bars',
-    y: 'Foos per bar',
-  },
-  logScale: {
-    x: true,
-    y: true,
+  axes: {
+    x: {
+      label: 'Weight of Peras certificate',
+      scientific: true,
+    },
+    y: {
+      label: 'Rollback probability',
+      log: true,
+    },
   },
   controls: {
     baz: {

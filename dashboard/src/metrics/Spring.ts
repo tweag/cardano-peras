@@ -3,9 +3,13 @@ import { discretize, dampedOscillator } from '../metrics'
 export default {
   title: 'Metric #2 (Damped Oscillator)',
   description: 'This metric also showcases that and this.',
-  labels: {
-    x: 'Time (s)',
-    y: 'Displacement (m)',
+  axes: {
+    x: {
+      label: 'Time (s)',
+    },
+    y: {
+      label: 'Displacement (m)',
+    },
   },
   controls: {
     gamma: {

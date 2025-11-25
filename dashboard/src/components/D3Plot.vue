@@ -2,6 +2,12 @@
 import { defineProps, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
 import * as d3 from 'd3'
 
+export interface Axis {
+  label: string
+  log?: boolean
+  scientific?: boolean
+}
+
 export interface DataPoint {
   x: number
   y: number
@@ -13,9 +19,8 @@ export interface Curve {
 }
 
 const props = defineProps<{
+  axes: { x: Axis; y: Axis }
   curves: Curve[]
-  labels: { x: string; y: string }
-  logScale?: { x?: boolean; y?: boolean }
   palette?: string[]
   margin?: number
 }>()
@@ -31,7 +36,8 @@ const render = async () => {
   await nextTick()
 
   // Initialize plot parameters
-  const margin = props.margin ?? 75
+  const margin = props.margin ?? 100
+  const vMargin = margin / 2
   const width = plot.value.clientWidth
   const height = plot.value.clientHeight
   const palette = props.palette ?? d3.schemeCategory10
@@ -55,23 +61,31 @@ const render = async () => {
 
   const curves = svgElem.append('g').attr('class', 'curves')
 
-  const xScale = props.logScale?.x ? d3.scaleLog() : d3.scaleLinear()
+  const xScale = props.axes.x.log ? d3.scaleLog() : d3.scaleLinear()
   xScale.domain([xMin, xMax]).range([margin, width - margin])
-  const xAxis = d3.axisBottom(xScale)
+
+  const xAxis = props.axes.x.scientific
+    ? d3.axisBottom(xScale).ticks(10, 'e')
+    : d3.axisBottom(xScale)
+
   curves
     .append('g')
-    .attr('transform', `translate(0, ${height - margin})`)
+    .attr('transform', `translate(0, ${height - vMargin})`)
     .call(xAxis)
     .append('text')
     .attr('x', width / 2)
     .attr('y', margin / 2)
     .attr('fill', primaryColor)
     .attr('text-anchor', 'middle')
-    .text(props.labels.x)
+    .text(props.axes.x.label)
 
-  const yScale = props.logScale?.y ? d3.scaleLog() : d3.scaleLinear()
-  yScale.domain([yMin, yMax]).range([height - margin, margin])
-  const yAxis = d3.axisLeft(yScale).tickFormat(d3.format('.1e'))
+  const yScale = props.axes.y.log ? d3.scaleLog() : d3.scaleLinear()
+  yScale.domain([yMin, yMax]).range([height - vMargin, vMargin])
+
+  const yAxis = props.axes.y.scientific
+    ? d3.axisLeft(yScale).ticks(10, 'e')
+    : d3.axisLeft(yScale)
+
   curves
     .append('g')
     .attr('transform', `translate(${margin}, 0)`)
@@ -82,7 +96,7 @@ const render = async () => {
     .attr('y', -margin / 2)
     .attr('fill', primaryColor)
     .attr('text-anchor', 'middle')
-    .text(props.labels.y)
+    .text(props.axes.y.label)
 
   // Draw data
   const toLine = d3
@@ -97,7 +111,7 @@ const render = async () => {
     .data(props.curves)
     .join('path')
     .attr('class', 'line')
-    .attr('d', (axis) => toLine(axis.data))
+    .attr('d', (curve) => toLine(curve.data))
     .attr('fill', 'none')
     .attr('stroke', (_, idx) => palette[idx % palette.length])
     .attr('stroke-width', 2)
@@ -110,7 +124,7 @@ const render = async () => {
     .join('rect')
     .attr('class', 'legend')
     .attr('x', margin + 10)
-    .attr('y', (_, idx) => height - (margin + idx * 25) - 25)
+    .attr('y', (_, idx) => height - (vMargin + idx * 25) - 30)
     .attr('width', 20)
     .attr('height', 20)
     .attr('fill', (_, idx) => palette[idx % palette.length])
@@ -120,7 +134,7 @@ const render = async () => {
     .join('text')
     .attr('class', 'legend-label')
     .attr('x', margin + 40)
-    .attr('y', (_, idx) => height - (margin + idx * 25) - 10)
+    .attr('y', (_, idx) => height - (vMargin + idx * 25) - 15)
     .text((axis) => axis.label)
 }
 

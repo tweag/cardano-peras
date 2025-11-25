@@ -34,10 +34,9 @@ const globalControls = reactive(props.globals)
         :key="index"
         :title="metric.title"
         :description="metric.description"
-        :labels="metric.labels"
+        :axes="metric.axes"
         :globals="globalControls"
         :controls="reactive(metric.controls)"
-        :log-scale="metric.logScale"
         :compute="metric.compute"
       />
     </main>

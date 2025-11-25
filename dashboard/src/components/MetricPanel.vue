@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { defineProps, computed } from 'vue'
-import D3Plot, { Curve } from './D3Plot.vue'
+import D3Plot, { Axis, Curve } from './D3Plot.vue'
 import PlotControls, { PlotControlProps } from './PlotControls.vue'
 
 export interface MetricProps {
   title: string
   description: string
-  labels: { x: string; y: string }
+  axes: { x: Axis; y: Axis }
   globals: Record<string, PlotControlProps>
   controls: Record<string, PlotControlProps>
-  logScale?: { x?: boolean; y?: boolean }
   compute: (param: Record<string, number>) => Curve[]
 }
 
@@ -32,7 +31,7 @@ const curves = computed(() => {
         <b>{{ title }}</b>
       </summary>
       <p>{{ description }}</p>
-      <D3Plot :labels="labels" :curves="curves" :log-scale="logScale"> </D3Plot>
+      <D3Plot :axes="axes" :curves="curves"> </D3Plot>
       <PlotControls :controls="controls" />
     </details>
   </article>

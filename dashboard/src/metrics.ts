@@ -37,7 +37,7 @@ export function pRollbackAfterOneBoost(
   for (let k = B + 1; k < n + 2; ++k) s2[k] = s[k - B]
   const sum = s2.reduce((acc, x) => acc + x, 0)
   s = s2.map((x) => x / sum)
-  return pEvolve(n, p, q, s, 1000)
+  return pEvolve(n, p, q, s, 1000)[0]
 }
 
 function pEvolve(

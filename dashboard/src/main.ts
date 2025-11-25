@@ -3,13 +3,15 @@ import './assets/css/style.css'
 import { createApp } from 'vue'
 import App from './App.vue'
 import Rollback from './metrics/Rollback'
+import Spring from './metrics/Spring'
+import FooBar from './metrics/FooBar'
 
 createApp(App, {
   title: 'Peras Dashboard',
   footer: '© 2024 Peras Inc.',
   globals: {
     U: {
-      type: 'slider',
+      type: 'spinner',
       value: 90,
       min: 1,
       max: 180,
@@ -27,7 +29,7 @@ createApp(App, {
     //   tooltip: 'in blocks',
     // },
     L: {
-      type: 'slider',
+      type: 'spinner',
       value: 30,
       min: 1,
       max: 100,
@@ -36,16 +38,16 @@ createApp(App, {
       tooltip: 'in slots',
     },
     f: {
-      type: 'slider',
+      type: 'spinner',
       value: 0.05,
-      min: 0,
-      max: 1,
+      min: 0.01,
+      max: 0.99,
       step: 0.01,
       name: 'Active slot coefficient',
       tooltip: 'in 1/slots',
     },
   },
-  metrics: [Rollback],
+  metrics: [Rollback, Spring, FooBar],
 }).mount('#app')
 
 // Global parameters:
