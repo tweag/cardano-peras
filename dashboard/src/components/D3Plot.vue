@@ -18,9 +18,14 @@ export interface Curve {
   data: DataPoint[]
 }
 
+export interface Legend {
+  position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
+}
+
 const props = defineProps<{
   axes: { x: Axis; y: Axis }
   curves: Curve[]
+  legend: Legend
   palette?: string[]
   margin?: number
 }>()
@@ -117,14 +122,14 @@ const render = async () => {
     .attr('stroke-width', 2)
 
   // Draw legends
-  const legends = svgElem.append('g').attr('class', 'legends')
+  const legends = svgElem.append('g').attr('class', 'legend')
   legends
     .selectAll('rect.legend')
     .data(props.curves)
     .join('rect')
     .attr('class', 'legend')
-    .attr('x', margin + 10)
-    .attr('y', (_, idx) => height - (vMargin + idx * 25) - 30)
+    .attr('x', 10)
+    .attr('y', (_, idx) => idx * 25)
     .attr('width', 20)
     .attr('height', 20)
     .attr('fill', (_, idx) => palette[idx % palette.length])
@@ -133,9 +138,37 @@ const render = async () => {
     .data(props.curves)
     .join('text')
     .attr('class', 'legend-label')
-    .attr('x', margin + 40)
-    .attr('y', (_, idx) => height - (vMargin + idx * 25) - 15)
+    .attr('text-anchor', 'start')
+    .attr('x', 35)
+    .attr('y', (_, idx) => idx * 25 + 15)
     .text((axis) => axis.label)
+
+  // Translate the legends based on position
+  const legendsWidth = d3.max(
+    legends.selectAll('text.legend-label').nodes(),
+    (node) => node.getBBox().width
+  )
+  var legendXOffset = 0
+  var legendYOffset = 0
+  switch (props.legend?.position) {
+    case 'top-right':
+      legendXOffset = width - margin - legendsWidth - 50
+      legendYOffset = vMargin
+      break
+    case 'bottom-right':
+      legendXOffset = width - margin - legendsWidth - 50
+      legendYOffset = height - vMargin - props.curves.length * 25 - 5
+      break
+    case 'top-left':
+      legendXOffset = margin
+      legendYOffset = vMargin
+      break
+    case 'bottom-left':
+      legendXOffset = margin
+      legendYOffset = height - vMargin - props.curves.length * 25 - 5
+      break
+  }
+  legends.attr('transform', `translate(${legendXOffset}, ${legendYOffset})`)
 }
 
 // Initial render and watch for data changes

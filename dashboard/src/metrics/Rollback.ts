@@ -13,6 +13,9 @@ export default {
       scientific: true,
     },
   },
+  legend: {
+    position: 'bottom-left',
+  },
   controls: {
     advStake: {
       type: 'slider',

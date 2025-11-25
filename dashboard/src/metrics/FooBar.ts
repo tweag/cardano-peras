@@ -11,6 +11,9 @@ export default {
       log: true,
     },
   },
+  legend: {
+    position: 'bottom-right',
+  },
   controls: {
     baz: {
       type: 'slider',

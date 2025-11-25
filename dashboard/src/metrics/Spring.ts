@@ -11,6 +11,9 @@ export default {
       label: 'Displacement (m)',
     },
   },
+  legend: {
+    position: 'top-right',
+  },
   controls: {
     gamma: {
       type: 'slider',
