@@ -52,6 +52,30 @@ export function pNoHonestQuorum(
   return jStat.binomial.cdf(quorum, committeeSize, honestStake) as number
 }
 
+export function uptimePercentage(
+  k: number,
+  f: number,
+  K: number,
+  tau: number,
+  committeeSize: number,
+  adversaryStakeFraction: number
+) {
+  const coolDownTime = (4 * k) / f + K
+  // The uptime is the mean number of rounds between cooldowns
+  const cooldownProbabilty = pNoHonestQuorum(
+    tau,
+    committeeSize,
+    adversaryStakeFraction
+  )
+  if (cooldownProbabilty == 0) {
+    // Fast escape accounting for bounded precision floats
+    return 1
+  } else {
+    const uptime = 1 / cooldownProbabilty
+    return uptime / (uptime + coolDownTime)
+  }
+}
+
 function pEvolve(
   n: number,
   p: number,

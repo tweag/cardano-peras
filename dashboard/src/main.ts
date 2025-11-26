@@ -4,6 +4,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import Rollback from './metrics/Rollback'
 import NoQuorum from './metrics/NoQuorum'
+import Uptime from './metrics/Uptime'
 import Spring from './metrics/Spring'
 import FooBar from './metrics/FooBar'
 
@@ -109,15 +110,6 @@ createApp(App, {
       name: 'k: security parameter, in blocks',
       tooltip: 'The limit on the number of blocks to reach a common prefix.',
     },
-    slotDuration: {
-      type: 'spinner',
-      value: 1,
-      min: 0.1,
-      max: 60,
-      step: 0.1,
-      name: 'slot duration, in seconds per slot',
-      tooltip: 'The duration of one cardano slot.',
-    },
   },
-  metrics: [Rollback, NoQuorum, Spring, FooBar],
+  metrics: [Rollback, NoQuorum, Uptime, Spring, FooBar],
 }).mount('#app')
