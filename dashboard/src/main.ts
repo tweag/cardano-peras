@@ -81,12 +81,12 @@ createApp(App, {
       tooltip: 'The number of members on the voting committee.',
     },
     quorum: {
-      type: 'slider',
+      type: 'spinner',
       value: 0.75,
       min: 0.5,
       max: 1,
       step: 0.01,
-      name: 'Quorum size, in %/100',
+      name: 'Quorum threshold',
       tooltip:
         'The percentage of votes, relative to the mean committee size, required to create a certificate.',
     },

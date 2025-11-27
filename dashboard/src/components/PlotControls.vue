@@ -82,6 +82,8 @@ defineProps<{
   margin-bottom: 0em;
   margin-left: 2em;
   margin-right: 2em;
+  display: grid;
+  grid-template-columns: repeat(3, auto);
 }
 .control-item {
   margin: 1em 1em 1em 1em;
