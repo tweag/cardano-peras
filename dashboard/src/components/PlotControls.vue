@@ -9,10 +9,12 @@ export interface PlotControlProps {
   max?: number
   step?: number
   tooltip?: string
+  computed?: (params: Record<string, number>) => number
 }
 
 defineProps<{
   controls: Record<string, PlotControlProps>
+  autoCompute: (control: PlotControlProps, event: Event) => PlotControlProps
 }>()
 </script>
 
@@ -72,6 +74,11 @@ defineProps<{
         :max="control.max"
         :step="control.step"
       />
+      <!-- Enable derivation of parameter from other parameters -->
+      <div v-if="control.computed">
+        <input type="checkbox" checked @change="autoCompute(control, $event)" />
+        <label for="name">Derive from other parameters</label>
+      </div>
     </div>
   </div>
 </template>

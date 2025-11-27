@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
-import PlotControls, { PlotControl } from './PlotControls.vue'
+import PlotControls, { PlotControl, PlotControlProps } from './PlotControls.vue'
 
 defineProps<{
   controls: Record<string, PlotControl>
@@ -12,7 +12,12 @@ defineProps<{
     <details closed>
       <summary><b>Global parameters</b></summary>
       <p>Peras protocol parameters</p>
-      <PlotControls :controls="controls" />
+      <PlotControls
+        :controls="controls"
+        :autocompute="function (control: PlotControlProps, event: Event): PlotControlProps {
+          console.log('FOOOO')
+        }"
+      />
     </details>
   </article>
 </template>
