@@ -61,6 +61,7 @@ createApp(App, {
       name: 'K: Cooldown period, in rounds',
       tooltip:
         'The minimum number of rounds to wait before voting again after a cool-down period starts.',
+      compute: (params: Record<string, number>) => 42,
     },
     L: {
       type: 'spinner',

@@ -9,11 +9,34 @@ export interface PlotControlProps {
   max?: number
   step?: number
   tooltip?: string
+  compute?: (params: Record<string, number>) => number
 }
 
 defineProps<{
   controls: Record<string, PlotControlProps>
 }>()
+
+function autoCompute(
+  event: Event,
+  name: string,
+  control: PlotControlProps,
+  controls: Record<string, PlotControlProps>,
+  compute: (params: Record<string, number>) => number
+): void {
+  const inputField = document.getElementById(
+    'input-' + name
+  ) as HTMLInputElement
+  if ((event.target as HTMLInputElement).checked) {
+    const params = Object.keys(controls).reduce((acc, key) => {
+      acc[key] = controls[key].value
+      return acc
+    }, {} as Record<string, number>)
+    control.value = compute(params)
+    inputField.disabled = true
+  } else {
+    inputField.disabled = false
+  }
+}
 </script>
 
 <template>
@@ -35,18 +58,20 @@ defineProps<{
       <!-- Slider control -->
       <input
         v-if="control.type === 'slider'"
-        :id="name"
+        :id="'input-' + name"
         v-model.number="control.value"
         type="range"
         :min="control.min"
         :max="control.max"
         :step="control.step"
+        :disabled="control.compute !== undefined"
       />
       <!-- Selector control -->
       <select
         v-else-if="control.type === 'selector'"
-        :id="name"
+        :id="'input-' + name"
         v-model.number="control.value"
+        :disabled="control.compute !== undefined"
       >
         <option
           v-for="option in Array.from(
@@ -65,13 +90,25 @@ defineProps<{
       <!-- Spinner control -->
       <input
         v-else-if="control.type === 'spinner'"
-        :id="name"
+        :id="'input-' + name"
         v-model.number="control.value"
         type="number"
         :min="control.min"
         :max="control.max"
         :step="control.step"
+        :disabled="control.compute !== undefined"
       />
+      <!-- Enable derivation of parameter from other parameters -->
+      <div v-if="control.compute">
+        <input
+          type="checkbox"
+          checked
+          @change="
+            autoCompute($event, name, control, controls, control.compute)
+          "
+        />
+        <label for="name">Derive from other parameters</label>
+      </div>
     </div>
   </div>
 </template>
