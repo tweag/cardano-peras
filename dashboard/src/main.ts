@@ -30,38 +30,43 @@ createApp(App, {
       name: 'U: Round length, in slots',
       tooltip: 'The duration of each voting round.',
     },
-    // TODO: derive value from other parameters
     A: {
       type: 'spinner',
-      value: 3600,
+      value: 27000,
       min: 60,
       max: 86400,
       step: 1,
       name: 'A: Certificate expiration, in slots',
       tooltip: 'The maximum age for a certificate to be included in a block.',
+      compute: (params: Record<string, number>) => {
+        return (90 * params.B) / params.f
+      },
     },
-    // TODO: derive value from other parameters
     R: {
       type: 'spinner',
       value: 300,
-      min: 300,
-      max: 300,
+      min: 90,
+      max: 1000,
       step: 1,
       name: 'R: Chain ignorance, in rounds',
       tooltip:
         'The number of rounds for which to ignore certificates after entering a cool-down period.',
+      compute: (params: Record<string, number>) => {
+        return Math.round(params.A / params.U)
+      },
     },
-    // TODO: derive value from other parameters
     K: {
       type: 'spinner',
       value: 780,
-      min: 780,
-      max: 780,
+      min: 90,
+      max: 2000,
       step: 1,
       name: 'K: Cooldown period, in rounds',
       tooltip:
         'The minimum number of rounds to wait before voting again after a cool-down period starts.',
-      compute: (params: Record<string, number>) => 42,
+      compute: (params: Record<string, number>) => {
+        return Math.round((2160 + 90 * params.B) / params.f / params.U)
+      },
     },
     L: {
       type: 'spinner',
@@ -101,15 +106,17 @@ createApp(App, {
       tooltip:
         'The probability that a party will be the slot leader for a particular slot.',
     },
-    // TODO: derive value from other parameters
     k: {
       type: 'spinner',
-      value: 780,
-      min: 780,
-      max: 780,
+      value: 3510,
+      min: 2160,
+      max: 16384,
       step: 1,
       name: 'k: security parameter, in blocks',
       tooltip: 'The limit on the number of blocks to reach a common prefix.',
+      compute: (params: Record<string, number>) => {
+        return 2160 + 90 * params.B
+      },
     },
   },
   metrics: [Rollback, NoQuorum, Uptime, Spring, FooBar],
