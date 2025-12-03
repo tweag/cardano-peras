@@ -102,7 +102,7 @@ createApp(App, {
       min: 0.01,
       max: 0.99,
       step: 0.01,
-      name: 'f: Active slot coefficient, in 1/slots',
+      name: 'f: Active slot coefficient, in blocks/slot',
       tooltip:
         'The probability that a party will be the slot leader for a particular slot.',
     },

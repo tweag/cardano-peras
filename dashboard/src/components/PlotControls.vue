@@ -16,26 +16,25 @@ defineProps<{
   controls: Record<string, PlotControlProps>
 }>()
 
-function autoCompute(
-  event: Event,
-  name: string,
-  control: PlotControlProps,
-  controls: Record<string, PlotControlProps>,
-  compute: (params: Record<string, number>) => number
-): void {
-  const inputField = document.getElementById(
-    'input-' + name
-  ) as HTMLInputElement
-  if ((event.target as HTMLInputElement).checked) {
-    const params = Object.keys(controls).reduce((acc, key) => {
-      acc[key] = controls[key].value
-      return acc
-    }, {} as Record<string, number>)
-    control.value = compute(params)
-    inputField.disabled = true
-  } else {
-    inputField.disabled = false
-  }
+function autoCompute(controls: Record<string, PlotControlProps>): void {
+  const params = Object.keys(controls).reduce((acc, key) => {
+    acc[key] = controls[key].value
+    return acc
+  }, {} as Record<string, number>)
+  Object.entries(controls).forEach(([name, control]) => {
+    const checkbox = document.getElementById(
+      'checkbox-' + name
+    ) as HTMLInputElement
+    const inputField = document.getElementById(
+      'input-' + name
+    ) as HTMLInputElement
+    if (control.compute && checkbox.checked) {
+      control.value = control.compute(params)
+    }
+    if (checkbox) {
+      inputField.disabled = checkbox.checked
+    }
+  })
 }
 </script>
 
@@ -65,6 +64,7 @@ function autoCompute(
         :max="control.max"
         :step="control.step"
         :disabled="control.compute !== undefined"
+        @change="autoCompute(controls)"
       />
       <!-- Selector control -->
       <select
@@ -72,6 +72,7 @@ function autoCompute(
         :id="'input-' + name"
         v-model.number="control.value"
         :disabled="control.compute !== undefined"
+        @change="autoCompute(controls)"
       >
         <option
           v-for="option in Array.from(
@@ -97,15 +98,15 @@ function autoCompute(
         :max="control.max"
         :step="control.step"
         :disabled="control.compute !== undefined"
+        @change="autoCompute(controls)"
       />
       <!-- Enable derivation of parameter from other parameters -->
       <div v-if="control.compute">
         <input
+          :id="'checkbox-' + name"
           type="checkbox"
           checked
-          @change="
-            autoCompute($event, name, control, controls, control.compute)
-          "
+          @change="autoCompute(controls)"
         />
         <label for="name">Derive from other parameters</label>
       </div>
