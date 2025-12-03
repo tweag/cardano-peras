@@ -37,6 +37,8 @@ The source code is [here](https://github.com/input-output-hk/peras-design/blob/m
 * `K = (2160 + 90 * B) / f / U`
 * `k = 2160 + 90 * B`
 
+There is no justification for those formulas in the source code. Maybe more information can be found in various Peras papers, especially about that `90 * B`.
+
 ## Stats formulas
 
 TODO
