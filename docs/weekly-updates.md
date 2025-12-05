@@ -1,5 +1,19 @@
 # Weekly status updates
 
+## 2025-12-05
+
+ - Continue refining the first implementation of the [PerasVoteDB](https://github.com/IntersectMBO/ouroboros-consensus/pull/1768). We are currently looking into the best way to safely aggregate votes and forge certificates.
+
+ - Started addressing the [new feedback](https://github.com/IntersectMBO/ouroboros-network/pull/5202) on the object diffusion mini-protocol implementation at the `ouroboros-network` side. The main focus is to implement more thorough tests, especially for serialization tasks.
+
+ - Opened [Peras #9](https://github.com/IntersectMBO/ouroboros-consensus/pull/1784) with several small changes in preparation for the Peras voting rules.
+
+ - Continued implementing metrics for the Peras Dashboard, which now also displays values on mouse hover.
+
+ - Merged [Peras #7](https://github.com/IntersectMBO/ouroboros-consensus/pull/1780) after validating it can be [easily integrated](https://github.com/IntersectMBO/cardano-node/compare/10.6.1...refs/heads/peras/integrate-consensus-1780) into `cardano-node`.
+
+ - Merged the first [Ledger PR](https://github.com/IntersectMBO/cardano-ledger/pull/5439) preparing the ground for storing certificates in blocks.
+
 ## 2025-11-28
 
  - Delivered the third public demo, [slides](https://docs.google.com/presentation/d/18mBH7hy4qYG9rtxHPHvqo2go7-fPkdRM/edit?usp=sharing&ouid=104005107553680790622&rtpof=true&sd=true)
