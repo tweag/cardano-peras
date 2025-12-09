@@ -1,0 +1,53 @@
+version: "0.5"
+
+processes:
+  setup:
+    command: "cabal run dev-local -- setup"
+
+  cardano-testnet:
+    command: "cabal run dev-local -- start-local-testnet"
+    depends_on:
+      setup:
+        condition: process_completed_successfully
+    readiness_probe:
+      exec:
+        # NOTE: devnet-env is hardcoded here.
+        # TODO: Add an endpoint in dev-local to health check testnet
+        command: "[ -S ./devnet-env/socket/node1/sock ]"
+      initial_delay_seconds: 1
+      period_seconds: 1
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 60
+
+  get-node-tips:
+    command: "cabal run dev-local -- get-node-tips"
+    disabled: true
+
+  add-toxicity:
+    command: "cabal run dev-local -- add-toxicity"
+    disabled: true
+
+  remove-toxicity:
+    command: "cabal run dev-local -- remove-toxicity"
+    disabled: true
+
+  sync-nodes:
+    command: "cabal run dev-local -- sync-nodes"
+    depends_on:
+      toxiproxy-server:
+        condition: process_healthy
+
+  toxiproxy-server:
+    command: "cabal run dev-local -- toxiproxy-server"
+    depends_on:
+      cardano-testnet:
+        condition: process_healthy
+    readiness_probe:
+      exec:
+        command: "curl -sf http://127.0.0.1:8474/proxies"
+      initial_delay_seconds: 1
+      period_seconds: 2
+      timeout_seconds: 1
+      success_threshold: 1
+      failure_threshold: 5
