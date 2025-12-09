@@ -1,0 +1,63 @@
+cabal-version:      3.4
+name:               dev-local
+version:            0.1.0.0
+license:            MIT
+build-type:         Simple
+
+common lang
+  default-language:   Haskell2010
+  ghc-options:
+    -Wall -Wcompat -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wredundant-constraints -Wunused-packages
+
+  default-extensions:
+    BangPatterns
+    BlockArguments
+    DataKinds
+    DeriveAnyClass
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    DuplicateRecordFields
+    ExplicitForAll
+    FlexibleContexts
+    FlexibleInstances
+    GADTs
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    LambdaCase
+    MultiParamTypeClasses
+    NamedFieldPuns
+    NamedFieldPuns
+    NumericUnderscores
+    OverloadedRecordDot
+    OverloadedStrings
+    PolyKinds
+    QuasiQuotes
+    RecordWildCards
+    ScopedTypeVariables
+    StandaloneDeriving
+    TemplateHaskell
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+    ViewPatterns
+
+executable dev-local
+  import:         lang
+  main-is:        Main.hs
+  hs-source-dirs: .
+  other-modules: Populate
+
+  build-depends:
+    , base
+    , filepath
+    , optparse-applicative
+    , streamly-core
+    , streamly-process
+    , containers

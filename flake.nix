@@ -11,21 +11,27 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    haskellNix.url = "github:input-output-hk/haskell.nix";
   };
 
   outputs =
     {
       nixpkgs,
+      haskellNix,
       flake-utils,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ haskellNix.overlay ];
+        };
 
         dashboard = import ./dashboard { inherit pkgs; };
         demo = import ./demo { inherit pkgs system; };
+        dev-local = import ./dev-local/shell.nix { inherit pkgs system; };
         demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
         design = import ./design { inherit pkgs; };
       in
@@ -44,6 +50,7 @@
             dashboard
             demo
             design
+            dev-local
             ;
           default = design;
         };
