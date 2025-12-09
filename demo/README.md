@@ -1,5 +1,9 @@
 # Peras Demos
 
+## 2025-11-24
+
+  - [Slides](https://docs.google.com/presentation/d/18mBH7hy4qYG9rtxHPHvqo2go7-fPkdRM/edit?usp=drive_link&ouid=107877809765303528718&rtpof=true&sd=true)
+
 ## 2025-10-27
 
  - [Slides](https://docs.google.com/presentation/d/1GKMUFtl9rJZdz1c8t_GI_yktcsdXFCzJUU3XHOVxtcU/edit)
