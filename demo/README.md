@@ -1,28 +1,6 @@
 # Peras Demos
 
-## 2025-11-24
-
-  - [Slides](https://docs.google.com/presentation/d/18mBH7hy4qYG9rtxHPHvqo2go7-fPkdRM/edit?usp=drive_link&ouid=107877809765303528718&rtpof=true&sd=true)
-
-## 2025-10-27
-
- - [Slides](https://docs.google.com/presentation/d/1GKMUFtl9rJZdz1c8t_GI_yktcsdXFCzJUU3XHOVxtcU/edit)
- - [Recording](https://drive.google.com/file/d/1QYO81Y8UOi_xynq9HnbZB4WTDNg5mpdP/view)
- - [Chat](https://drive.google.com/file/d/1fByr44aBJVEMcCG8QB1QUrfoyofbJ57I/view)
- - [Gemini summary](https://docs.google.com/document/d/1d5sWZ54R5POeNz8hZl9zoMIwfP04u4skMiXG0DyMEuk/edit)
-
-## 2025-09-29
-
-### Slides and Recordings
-
- - [Slides](https://docs.google.com/presentation/d/1jfzJSgQ5LMDR8w6WGSjjPg6vb6kQekWv16fdttjS5Iw/edit)
- - [Recording](https://drive.google.com/file/d/17mW08TV0JirL-LTUXj_7Q06rP_sfody3/view)
- - [Chat](https://drive.google.com/file/d/1_F2dNzicKq476iYmDMP3dKghfltwS0Tu/view)
- - [Gemini summary (no warranty)](https://docs.google.com/document/d/1BfzHcUD6XMUD898ruRnyUas1aSJzd9cMO7EnsY7wKbE/edit)
-
-### Interactive demo
-
-We have prepared a small interactive demo to showcase the first milestone of this project. You can find the meeting slides [here](https://docs.google.com/presentation/d/1jfzJSgQ5LMDR8w6WGSjjPg6vb6kQekWv16fdttjS5Iw/edit) for more information.
+### Interactive Weighted Chain Selection demo
 
 You can try it with Nix:
 
