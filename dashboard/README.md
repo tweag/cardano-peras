@@ -1,24 +1,20 @@
-# 
+# Peras parameterization dashboard
 
-## Project setup
-```
-pnpm install
-```
+### Building
 
-### Compiles and hot-reloads for development
-```
-pnpm run serve
+You can build via Nix:
+
+```console
+nix build .#dashboard
 ```
 
-### Compiles and minifies for production
-```
-pnpm run build
-```
+Or inside the Nix shell (enter via `nix develop` or
+[nix-direnv](https://github.com/nix-community/nix-direnv)) for a more
+interactive experience:
 
-### Lints and fixes files
+```console
+pnpm install    # Installs dependencies
+pnpm run serve  # Compiles and hot-reloads for development
+pnpm run build  # Compiles and minifies for production
+pnpm run lint   # Lints files (use lint:fix to automatically apply fixes)
 ```
-pnpm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
