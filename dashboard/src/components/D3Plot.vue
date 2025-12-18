@@ -169,6 +169,73 @@ const render = async () => {
       break
   }
   legends.attr('transform', `translate(${legendXOffset}, ${legendYOffset})`)
+
+  // Focus group to display coordinates on hover
+  const focus = svgElem
+    .append('g')
+    .attr('class', 'focus')
+    .style('display', 'none')
+
+  focus.append('circle').attr('r', 4.5)
+  focus.append('text').attr('x', 9).attr('dy', '.35em')
+
+  // Find the closest data point in all curves
+  //
+  // NOTE: this works on the graph coordinates (not the data coordinates) to
+  // simplify handling of logarithmic scales.
+  function closestPointAllCurves(x, y) {
+    let closestPoint = null
+    let closestDistance = Infinity
+    let allPoints = props.curves.flatMap((curve) => curve.data)
+
+    for (const point of allPoints) {
+      const dx = x - xScale(point.x)
+      const dy = y - yScale(point.y)
+      const distance = Math.sqrt(dx * dx + dy * dy)
+      if (distance < closestDistance) {
+        closestDistance = distance
+        closestPoint = point
+      }
+    }
+    return {
+      x: xScale(closestPoint.x),
+      y: yScale(closestPoint.y),
+    }
+  }
+
+  // Formatters for coordinates
+  const xFormat = (n) =>
+    props.axes.x.scientific ? n.toExponential(3) : n.toFixed(3)
+  const yFormat = (n) =>
+    props.axes.y.scientific ? n.toExponential(3) : n.toFixed(3)
+
+  // Mouse move handler
+  function mousemove(event) {
+    // Get mouse coordinates
+    const xCoord = d3.pointer(event)[0]
+    const yCoord = d3.pointer(event)[1]
+
+    // Find closest data point in all curves
+    const closestCoord = closestPointAllCurves(xCoord, yCoord)
+    const closestX = xScale.invert(closestCoord.x)
+    const closestY = yScale.invert(closestCoord.y)
+
+    // Update focus position and text
+    focus.attr('transform', `translate(${closestCoord.x},${closestCoord.y})`)
+    focus.select('text').text(`(${xFormat(closestX)}, ${yFormat(closestY)})`)
+  }
+
+  // Overlay rectangle to capture mouse events
+  const overlay = svgElem
+    .append('rect')
+    .attr('class', 'overlay')
+    .attr('width', width)
+    .attr('height', height)
+    .attr('fill', 'none')
+    .attr('pointer-events', 'all')
+    .on('mouseover', () => focus.style('display', null))
+    .on('mouseout', () => focus.style('display', 'none'))
+    .on('mousemove', mousemove)
 }
 
 // Initial render and watch for data changes
