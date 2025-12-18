@@ -13,15 +13,6 @@ export function discretize(
   }))
 }
 
-export function dampedOscillator(
-  A: number,
-  gamma: number,
-  omega: number,
-  x: number
-) {
-  return A * Math.exp(-gamma * x) * Math.cos(omega * x)
-}
-
 export function pRollbackAfterOneBoost(
   adversaryStakeFraction: number,
   activeSlotCoefficient: number,

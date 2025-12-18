@@ -5,8 +5,6 @@ import App from './App.vue'
 import Rollback from './metrics/Rollback'
 import NoQuorum from './metrics/NoQuorum'
 import Uptime from './metrics/Uptime'
-import Spring from './metrics/Spring'
-import FooBar from './metrics/FooBar'
 import Settlement from './metrics/Settlement'
 
 createApp(App, {
@@ -120,5 +118,5 @@ createApp(App, {
       },
     },
   },
-  metrics: [Rollback, NoQuorum, Uptime, Settlement, Spring, FooBar],
+  metrics: [Rollback, NoQuorum, Uptime, Settlement],
 }).mount('#app')
