@@ -52,6 +52,14 @@ export function pNoHonestQuorum(
   return jStat.binomial.cdf(quorum, committeeSize, honestStake) as number
 }
 
+export function pPerasRollback(slot: number) {
+  return Math.exp(-slot / 60)
+}
+
+export function pPraosRollback(slot: number) {
+  return Math.exp(-slot / 180)
+}
+
 export function uptimePercentage(
   k: number,
   f: number,

@@ -7,6 +7,7 @@ import NoQuorum from './metrics/NoQuorum'
 import Uptime from './metrics/Uptime'
 import Spring from './metrics/Spring'
 import FooBar from './metrics/FooBar'
+import Settlement from './metrics/Settlement'
 
 createApp(App, {
   title: 'Peras Dashboard',
@@ -119,5 +120,5 @@ createApp(App, {
       },
     },
   },
-  metrics: [Rollback, NoQuorum, Uptime, Spring, FooBar],
+  metrics: [Rollback, NoQuorum, Uptime, Settlement, Spring, FooBar],
 }).mount('#app')
