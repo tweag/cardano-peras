@@ -17,7 +17,7 @@ createApp(App, {
       min: 1,
       max: 30,
       step: 1,
-      name: 'B: Boost, in block weight',
+      name: 'B: Boost (block weight)',
       tooltip: 'The extra chain weight that a certificate gives to a block.',
     },
     U: {
@@ -26,7 +26,7 @@ createApp(App, {
       min: 1,
       max: 180,
       step: 1,
-      name: 'U: Round length, in slots',
+      name: 'U: Round length (slots)',
       tooltip: 'The duration of each voting round.',
     },
     A: {
@@ -35,7 +35,7 @@ createApp(App, {
       min: 60,
       max: 86400,
       step: 1,
-      name: 'A: Certificate expiration, in slots',
+      name: 'A: Certificate expiration (slots)',
       tooltip: 'The maximum age for a certificate to be included in a block.',
       compute: (params: Record<string, number>) => {
         return (90 * params.B) / params.f
@@ -47,7 +47,7 @@ createApp(App, {
       min: 90,
       max: 1000,
       step: 1,
-      name: 'R: Chain ignorance, in rounds',
+      name: 'R: Chain ignorance (rounds)',
       tooltip:
         'The number of rounds for which to ignore certificates after entering a cool-down period.',
       compute: (params: Record<string, number>) => {
@@ -60,7 +60,7 @@ createApp(App, {
       min: 90,
       max: 2000,
       step: 1,
-      name: 'K: Cooldown period, in rounds',
+      name: 'K: Cooldown period (rounds)',
       tooltip:
         'The minimum number of rounds to wait before voting again after a cool-down period starts.',
       compute: (params: Record<string, number>) => {
@@ -73,7 +73,7 @@ createApp(App, {
       min: 1,
       max: 100,
       step: 1,
-      name: 'L: Block selection offset, in slots',
+      name: 'L: Block selection offset (slots)',
       tooltip: 'The minimum age of a candidate block for being voted upon.',
     },
     n: {
@@ -82,7 +82,7 @@ createApp(App, {
       min: 10,
       max: 2000,
       step: 10,
-      name: 'n: Mean committee size, in nodes',
+      name: 'n: Mean committee size (#nodes)',
       tooltip: 'The number of members on the voting committee.',
     },
     quorum: {
@@ -91,7 +91,7 @@ createApp(App, {
       min: 0.5,
       max: 1,
       step: 0.01,
-      name: 'Quorum threshold',
+      name: 'Quorum threshold (%)',
       tooltip:
         'The percentage of votes, relative to the mean committee size, required to create a certificate.',
     },
@@ -101,7 +101,7 @@ createApp(App, {
       min: 0.01,
       max: 0.99,
       step: 0.01,
-      name: 'f: Active slot coefficient, in blocks/slot',
+      name: 'f: Active slot coefficient (blocks/slot)',
       tooltip:
         'The probability that a party will be the slot leader for a particular slot.',
     },
@@ -111,7 +111,7 @@ createApp(App, {
       min: 2160,
       max: 16384,
       step: 1,
-      name: 'k: security parameter, in blocks',
+      name: 'k: security parameter (blocks)',
       tooltip: 'The limit on the number of blocks to reach a common prefix.',
       compute: (params: Record<string, number>) => {
         return 2160 + 90 * params.B

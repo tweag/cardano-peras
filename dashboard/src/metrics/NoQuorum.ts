@@ -13,7 +13,7 @@ export default {
     },
   },
   legend: {
-    position: 'top-left',
+    position: 'bottom-right',
   },
   controls: {
     committee_size_overwrite: {

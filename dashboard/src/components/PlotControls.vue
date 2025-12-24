@@ -22,24 +22,35 @@ function autoCompute(controls: Record<string, PlotControlProps>): void {
     return acc
   }, {} as Record<string, number>)
   Object.entries(controls).forEach(([name, control]) => {
-    const checkbox = document.getElementById(
-      'checkbox-' + name
-    ) as HTMLInputElement
+    const button = document.getElementById('lock-' + name) as HTMLButtonElement
     const inputField = document.getElementById(
       'input-' + name
     ) as HTMLInputElement
-    if (control.compute && checkbox.checked) {
+    const isLocked = button && button.dataset.locked === 'true'
+    if (control.compute && isLocked) {
       control.value = control.compute(params)
     }
-    if (checkbox) {
-      inputField.disabled = checkbox.checked
+    if (button) {
+      inputField.disabled = isLocked
     }
   })
+}
+
+function toggleLock(
+  name: string,
+  controls: Record<string, PlotControlProps>
+): void {
+  const button = document.getElementById('lock-' + name) as HTMLButtonElement
+  const isLocked = button.dataset.locked === 'true'
+  const newLockedState = !isLocked
+  button.dataset.locked = newLockedState.toString()
+  button.textContent = newLockedState ? '🔗' : '⛓️‍💥'
+  autoCompute(controls)
 }
 </script>
 
 <template>
-  <div class="plot-controls grid">
+  <div class="plot-controls">
     <div v-for="(control, name) in controls" :key="name" class="control-item">
       <!-- Control label -->
       <label
@@ -54,61 +65,67 @@ function autoCompute(controls: Record<string, PlotControlProps>): void {
           (control.type == 'slider' ? `: ${control.value}` : '')
         }}
       </label>
-      <!-- Slider control -->
-      <input
-        v-if="control.type === 'slider'"
-        :id="'input-' + name"
-        v-model.number="control.value"
-        type="range"
-        :min="control.min"
-        :max="control.max"
-        :step="control.step"
-        :disabled="control.compute !== undefined"
-        @change="autoCompute(controls)"
-      />
-      <!-- Selector control -->
-      <select
-        v-else-if="control.type === 'selector'"
-        :id="'input-' + name"
-        v-model.number="control.value"
-        :disabled="control.compute !== undefined"
-        @change="autoCompute(controls)"
-      >
-        <option
-          v-for="option in Array.from(
-            { length: control.max - control.min + 1 },
-            (_, i) => ({
-              value: control.min + i,
-              label: (control.min + i).toString(),
-            })
-          )"
-          :key="option.value"
-          :value="option.value"
-        >
-          {{ option.label }}
-        </option>
-      </select>
-      <!-- Spinner control -->
-      <input
-        v-else-if="control.type === 'spinner'"
-        :id="'input-' + name"
-        v-model.number="control.value"
-        type="number"
-        :min="control.min"
-        :max="control.max"
-        :step="control.step"
-        :disabled="control.compute !== undefined"
-        @change="autoCompute(controls)"
-      />
-      <!-- Enable derivation of parameter from other parameters -->
-      <div v-if="control.compute">
+
+      <!-- Control -->
+      <div :class="control.compute ? 'control-with-lock' : ''">
+        <!-- Slider control -->
         <input
-          :id="'checkbox-' + name"
-          type="checkbox"
-          checked
+          v-if="control.type === 'slider'"
+          :id="'input-' + name"
+          v-model.number="control.value"
+          type="range"
+          :min="control.min"
+          :max="control.max"
+          :step="control.step"
+          :disabled="control.compute !== undefined"
           @change="autoCompute(controls)"
         />
-        <label for="name">Derive from other parameters</label>
+        <!-- Selector control -->
+        <select
+          v-else-if="control.type === 'selector'"
+          :id="'input-' + name"
+          v-model.number="control.value"
+          :disabled="control.compute !== undefined"
+          @change="autoCompute(controls)"
+        >
+          <option
+            v-for="option in Array.from(
+              { length: control.max - control.min + 1 },
+              (_, i) => ({
+                value: control.min + i,
+                label: (control.min + i).toString(),
+              })
+            )"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+        <!-- Spinner control -->
+        <input
+          v-else-if="control.type === 'spinner'"
+          :id="'input-' + name"
+          v-model.number="control.value"
+          type="number"
+          :min="control.min"
+          :max="control.max"
+          :step="control.step"
+          :disabled="control.compute !== undefined"
+          @change="autoCompute(controls)"
+        />
+
+        <!-- Enable auto derivation of parameter from other parameters -->
+        <button
+          v-if="control.compute"
+          class="tooltip lock-button secondary"
+          :id="'lock-' + name"
+          data-locked="true"
+          :title="'Auto-derive this parameter from the rest.'"
+          @click="toggleLock(name as string, controls)"
+        >
+          🔗
+        </button>
       </div>
     </div>
   </div>
@@ -117,17 +134,21 @@ function autoCompute(controls: Record<string, PlotControlProps>): void {
 <style scoped>
 .plot-controls {
   margin-top: 0em;
-  margin-bottom: 0em;
-  margin-left: 2em;
-  margin-right: 2em;
-  display: grid;
-  grid-template-columns: repeat(3, auto);
-}
-.control-item {
-  margin: 1em 1em 1em 1em;
 }
 .tooltip {
   position: relative;
   cursor: help;
+}
+.control-with-lock {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+.lock-button {
+  padding: 0.2em 0.5em;
+  height: 3em;
+  cursor: pointer;
+}
+.lock-button:hover {
+  opacity: 0.8;
 }
 </style>

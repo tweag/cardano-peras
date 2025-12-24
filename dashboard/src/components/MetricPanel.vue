@@ -6,6 +6,7 @@ import PlotControls, { PlotControlProps } from './PlotControls.vue'
 export interface MetricProps {
   title: string
   description: string
+  open?: boolean
   axes: { x: Axis; y: Axis }
   legend?: Legend
   globals: Record<string, PlotControlProps>
@@ -27,13 +28,15 @@ const curves = computed(() => {
 
 <template>
   <article class="container">
-    <details closed>
+    <details :open="open ?? false">
       <summary>
         <b>{{ title }}</b>
       </summary>
       <p>{{ description }}</p>
       <D3Plot :axes="axes" :legend="legend" :curves="curves"> </D3Plot>
-      <PlotControls :controls="controls" />
+      <div class="metric-controls">
+        <PlotControls :controls="controls" />
+      </div>
     </details>
   </article>
 </template>
@@ -48,5 +51,8 @@ summary {
 }
 p {
   margin: 1em;
+}
+.metric-controls {
+  margin: 1em 2em 0em 2em;
 }
 </style>
