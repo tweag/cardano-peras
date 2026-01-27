@@ -2,7 +2,10 @@ import './assets/css/style.css'
 
 import { createApp } from 'vue'
 import App from './App.vue'
-import Settlement from './metrics/Settlement'
+import Rollback from './metrics/Rollback'
+import NoQuorum from './metrics/NoQuorum'
+import Uptime from './metrics/Uptime'
+// import Settlement from './metrics/Settlement'
 
 createApp(App, {
   // title: 'Peras Dashboard',
@@ -125,5 +128,5 @@ createApp(App, {
         'The delay for a newly minted block to reach all nodes of the network',
     },
   },
-  metrics: [Settlement],
+  metrics: [Rollback, NoQuorum, Uptime],
 }).mount('#app')
