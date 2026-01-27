@@ -1,7 +1,7 @@
 import { discretize, pPerasRollback, pPraosRollback } from '../metrics'
 
 export default {
-  title: 'Rollback probability (PLACEHOLDER)',
+  title: 'Rollback probability',
   description:
     'The probability that a block will be rolled back as time passes, with and without Peras',
   axes: {
