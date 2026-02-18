@@ -72,6 +72,13 @@ const globalControls = reactive(props.globals)
                   Numeric evaluation of longest-chain PoW and PoS blockchains
                 </a>
               </li>
+              <li>
+                <a
+                  href="https://tweag.github.io/cardano-peras/peras-design.pdf"
+                >
+                  Peras design document
+                </a>
+              </li>
             </ul>
           </details>
         </article>
