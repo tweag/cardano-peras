@@ -1,0 +1,31 @@
+﻿id;description;style;depends_on;contractual_milestone;related_prs;last_status;new_status
+BasicAbstr;Basic Abstractions around Votes and Certificates;stroke:blue;;T1.1;;70;80
+ObjectDiffusion;ObjectDiffusion miniprotocol;stroke:blue;;;;;
+VotingCommittee;Voting Committee selection logic;stroke:blue;;;;;
+CertDB;In-Memory CertDB;;BasicAbstr;;;;
+CertsInBlocks;Allow Certs in Block Bodies;;BasicAbstr;;;;
+HFCPlumbing;HFC plumbing for Peras;;BasicAbstr;;;;
+MockedCrypto;Mocked Vote and Cert Cryptography;;BasicAbstr;;;;
+VoteDB;VoteDB;;BasicAbstr;;;;
+WeightedBlockFetch;Weighted BlockFetch candidate comparisons;;CertDB;;;;
+WeightedChainSel;Weighted ChainSel;;CertDB;;;;
+BlockMint;Modify Block Mint logic;;CertDB,CertsInBlocks;;;;
+KeepTrackLastCert;Keep track of the latest cert seen on chain and in DB;;CertDB,CertsInBlocks;;;;
+VotingRules;Voting rules - CIP version;;KeepTrackLastCert;;;;
+CertDiffusion;Cert diffusion;;CertDB,ObjectDiffusion;;;;
+CaughtUpCriterion;New caught-up criterion w.r.t Peras certs;;CertDiffusion;;;;
+CertMint;Cert Mint logic;;CertDB,VoteDB;;;;
+VoteDiffusion;Vote diffusion;;ObjectDiffusion,VoteDB;;;;
+Bootstrap;Adapt voting rules so Peras can be bootstrapped;;VotingRules;;;;
+VoteMint;Vote Mint logic;;VoteDB,VotingCommittee,VotingRules;;;;
+VotingThread;Voting thread;;VoteMint;;;;
+KillSwitch;Design Peras on/off switch;;CertDiffusion,CertMint,VoteDiffusion,VotingThread;;;;
+ReadyForTestnet;Ready for Testnet;stroke:orange;BlockMint,Bootstrap,CaughtUpCriterion,HFCPlumbing,KillSwitch,MockedCrypto,WeightedBlockFetch,WeightedChainSel;;;;
+Deploy;Integrate code and deploy testnet;;ReadyForTestnet;;;;
+Testnet;Peras private testnet deployed;stroke:red;Deploy;;;;
+ExposeParams;Expose Peras params as on-chain params;;Testnet;;;;
+Monitoring;Implement monitoring and inspection for testnet;;Testnet;;;;
+OptimizeObjectDiffusion;Benchmark and Optimize ObjectDiffusion;;Testnet;;;;
+OptimizeWeightedSel;Benchmark and Optimize Weighted ChainSel;;Testnet;;;;
+ObjectDiffusionV2;ObjectDiffusionV2;stroke-dasharray:5;OptimizeObjectDiffusion;;;;
+TestnetCaughtUp;Testnet supporting pre-alpha Peras;stroke:lime;ExposeParams,Monitoring,ObjectDiffusionV2,OptimizeWeightedSel;;;;
