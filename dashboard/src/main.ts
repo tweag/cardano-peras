@@ -117,16 +117,6 @@ createApp(App, {
         return 2160 + 90 * params.B
       },
     },
-    delta: {
-      type: 'spinner',
-      value: 2,
-      min: 1,
-      max: 20,
-      step: 1,
-      name: 'Δ: network delay (slots)',
-      tooltip:
-        'The delay for a newly minted block to reach all nodes of the network',
-    },
   },
   metrics: [Rollback, NoQuorum, Uptime],
 }).mount('#app')
