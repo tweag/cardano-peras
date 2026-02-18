@@ -117,6 +117,63 @@ createApp(App, {
         return 2160 + 90 * params.B
       },
     },
+    voteSize: {
+      type: 'spinner',
+      value: 100,
+      min: 8,
+      max: 2 ^ 20,
+      step: 1,
+      name: 'Vote size (bytes)',
+      tooltip: 'The size of a Peras vote, all cryptographic material included',
+    },
+    voteGenerationTime: {
+      type: 'spinner',
+      value: 280,
+      min: 10,
+      max: 1_000_000,
+      step: 1,
+      name: 'Vote generation time (μs)',
+      tooltip: "The time it takes to generate a vote with a node's private key",
+    },
+    voteVerificationTime: {
+      type: 'spinner',
+      value: 1400,
+      min: 10,
+      max: 1_000_000,
+      step: 1,
+      name: 'Vote verification time (μs)',
+      tooltip:
+        "The time it takes to check the authenticity of a vote, with it's issuer public key",
+    },
+    certSize: {
+      type: 'spinner',
+      value: 7000,
+      min: 8,
+      max: 2 ^ 20,
+      step: 1,
+      name: 'Certificate size (bytes)',
+      tooltip:
+        'The size of a Peras certificate, all cryptographic material included',
+    },
+    certGenerationTime: {
+      type: 'spinner',
+      value: 63000,
+      min: 10,
+      max: 1_000_000,
+      step: 1,
+      name: 'Certificate generation time (μs)',
+      tooltip:
+        'The time it takes to generate a certificate by aggregating votes',
+    },
+    certVerificationTime: {
+      type: 'spinner',
+      value: 115000,
+      min: 10,
+      max: 1_000_000,
+      step: 1,
+      name: 'Certificate verification time (μs)',
+      tooltip: 'The time it takes to check the authenticity of a certificate',
+    },
   },
   metrics: [Rollback, NoQuorum, Uptime],
 }).mount('#app')
