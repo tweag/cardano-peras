@@ -5,7 +5,7 @@ import App from './App.vue'
 import Rollback from './metrics/Rollback'
 import NoQuorum from './metrics/NoQuorum'
 import Uptime from './metrics/Uptime'
-// import Settlement from './metrics/Settlement'
+import ExtraBandwidth from './metrics/ExtraBandwidth'
 
 createApp(App, {
   // title: 'Peras Dashboard',
@@ -175,5 +175,5 @@ createApp(App, {
       tooltip: 'The time it takes to check the authenticity of a certificate',
     },
   },
-  metrics: [Rollback, NoQuorum, Uptime],
+  metrics: [Rollback, NoQuorum, Uptime, ExtraBandwidth],
 }).mount('#app')
