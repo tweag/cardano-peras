@@ -85,6 +85,20 @@ export function extraTraffic(
   return trafficPerRound / (U * 1024)
 }
 
+export function extraPower(
+  neighborhood: number,
+  voteGenerationTime: number,
+  voteVerificationTime: number,
+  certGenerationTime: number,
+  n: number,
+  U: number
+) {
+  const totalVoteVerificationTime = neighborhood * voteVerificationTime * n
+  const extraTimeμs =
+    totalVoteVerificationTime + voteGenerationTime + certGenerationTime
+  return (extraTimeμs * 100) / (U * 1_000_000)
+}
+
 function pEvolve(
   n: number,
   p: number,

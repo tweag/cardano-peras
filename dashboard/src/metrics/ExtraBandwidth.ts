@@ -18,8 +18,8 @@ export default {
   controls: {},
   compute: (ctrl: Record<string, number>) => {
     const minValue = 1
-    const maxValue = 200
-    const steps = 200
+    const maxValue = 100
+    const steps = 100
 
     return [
       {

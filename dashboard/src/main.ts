@@ -6,6 +6,7 @@ import Rollback from './metrics/Rollback'
 import NoQuorum from './metrics/NoQuorum'
 import Uptime from './metrics/Uptime'
 import ExtraBandwidth from './metrics/ExtraBandwidth'
+import ExtraPower from './metrics/ExtraPower'
 
 createApp(App, {
   // title: 'Peras Dashboard',
@@ -175,5 +176,5 @@ createApp(App, {
       tooltip: 'The time it takes to check the authenticity of a certificate',
     },
   },
-  metrics: [Rollback, NoQuorum, Uptime, ExtraBandwidth],
+  metrics: [Rollback, NoQuorum, Uptime, ExtraBandwidth, ExtraPower],
 }).mount('#app')
