@@ -75,6 +75,16 @@ export function uptimePercentage(
   }
 }
 
+export function extraTraffic(
+  neighborhood: number,
+  voteSize: number,
+  n: number,
+  U: number
+) {
+  const trafficPerRound = neighborhood * voteSize * n
+  return trafficPerRound / (U * 1024)
+}
+
 function pEvolve(
   n: number,
   p: number,
