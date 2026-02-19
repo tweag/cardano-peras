@@ -30,8 +30,26 @@ DISPLAY_MILESTONE = args.display_milestone
 INPUT_CSV = args.input
 OUTPUT_MMD = args.output
 
-delimiter = ";"
+DELIMITER = ";"
 
+EXTRA_MARKDOWN = """
+**Color legend**:
+
+- red: T1.1 milestone
+- orange: T1.2 milestone
+- yellow: T1.3 milestone
+- green: T1.4 milestone
+- blue: T1.5 milestone
+- purple: T1.6 milestone
+
+**Progress legend**:
+
+- 0-60%: internal progress on the feature. 50% means mostly done, 60% means that the code in satisfying state for the person in charge of the feature
+- 70%: feature has been reviewed internally, up for external review
+- 80%: feature has been reviewed once externally
+- 90%: feature has been reviewed twice externally, pending final edits
+- 100%: feature is complete and merged
+"""
 
 def escape_mermaid_quote(text):
     """Escape double quotes for use inside Mermaid [\"...\"] labels."""
@@ -40,7 +58,7 @@ def escape_mermaid_quote(text):
 
 rows = []
 with open(INPUT_CSV, newline="", encoding="utf-8-sig") as f:
-    reader = csv.DictReader(f, delimiter=delimiter)
+    reader = csv.DictReader(f, delimiter=DELIMITER)
 
     # normalize fieldnames (remove BOM / spaces)
     reader.fieldnames = [name.strip().lstrip("\ufeff") for name in reader.fieldnames]
@@ -184,6 +202,6 @@ with open(OUTPUT_MMD, "w", encoding="utf-8") as out:
                 if dep:
                     out.write(f"  {dep} --> {nid}\n")
 
-    out.write("\n```\n")
+    out.write("\n```\n" + EXTRA_MARKDOWN)
 
 print(f"Wrote {OUTPUT_MMD}")
