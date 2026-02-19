@@ -75,24 +75,52 @@ export function uptimePercentage(
   }
 }
 
+/** Upper bounds on resource comsumption
+ *
+ * The next two function provide upper bounds for the extra network bandwidth
+ * and CPU time required by Peras.
+ *
+ * In both cases, we assume that in a single Peras round, a node downloads and
+ * validates all available votes from all of its peers, issues a vote itself,
+ * and forges a certificate.
+ *
+ * Note that we don't actually care about the size of certificates, nor the time
+ * it takes to validate them. This is because these values only matter when
+ * trying to sync in Genesis mode with historical certificates, or when we try to
+ * validate certificates that have been included in blocks.
+ * None of those two scenarios happen when Peras is healthy and caught-up.
+ */
+
+// Extra network traffic in KiB/s
 export function extraTraffic(
+  // number of peers
   neighborhood: number,
+  // vote size, in bytes
   voteSize: number,
+  // number of voters
   n: number,
+  // round length, in seconds
   U: number
-) {
+): number {
   const trafficPerRound = neighborhood * voteSize * n
   return trafficPerRound / (U * 1024)
 }
 
+// Extra computing power, in CPU percentage
 export function extraPower(
+  // number of peers
   neighborhood: number,
+  // time to generate a vote, in μs
   voteGenerationTime: number,
+  // time to verify a vote, in μs
   voteVerificationTime: number,
+  // time to generate a vote, in μs
   certGenerationTime: number,
+  // number of voters
   n: number,
+  // round length, in seconds
   U: number
-) {
+): number {
   const totalVoteVerificationTime = neighborhood * voteVerificationTime * n
   const extraTimeμs =
     totalVoteVerificationTime + voteGenerationTime + certGenerationTime
