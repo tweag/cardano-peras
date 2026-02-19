@@ -15,7 +15,30 @@ export default {
   legend: {
     position: 'bottom-right',
   },
-  controls: {},
+  controls: {
+    voteSize: {
+      type: 'spinner',
+      value: 100,
+      min: 8,
+      max: 2 ^ 20,
+      step: 1,
+      name: 'Vote size (bytes)',
+      tooltip: 'The size of a Peras vote, all cryptographic material included',
+    },
+    // Certificate size is currently unused, because it only matters when trying
+    // to sync in Genesis mode from a historical database. This is not a behavior
+    // of caught-up Peras nodes.
+    // certSize: {
+    //   type: 'spinner',
+    //   value: 7000,
+    //   min: 8,
+    //   max: 2 ^ 20,
+    //   step: 1,
+    //   name: 'Certificate size (bytes)',
+    //   tooltip:
+    //     'The size of a Peras certificate, all cryptographic material included',
+    // },
+  },
   compute: (ctrl: Record<string, number>) => {
     const minValue = 1
     const maxValue = 100
@@ -23,7 +46,7 @@ export default {
 
     return [
       {
-        label: 'Extra traffic',
+        label: 'Extra traffic (KiB/s)',
         data: discretize(
           (neighborhood) =>
             extraTraffic(neighborhood, ctrl.voteSize, ctrl.n, ctrl.U),
