@@ -121,8 +121,8 @@ details {
   margin-top: 0.5em;
 }
 aside {
-  flex: 0 0 400px;
-  min-width: 400px;
+  flex: 0 0 340px;
+  min-width: 340px;
   position: sticky;
   top: 1em;
   align-self: flex-start;
