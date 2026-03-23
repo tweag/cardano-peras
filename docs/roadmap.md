@@ -3,16 +3,16 @@ graph TD
   BasicAbstr["Basic Abstractions around Votes and Certificates<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style BasicAbstr stroke:red
 
-  ObjectDiffusion["ObjectDiffusion miniprotocol<br/><span style="color:#4caf50">██████████</span><span style="color:#ccc">░░░░░░░░░░</span> 50%"]
+  ObjectDiffusion["ObjectDiffusion miniprotocol<br/><span style="color:#4caf50">██████████</span><span style="color:#2196f3">▓▓▓▓▓▓</span><span style="color:#ccc">░░░░</span> 80%"]
   style ObjectDiffusion stroke:green
 
-  VotingCommittee["Voting Committee selection logic<br/><span style="color:#4caf50">████</span><span style="color:#ccc">░░░░░░░░░░░░░░░░</span> 20%"]
+  VotingCommittee["Voting Committee selection logic<br/><span style="color:#4caf50">████</span><span style="color:#2196f3">▓▓▓▓▓▓▓▓▓▓▓▓</span><span style="color:#ccc">░░░░</span> 80%"]
   style VotingCommittee stroke:blue
 
-  Dashboard["Design dashboard to preview Peras costs and guarantees<br/><span style="color:#4caf50">████████████</span><span style="color:#ccc">░░░░░░░░</span> 60%"]
+  Dashboard["Design dashboard to preview Peras costs and guarantees<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style Dashboard stroke:orange
 
-  CertDB["In-Memory CertDB<br/><span style="color:#4caf50">██████████</span><span style="color:#ccc">░░░░░░░░░░</span> 50%"]
+  CertDB["In-Memory CertDB<br/><span style="color:#4caf50">██████████</span><span style="color:#2196f3">▓▓▓▓▓▓</span><span style="color:#ccc">░░░░</span> 80%"]
   style CertDB stroke:green
   BasicAbstr --> CertDB
 
@@ -20,15 +20,15 @@ graph TD
   style CertsInBlocks stroke:blue
   BasicAbstr --> CertsInBlocks
 
-  DeployDashboard["Deploy dashboard on a public-facing website<br/><span style="color:#ccc">░░░░░░░░░░░░░░░░░░░░</span> 0%"]
+  DeployDashboard["Deploy dashboard on a public-facing website<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style DeployDashboard stroke:orange
   Dashboard --> DeployDashboard
 
-  HFCPlumbing["HFC plumbing for Peras<br/><span style="color:#4caf50">██████</span><span style="color:#ccc">░░░░░░░░░░░░░░</span> 30%"]
+  HFCPlumbing["Interface design & HFC plumbing for Peras<br/><span style="color:#4caf50">██████</span><span style="color:#ccc">░░░░░░░░░░░░░░</span> 30%"]
   style HFCPlumbing stroke:blue
-  BasicAbstr --> HFCPlumbing
+  MockedCrypto --> HFCPlumbing
 
-  MockedCrypto["Mocked Vote and Cert Cryptography<br/><span style="color:#4caf50">██████</span><span style="color:#ccc">░░░░░░░░░░░░░░</span> 30%"]
+  MockedCrypto["Mocked Vote and Cert Cryptography<br/><span style="color:#4caf50">██████</span><span style="color:#2196f3">▓▓▓▓</span><span style="color:#ccc">░░░░░░░░░░</span> 50%"]
   style MockedCrypto stroke:blue
   BasicAbstr --> MockedCrypto
 
@@ -44,7 +44,7 @@ graph TD
   style WeightedChainSel stroke:yellow
   CertDB --> WeightedChainSel
 
-  BlockMint["Modify Block Mint logic<br/><span style="color:#ccc">░░░░░░░░░░░░░░░░░░░░</span> 0%"]
+  BlockMint["Modify Block Mint logic<br/><span style="color:#2196f3">▓▓▓▓▓▓▓▓</span><span style="color:#ccc">░░░░░░░░░░░░</span> 40%"]
   style BlockMint stroke:blue
   CertDB --> BlockMint
   CertsInBlocks --> BlockMint
@@ -64,8 +64,8 @@ graph TD
   ObjectDiffusion --> CertDiffusion
 
   CaughtUpCriterion["New caught-up criterion w.r.t Peras certs<br/><span style="color:#4caf50">████</span><span style="color:#ccc">░░░░░░░░░░░░░░░░</span> 20%"]
-  style CaughtUpCriterion stroke:blue
-  CertDiffusion --> CaughtUpCriterion
+  style CaughtUpCriterion stroke:grey
+  Testnet --> CaughtUpCriterion
 
   CertMint["Cert Mint logic<br/><span style="color:#4caf50">██████████████████</span><span style="color:#ccc">░░</span> 90%"]
   style CertMint stroke:blue
@@ -81,33 +81,28 @@ graph TD
   style Bootstrap stroke:blue
   VotingRules --> Bootstrap
 
-  VoteMint["Vote Mint logic<br/><span style="color:#ccc">░░░░░░░░░░░░░░░░░░░░</span> 0%"]
+  VoteMint["Vote Mint logic<br/><span style="color:#2196f3">▓▓▓▓▓▓</span><span style="color:#ccc">░░░░░░░░░░░░░░</span> 30%"]
   style VoteMint stroke:blue
   VoteDB --> VoteMint
   VotingCommittee --> VoteMint
   VotingRules --> VoteMint
 
-  VotingThread["Voting thread<br/><span style="color:#ccc">░░░░░░░░░░░░░░░░░░░░</span> 0%"]
+  VotingThread["Voting thread<br/><span style="color:#2196f3">▓▓▓▓▓▓</span><span style="color:#ccc">░░░░░░░░░░░░░░</span> 30%"]
   style VotingThread stroke:blue
   VoteMint --> VotingThread
 
-  KillSwitch["Design Peras on/off switch<br/><span style="color:#ccc">░░░░░░░░░░░░░░░░░░░░</span> 0%"]
-  style KillSwitch stroke:blue
-  CertDiffusion --> KillSwitch
-  CertMint --> KillSwitch
-  VoteDiffusion --> KillSwitch
-  VotingThread --> KillSwitch
+  KillSwitch["Design Peras on/off switch"]
+  style KillSwitch stroke:grey
+  Testnet --> KillSwitch
 
   ReadyForTestnet["Ready for Testnet"]
   style ReadyForTestnet stroke:blue
   BlockMint --> ReadyForTestnet
   Bootstrap --> ReadyForTestnet
-  CaughtUpCriterion --> ReadyForTestnet
   HFCPlumbing --> ReadyForTestnet
-  KillSwitch --> ReadyForTestnet
-  MockedCrypto --> ReadyForTestnet
   WeightedBlockFetch --> ReadyForTestnet
   WeightedChainSel --> ReadyForTestnet
+  VotingThread --> ReadyForTestnet
 
   Deploy["Integrate code and deploy testnet"]
   style Deploy stroke:blue
@@ -118,7 +113,7 @@ graph TD
   Deploy --> Testnet
 
   ExposeParams["Expose Peras params as on-chain params"]
-  style ExposeParams stroke:purple,stroke-dasharray:5
+  style ExposeParams stroke:grey
   Testnet --> ExposeParams
 
   Monitoring["Implement monitoring and inspection for testnet"]
@@ -126,23 +121,25 @@ graph TD
   Testnet --> Monitoring
 
   OptimizeObjectDiffusion["Benchmark and Optimize ObjectDiffusion"]
-  style OptimizeObjectDiffusion stroke:purple
-  Testnet --> OptimizeObjectDiffusion
+  style OptimizeObjectDiffusion stroke:grey
+  Monitoring --> OptimizeObjectDiffusion
 
   OptimizeWeightedSel["Benchmark and Optimize Weighted ChainSel"]
-  style OptimizeWeightedSel stroke:purple
-  Testnet --> OptimizeWeightedSel
+  style OptimizeWeightedSel stroke:grey
+  Monitoring --> OptimizeWeightedSel
 
   ObjectDiffusionV2["ObjectDiffusionV2<br/><span style="color:#4caf50">██████████</span><span style="color:#ccc">░░░░░░░░░░</span> 50%"]
-  style ObjectDiffusionV2 stroke:purple,stroke-dasharray:5
+  style ObjectDiffusionV2 stroke:grey,stroke-dasharray:5
   OptimizeObjectDiffusion --> ObjectDiffusionV2
 
-  TestnetCaughtUp["Testnet supporting pre-alpha Peras"]
-  style TestnetCaughtUp stroke:purple
+  TestnetCaughtUp["Ready for pre-prod/mainnet"]
+  style TestnetCaughtUp stroke:grey
   ExposeParams --> TestnetCaughtUp
   Monitoring --> TestnetCaughtUp
   ObjectDiffusionV2 --> TestnetCaughtUp
   OptimizeWeightedSel --> TestnetCaughtUp
+  KillSwitch --> TestnetCaughtUp
+  CaughtUpCriterion --> TestnetCaughtUp
 
 ```
 
