@@ -3,7 +3,7 @@
 Ensure you're in the proper development environment.
 
 ```
-./main
+./launch.sh
 ```
 
 **NOTE:** Sometimes it is possible that the processes may not shut down
