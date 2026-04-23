@@ -1,4 +1,4 @@
-# dev-local
+# testnet
 
 Ensure you're in the proper development environment.
 

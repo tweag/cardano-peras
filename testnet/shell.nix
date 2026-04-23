@@ -24,14 +24,14 @@ let
     pkgs.toxiproxy
   ];
 
-  dev-local = pkgs.haskell-nix.project {
+  testnet = pkgs.haskell-nix.project {
     src = ./.;
     compiler-nix-name = "ghc96";
   };
 
 in
 
-dev-local.shellFor {
+testnet.shellFor {
   tools = {
     cabal = { };
   };
