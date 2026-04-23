@@ -2,10 +2,10 @@ version: "0.5"
 
 processes:
   setup:
-    command: "cabal run testnet -- setup"
+    command: "${TESTNET_CMD} setup"
 
   cardano-testnet:
-    command: "cabal run testnet -- start-local-testnet"
+    command: "${TESTNET_CMD} start-local-testnet"
     depends_on:
       setup:
         condition: process_completed_successfully
@@ -21,25 +21,25 @@ processes:
       failure_threshold: 60
 
   get-node-tips:
-    command: "cabal run testnet -- get-node-tips"
+    command: "${TESTNET_CMD} get-node-tips"
     disabled: true
 
   add-toxicity:
-    command: "cabal run testnet -- add-toxicity"
+    command: "${TESTNET_CMD} add-toxicity"
     disabled: true
 
   remove-toxicity:
-    command: "cabal run testnet -- remove-toxicity"
+    command: "${TESTNET_CMD} remove-toxicity"
     disabled: true
 
   sync-nodes:
-    command: "cabal run testnet -- sync-nodes"
+    command: "${TESTNET_CMD} sync-nodes"
     depends_on:
       toxiproxy-server:
         condition: process_healthy
 
   toxiproxy-server:
-    command: "cabal run testnet -- toxiproxy-server"
+    command: "${TESTNET_CMD} toxiproxy-server"
     depends_on:
       cardano-testnet:
         condition: process_healthy

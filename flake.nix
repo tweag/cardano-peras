@@ -31,7 +31,7 @@
 
         dashboard = import ./dashboard { inherit pkgs; };
         demo = import ./demo { inherit pkgs system; };
-        testnet = import ./testnet/shell.nix { inherit pkgs system; };
+        testnet = import ./testnet { inherit pkgs system; };
         demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
         design = import ./design { inherit pkgs; };
       in
@@ -43,6 +43,7 @@
             demo-docker
             design
             ;
+          testnet = testnet.package;
           default = design;
         };
         devShells = {
@@ -50,8 +51,8 @@
             dashboard
             demo
             design
-            testnet
             ;
+          testnet = testnet.devShell;
           default = design;
         };
       }
