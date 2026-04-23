@@ -1,5 +1,5 @@
 cabal-version:      3.4
-name:               dev-local
+name:               testnet
 version:            0.1.0.0
 license:            MIT
 build-type:         Simple
@@ -48,7 +48,7 @@ common lang
     TypeOperators
     ViewPatterns
 
-executable dev-local
+executable testnet
   import:         lang
   main-is:        Main.hs
   hs-source-dirs: .
