@@ -5,9 +5,6 @@
 
 let
 
-  # NOTE: This is duplicated in demo/default.nix
-  # TODO: Remove duplication
-
   # Patched versions of the necessary dependencies
   deps = {
     ouroboros-consensus = pkgs.fetchFromGitHub {
