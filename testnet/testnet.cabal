@@ -52,7 +52,9 @@ executable testnet
   import:         lang
   main-is:        Main.hs
   hs-source-dirs: .
-  other-modules: Populate
+  other-modules: Misc
+                 Populate
+                 Network
 
   build-depends:
     , base
