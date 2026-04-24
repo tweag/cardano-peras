@@ -7,12 +7,14 @@ let
 
   # Patched versions of the necessary dependencies
   deps = {
+    # Branch: master
     ouroboros-consensus = pkgs.fetchFromGitHub {
       owner = "IntersectMBO";
       repo = "ouroboros-consensus";
       rev = "c87aa760001e60f0f0d3353f793eb089adb917e7";
       sha256 = "sha256-p52sFxbcmciyM9piV7fnkrfClyy+kW7pzBOIEBmstcM=";
     };
+    # Branch: master
     cardano-node = pkgs.fetchFromGitHub {
       owner = "IntersectMBO";
       repo = "cardano-node";
