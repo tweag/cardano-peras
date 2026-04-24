@@ -21,25 +21,25 @@ processes:
       failure_threshold: 60
 
   get-node-tips:
-    command: "${TESTNET_CMD} get-node-tips"
+    command: "${TESTNET_CMD} network get-node-tips"
     disabled: true
 
   add-toxicity:
-    command: "${TESTNET_CMD} add-toxicity"
+    command: "${TESTNET_CMD} network add-toxicity"
     disabled: true
 
   remove-toxicity:
-    command: "${TESTNET_CMD} remove-toxicity"
+    command: "${TESTNET_CMD} network remove-toxicity"
     disabled: true
 
   sync-nodes:
-    command: "${TESTNET_CMD} sync-nodes"
+    command: "${TESTNET_CMD} network sync-nodes"
     depends_on:
       toxiproxy-server:
         condition: process_healthy
 
   toxiproxy-server:
-    command: "${TESTNET_CMD} toxiproxy-server"
+    command: "${TESTNET_CMD} network toxiproxy-server"
     depends_on:
       cardano-testnet:
         condition: process_healthy

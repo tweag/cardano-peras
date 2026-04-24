@@ -12,7 +12,6 @@ import Control.Monad (when)
 import Data.Function ((&))
 
 import Options.Applicative hiding (str)
-import Populate
 import Streamly.Console.Stdio qualified as Console
 import Streamly.FileSystem.FileIO qualified as File
 import Streamly.FileSystem.Path qualified as Path
@@ -21,6 +20,10 @@ import Streamly.Unicode.String (str)
 import System.Environment (setEnv)
 import System.FilePath ((</>))
 import System.IO (BufferMode (..), hSetBuffering, stderr, stdout)
+
+import Misc
+import Populate
+import Network
 
 -------------------------------------------------------------------------------
 -- CLI
@@ -31,16 +34,55 @@ data PopulateCommand
     | PCEscrow
     | PCFanout
 
+data NetworkCommand
+    = NCSyncNodes
+    | NCToxiproxyServer
+    | NCGetNodeTips
+    | NCAddToxicity
+    | NCRemoveToxicity
+
 data Command
     = StartLocalTestnet
     | Clean
     | Populate PopulateCommand
     | Setup
-    | SyncNodes
-    | ToxiproxyServer
-    | GetNodeTips
-    | AddToxicity
-    | RemoveToxicity
+    | Network NetworkCommand
+
+
+networkCommandParser :: Parser NetworkCommand
+networkCommandParser =
+    hsubparser
+        ( command
+                "sync-nodes"
+                ( info
+                    (pure NCSyncNodes)
+                    (progDesc "Sync nodes with proxies")
+                )
+            <> command
+                "toxiproxy-server"
+                ( info
+                    (pure NCToxiproxyServer)
+                    (progDesc "Start toxiproxy server")
+                )
+            <> command
+                "get-node-tips"
+                ( info
+                    (pure NCGetNodeTips)
+                    (progDesc "Start toxiproxy server")
+                )
+            <> command
+                "add-toxicity"
+                ( info
+                    (pure NCAddToxicity)
+                    (progDesc "Add toxicity")
+                )
+            <> command
+                "remove-toxicity"
+                ( info
+                    (pure NCRemoveToxicity)
+                    (progDesc "Remove toxicity")
+                )
+        )
 
 populateCommandParser :: Parser PopulateCommand
 populateCommandParser =
@@ -64,6 +106,7 @@ populateCommandParser =
                     (progDesc "Run the fanout scenario")
                 )
         )
+
 commandParser :: Parser Command
 commandParser =
     hsubparser
@@ -86,40 +129,16 @@ commandParser =
                     (progDesc "Populate the local network with initial data")
                 )
             <> command
+                "network"
+                ( info
+                    (Network <$> networkCommandParser)
+                    (progDesc "Simulate Network")
+                )
+            <> command
                 "setup"
                 ( info
                     (pure Setup)
                     (progDesc "Setup the initial config files")
-                )
-            <> command
-                "sync-nodes"
-                ( info
-                    (pure SyncNodes)
-                    (progDesc "Sync nodes with proxies")
-                )
-            <> command
-                "toxiproxy-server"
-                ( info
-                    (pure ToxiproxyServer)
-                    (progDesc "Start toxiproxy server")
-                )
-            <> command
-                "get-node-tips"
-                ( info
-                    (pure GetNodeTips)
-                    (progDesc "Start toxiproxy server")
-                )
-            <> command
-                "add-toxicity"
-                ( info
-                    (pure AddToxicity)
-                    (progDesc "Add toxicity")
-                )
-            <> command
-                "remove-toxicity"
-                ( info
-                    (pure RemoveToxicity)
-                    (progDesc "Remove toxicity")
                 )
         )
 
@@ -130,75 +149,6 @@ opts =
         ( fullDesc
             <> progDesc "Local development management tool"
         )
-
---------------------------------------------------------------------------------
--- Create config
---------------------------------------------------------------------------------
-
-alwaysTruePolicyV2 :: String
-alwaysTruePolicyV2 = [str|
-{
-    "type": "PlutusScriptV2",
-    "description": "",
-    "cborHex": "46010000224981"
-}
-|]
-
-alwaysTrueValidatorV2 :: String
-alwaysTrueValidatorV2 = [str|
-{
-    "type": "PlutusScriptV2",
-    "description": "",
-    "cborHex": "46010000222499"
-}
-|]
-
-alwaysTrueV3 :: String
-alwaysTrueV3 = [str|
-{
-    "type": "PlutusScriptV3",
-    "description": "",
-    "cborHex": "450101002499"
-}
-|]
-
-createTracingConfig ::
-    String ->
-    String ->
-    String ->
-    IO ()
-createTracingConfig policyTxt validatorTxt scriptsDirName = do
-    let scriptsDirPath = env_LOCAL_CONFIG_DIR </> scriptsDirName
-
-    runCmd_ [str|mkdir -p #{scriptsDirPath}|]
-    writeFile (scriptsDirPath </> "policy.plutus") policyTxt
-    writeFile (scriptsDirPath </> "validator.plutus") validatorTxt
-
-    buildStakeAddress
-        [ opt "stake-script-file" (scriptsDirPath </> "policy.plutus")
-        , opt "out-file" (scriptsDirPath </> "script.stake.addr")
-        ]
-    -- 400_000 here comes from:
-    -- cardano-cli conway query protocol-parameters
-    --    \ --testnet-magic 42
-    --    \ --socket-path "devnet-env/socket/node1/sock"
-    --    \ | jq .stakeAddressDeposit
-    genRegCertStakeAddress
-        [ opt "stake-script-file" (scriptsDirPath </> "policy.plutus")
-        , opt "out-file" (scriptsDirPath </> "registration.cert")
-        , opt "key-reg-deposit-amt" (400_000 :: Int)
-        ]
-    genDeregCertStakeAddress
-        [ opt "stake-script-file" (scriptsDirPath </> "policy.plutus")
-        , opt "out-file" (scriptsDirPath </> "deregistration.cert")
-        , opt "key-reg-deposit-amt" (400_000 :: Int)
-        ]
-
-createConfig :: IO ()
-createConfig = do
-    runCmd_ [str|mkdir -p #{env_LOCAL_CONFIG_DIR}|]
-    createTracingConfig alwaysTrueV3 alwaysTrueV3 "tracing-plutus-v3"
-    createTracingConfig alwaysTruePolicyV2 alwaysTrueValidatorV2 "tracing-plutus-v2"
 
 --------------------------------------------------------------------------------
 -- Main
@@ -241,7 +191,7 @@ createTestnetConfig = do
         ]
         & Console.putChunks
     changeSecurityParam 100
-    saveMappings
+    savePortAndProxyMappings
     replaceAllNeighboursWithProxy
 
 startLocalTestnet :: IO ()
@@ -264,7 +214,7 @@ clean = do
 setup :: IO ()
 setup = do
     clean
-    createConfig
+    createPopulateConfig
     createTestnetConfig
 
 main :: IO ()
@@ -282,8 +232,8 @@ main = do
         Populate PCEscrow -> escrow
         Populate PCFanout -> runFanout
         Setup -> setup
-        SyncNodes -> toxiproxyCreateClients
-        ToxiproxyServer -> toxiproxyServer
-        GetNodeTips -> getNodeTips
-        AddToxicity -> addToxicity
-        RemoveToxicity -> removeToxicity
+        Network NCSyncNodes -> toxiproxyCreateClients
+        Network NCToxiproxyServer -> toxiproxyServer
+        Network NCGetNodeTips -> getNodeTips
+        Network NCAddToxicity -> addToxicity
+        Network NCRemoveToxicity -> removeToxicity
