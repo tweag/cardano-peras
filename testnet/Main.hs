@@ -277,7 +277,20 @@ processes:
       timeout_seconds: 1
       success_threshold: 1
       failure_threshold: 5
+
+#{nodeLogProcessAll}
+
 |]
+  where
+    nodeLogProcess i0 = let i = show i0 in [str|
+  node-stdout-#{i}:
+    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log"
+    depends_on:
+      cardano-testnet:
+        condition: process_healthy
+|]
+    nodeLogProcessAll =
+        unlines $ nodeLogProcess <$> [1..env_CARDANO_TESTNET_NUM_NODES]
 
 main :: IO ()
 main = do
