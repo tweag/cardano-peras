@@ -6,6 +6,7 @@ This repository currently contains:
 - [Draft implementation roadmap](./docs/roadmap-draft.md)
 - [Past demos](./demo/README.md)
 - [Parameterization dashboard](./dashboard/README.md)
+- [Testnet setup](./testnet/README.md)
 
 # Resources on Peras
 
