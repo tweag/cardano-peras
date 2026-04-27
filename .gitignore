@@ -317,4 +317,12 @@ TSWLatexianTemp*
 dashboard/node_modules/
 dashboard/dist/
 
-
+### Testnet ###
+devnet-env/
+work/
+local-config/
+testnet/devnet-env/
+testnet/dist-newstyle/
+testnet/devnet-env/
+testnet/work/
+testnet/local-config/
