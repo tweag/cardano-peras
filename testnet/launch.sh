@@ -2,14 +2,10 @@
 
 set -e
 
-if [ -z "$TESTNET_CMD" ]; then
-    export TESTNET_CMD="cabal run testnet --"
+if [ -z "$TESTNET_BIN" ]; then
+    cabal build testnet
+    TESTNET_BIN=$(cabal list-bin testnet)
 fi
-echo "Using TESTNET_CMD=$TESTNET_CMD"
+echo "Using TESTNET_BIN=$TESTNET_BIN"
 
-if [ -z "$COMPOSE_YAML" ]; then
-    export COMPOSE_YAML="./process-compose.yaml"
-fi
-echo "Using COMPOSE_YAML=$COMPOSE_YAML"
-
-process-compose -f $COMPOSE_YAML -p 3030
+process-compose -f <($TESTNET_BIN stdout-compose-yaml "$TESTNET_BIN") -p 3030

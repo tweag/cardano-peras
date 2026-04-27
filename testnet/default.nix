@@ -39,13 +39,11 @@ let
     buildInputs = extraInputs;
   };
 
-  composeYaml = pkgs.writeText "process-compose.yaml" (builtins.readFile ./process-compose.yaml);
-  app = pkgs.writeShellApplication {
+    app = pkgs.writeShellApplication {
     name = "testnet";
     runtimeInputs = extraInputs;
     runtimeEnv = {
-      TESTNET_CMD = "${testnetExe}/bin/testnet";
-      COMPOSE_YAML = "${composeYaml}";
+      TESTNET_BIN = "${testnetExe}/bin/testnet";
     };
     text = builtins.readFile ./launch.sh;
   };

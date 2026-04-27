@@ -47,6 +47,7 @@ data Command
     | Populate PopulateCommand
     | Setup
     | Network NetworkCommand
+    | StdoutComposeYaml String
 
 
 networkCommandParser :: Parser NetworkCommand
@@ -140,6 +141,12 @@ commandParser =
                     (pure Setup)
                     (progDesc "Setup the initial config files")
                 )
+            <> command
+                "stdout-compose-yaml"
+                ( info
+                    (StdoutComposeYaml <$> strArgument mempty)
+                    (progDesc "Contents of process-compose.yaml")
+                )
         )
 
 opts :: ParserInfo Command
@@ -217,6 +224,61 @@ setup = do
     createPopulateConfig
     createTestnetConfig
 
+stdoutComposeYaml :: String -> IO ()
+stdoutComposeYaml testnetCmd = putStr [str|
+version: "0.5"
+
+processes:
+  setup:
+    command: "#{testnetCmd} setup"
+
+  cardano-testnet:
+    command: "#{testnetCmd} start-local-testnet"
+    depends_on:
+      setup:
+        condition: process_completed_successfully
+    readiness_probe:
+      exec:
+        command: "[ -S ./#{env_TESTNET_WORK_DIR}/socket/node1/sock ]"
+      initial_delay_seconds: 1
+      period_seconds: 1
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 60
+
+  get-node-tips:
+    command: "#{testnetCmd} network get-node-tips"
+    disabled: true
+
+  add-toxicity:
+    command: "#{testnetCmd} network add-toxicity"
+    disabled: true
+
+  remove-toxicity:
+    command: "#{testnetCmd} network remove-toxicity"
+    disabled: true
+
+  sync-nodes:
+    command: "#{testnetCmd} network sync-nodes"
+    depends_on:
+      toxiproxy-server:
+        condition: process_healthy
+
+  toxiproxy-server:
+    command: "#{testnetCmd} network toxiproxy-server"
+    depends_on:
+      cardano-testnet:
+        condition: process_healthy
+    readiness_probe:
+      exec:
+        command: "curl -sf http://127.0.0.1:8474/proxies"
+      initial_delay_seconds: 1
+      period_seconds: 2
+      timeout_seconds: 1
+      success_threshold: 1
+      failure_threshold: 5
+|]
+
 main :: IO ()
 main = do
     hSetBuffering stdout LineBuffering
@@ -237,3 +299,4 @@ main = do
         Network NCGetNodeTips -> getNodeTips
         Network NCAddToxicity -> addToxicity
         Network NCRemoveToxicity -> removeToxicity
+        StdoutComposeYaml testnetCmd -> stdoutComposeYaml testnetCmd
