@@ -16,7 +16,7 @@ graph TD
   style CertDB stroke:green
   BasicAbstr --> CertDB
 
-  CertsInBlocks["Allow Certs in Block Bodies<br/><span style="color:#4caf50">██████</span><span style="color:#ccc">░░░░░░░░░░░░░░</span> 30%"]
+  CertsInBlocks["Allow Certs in Block Bodies<br/><span style="color:#4caf50">██████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░░░░░░░░░░░</span> 40%"]
   style CertsInBlocks stroke:blue
   BasicAbstr --> CertsInBlocks
 
