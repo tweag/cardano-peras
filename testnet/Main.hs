@@ -192,7 +192,6 @@ createTestnetConfig = do
         "cardano-testnet create-env"
         [ opt "num-pool-nodes" env_CARDANO_TESTNET_NUM_NODES
         , opt "num-dreps" env_CARDANO_TESTNET_NUM_NODES
-        , flg "enable-new-epoch-state-logging"
         , opt "output" env_TESTNET_WORK_DIR
         , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
@@ -205,10 +204,8 @@ startLocalTestnet :: IO ()
 startLocalTestnet = do
     runCmd
         "cardano-testnet cardano"
-        [ opt "num-pool-nodes" env_CARDANO_TESTNET_NUM_NODES
+        [ opt "node-env" env_TESTNET_WORK_DIR
         , flg "enable-new-epoch-state-logging"
-        , opt "node-env" env_TESTNET_WORK_DIR
-        , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
         & Console.putChunks
 
