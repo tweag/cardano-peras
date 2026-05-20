@@ -3,20 +3,20 @@ graph TD
   BasicAbstr["Basic Abstractions around Votes and Certificates<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style BasicAbstr stroke:red
 
-  ObjectDiffusion["ObjectDiffusion miniprotocol<br/><span style="color:#4caf50">████████████████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░</span> 90%"]
+  ObjectDiffusion["ObjectDiffusion miniprotocol<br/><span style="color:#4caf50">██████████████████</span><span style="color:#ccc">░░</span> 90%"]
   style ObjectDiffusion stroke:green
 
-  VotingCommittee["Voting Committee selection logic<br/><span style="color:#4caf50">████████████████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░</span> 90%"]
+  VotingCommittee["Voting Committee selection logic<br/><span style="color:#4caf50">██████████████████</span><span style="color:#2196f3">▓▓</span> 100%"]
   style VotingCommittee stroke:blue
 
   Dashboard["Design dashboard to preview Peras costs and guarantees<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style Dashboard stroke:orange
 
-  CertDB["In-Memory CertDB<br/><span style="color:#4caf50">████████████████</span><span style="color:#2196f3">▓▓▓▓</span> 100%"]
+  CertDB["In-Memory CertDB<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style CertDB stroke:green
   BasicAbstr --> CertDB
 
-  CertsInBlocks["Allow Certs in Block Bodies<br/><span style="color:#4caf50">██████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░░░░░░░░░░░</span> 40%"]
+  CertsInBlocks["Allow Certs in Block Bodies<br/><span style="color:#4caf50">████████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░░░░░░░░░</span> 50%"]
   style CertsInBlocks stroke:blue
   BasicAbstr --> CertsInBlocks
 
@@ -24,15 +24,15 @@ graph TD
   style DeployDashboard stroke:orange
   Dashboard --> DeployDashboard
 
-  HFCPlumbing["Interface design & HFC plumbing for Peras<br/><span style="color:#4caf50">██████</span><span style="color:#ccc">░░░░░░░░░░░░░░</span> 30%"]
+  HFCPlumbing["Interface design & HFC plumbing for Peras<br/><span style="color:#4caf50">██████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░░░░░░░░░░░</span> 40%"]
   style HFCPlumbing stroke:blue
   MockedCrypto --> HFCPlumbing
 
-  MockedCrypto["Mocked Vote and Cert Cryptography<br/><span style="color:#4caf50">██████████</span><span style="color:#2196f3">▓▓▓▓</span><span style="color:#ccc">░░░░░░</span> 70%"]
+  MockedCrypto["Mocked Vote and Cert Cryptography<br/><span style="color:#4caf50">██████████████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░░░</span> 80%"]
   style MockedCrypto stroke:blue
   BasicAbstr --> MockedCrypto
 
-  VoteDB["VoteDB<br/><span style="color:#4caf50">██████████████████</span><span style="color:#2196f3">▓▓</span> 100%"]
+  VoteDB["VoteDB<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style VoteDB stroke:green
   BasicAbstr --> VoteDB
 
@@ -44,12 +44,12 @@ graph TD
   style WeightedChainSel stroke:yellow
   CertDB --> WeightedChainSel
 
-  BlockMint["Modify Block Mint logic<br/><span style="color:#4caf50">████████</span><span style="color:#2196f3">▓▓▓▓</span><span style="color:#ccc">░░░░░░░░</span> 60%"]
+  BlockMint["Modify Block Mint logic<br/><span style="color:#4caf50">████████████</span><span style="color:#ccc">░░░░░░░░</span> 60%"]
   style BlockMint stroke:blue
   CertDB --> BlockMint
   CertsInBlocks --> BlockMint
 
-  KeepTrackLastCert["Keep track of the latest cert seen on chain and in DB<br/><span style="color:#4caf50">████████████████</span><span style="color:#2196f3">▓▓▓▓</span> 100%"]
+  KeepTrackLastCert["Keep track of the latest cert seen on chain and in DB<br/><span style="color:#4caf50">████████████████████</span> 100%"]
   style KeepTrackLastCert stroke:blue
   CertDB --> KeepTrackLastCert
   CertsInBlocks --> KeepTrackLastCert
@@ -58,7 +58,7 @@ graph TD
   style VotingRules stroke:red
   KeepTrackLastCert --> VotingRules
 
-  CertDiffusion["Cert diffusion<br/><span style="color:#4caf50">████████████████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░</span> 90%"]
+  CertDiffusion["Cert diffusion<br/><span style="color:#4caf50">██████████████████</span><span style="color:#2196f3">▓▓</span> 100%"]
   style CertDiffusion stroke:green
   CertDB --> CertDiffusion
   ObjectDiffusion --> CertDiffusion
@@ -72,7 +72,7 @@ graph TD
   CertDB --> CertMint
   VoteDB --> CertMint
 
-  VoteDiffusion["Vote diffusion<br/><span style="color:#4caf50">████████████████</span><span style="color:#2196f3">▓▓</span><span style="color:#ccc">░░</span> 90%"]
+  VoteDiffusion["Vote diffusion<br/><span style="color:#4caf50">██████████████████</span><span style="color:#ccc">░░</span> 90%"]
   style VoteDiffusion stroke:green
   ObjectDiffusion --> VoteDiffusion
   VoteDB --> VoteDiffusion
@@ -81,7 +81,7 @@ graph TD
   style Bootstrap stroke:blue
   VotingRules --> Bootstrap
 
-  VoteMint["Vote Mint logic<br/><span style="color:#4caf50">██████</span><span style="color:#2196f3">▓▓▓▓▓▓▓▓▓▓▓▓</span><span style="color:#ccc">░░</span> 90%"]
+  VoteMint["Vote Mint logic<br/><span style="color:#4caf50">██████████████████</span><span style="color:#ccc">░░</span> 90%"]
   style VoteMint stroke:blue
   VoteDB --> VoteMint
   VotingCommittee --> VoteMint
