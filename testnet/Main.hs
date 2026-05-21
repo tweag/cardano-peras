@@ -281,7 +281,7 @@ processes:
   where
     nodeLogProcess i0 = let i = show i0 in [str|
   node-stdout-#{i}:
-    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log"
+    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log | grep TraceObjectDiffusion"
     depends_on:
       cardano-testnet:
         condition: process_healthy
