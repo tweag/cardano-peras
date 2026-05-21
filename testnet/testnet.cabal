@@ -62,4 +62,3 @@ executable testnet
     , optparse-applicative
     , streamly-core
     , streamly-process
-    , containers

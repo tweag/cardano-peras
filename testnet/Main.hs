@@ -197,8 +197,8 @@ createTestnetConfig = do
         ]
         & Console.putChunks
     changeSecurityParam 100
-    savePortAndProxyMappings
-    replaceAllNeighboursWithProxy
+    ports <- portsIO
+    replaceAllNeighboursWithProxy ports
 
 startLocalTestnet :: IO ()
 startLocalTestnet = do
@@ -305,7 +305,7 @@ main = do
         Populate PCEscrow -> escrow
         Populate PCFanout -> runFanout
         Setup -> setup
-        Network NCSyncNodes -> toxiproxyCreateClients
+        Network NCSyncNodes -> toxiproxyCreateClients =<< portsIO
         Network NCToxiproxyServer -> toxiproxyServer
         Network NCGetNodeTips -> getNodeTips
         Network NCAddToxicity -> addToxicity

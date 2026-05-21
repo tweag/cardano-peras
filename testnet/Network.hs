@@ -6,10 +6,10 @@ module Network (
     replaceAllNeighboursWithProxy,
     toxiproxyServer,
     toxiproxyCreateClients,
-    savePortAndProxyMappings,
     getNodeTips,
     addToxicity,
     removeToxicity,
+    portsIO,
 ) where
 
 -------------------------------------------------------------------------------
@@ -19,22 +19,22 @@ module Network (
 import Misc
 import Streamly.Console.Stdio qualified as Stdio
 import Data.Function ((&))
-import Data.List ((\\))
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
-import Streamly.FileSystem.FileIO qualified as File
-import Streamly.FileSystem.Path qualified as Path
 import Streamly.System.Command qualified as Cmd
 import Streamly.Unicode.String (str)
-import System.FilePath ((</>))
-import Data.Map qualified as Map
-import Data.IntMap qualified as IntMap
-import Data.Map (Map)
-import Data.IntMap (IntMap)
+import Streamly.Data.Array qualified as Array
+import Streamly.Data.Array (Array)
 
 --------------------------------------------------------------------------------
 -- Toxicity
 --------------------------------------------------------------------------------
+
+portFile :: Int -> FilePath
+portFile i =
+    [str|#{env_TESTNET_WORK_DIR}/node-data/#{nodeDir}/port|]
+  where
+    nodeDir = "node" ++ show i
 
 topologyFile :: Int -> FilePath
 topologyFile i =
@@ -42,80 +42,51 @@ topologyFile i =
   where
     nodeDir = "node" ++ show i
 
-getConnectedPorts :: Int -> IO [String]
-getConnectedPorts nodeNum = do
-    nodeDirP <- Path.fromString (topologyFile nodeNum)
-    File.readChunks nodeDirP
-        & Cmd.pipeChunks [str|jq -r '.localRoots[].accessPoints[].port'|]
-        & nonEmptyLines
-        & Stream.fold Fold.toList
+type Port = Int
 
-type Port = String
+getOriginalNodePort :: Int -> IO Port
+getOriginalNodePort = fmap read . readFile . portFile
 
-nodeNeighboursM :: Int -> IO [Port]
-nodeNeighboursM = getConnectedPorts
+portsIO :: IO (Array Port)
+portsIO = do
+    ports <- mapM getOriginalNodePort [1..env_CARDANO_TESTNET_NUM_NODES]
+    let portsStr = show ports
+    putStrLn [str|Ports: #{portsStr}|]
+    pure $ Array.fromList ports
 
-nodePortsOrderedM :: IO [Port]
-nodePortsOrderedM = do
-    nn1 <- nodeNeighboursM 1
-    nn2 <- nodeNeighboursM 2
-    pure $ (nn2 \\ nn1) ++ nn1
 
-nodePortMappingM :: IO (IntMap Port)
-nodePortMappingM = do
-    npo <- nodePortsOrderedM
-    pure $ IntMap.fromAscList $ zip [1..] npo
-
-proxyMappingM :: IO (Map Port Port)
-proxyMappingM = do
-    npo <- nodePortsOrderedM
-    pure $ Map.fromList $ zip npo (map show ([5001, 5002..] :: [Int]))
-
-savePortAndProxyMappings :: IO ()
-savePortAndProxyMappings = do
-    writeFile (env_TESTNET_WORK_DIR </> "nodePortMapping.data") . show =<< nodePortMappingM
-    writeFile (env_TESTNET_WORK_DIR </> "proxyMapping.data") . show =<< proxyMappingM
-
-readNodePortMapping :: IO (IntMap Port)
-readNodePortMapping =
-    read <$> readFile (env_TESTNET_WORK_DIR </> "nodePortMapping.data")
-
-readProxyMapping :: IO (Map Port Port)
-readProxyMapping =
-    read <$> readFile (env_TESTNET_WORK_DIR </> "proxyMapping.data")
+getProxyPort :: Int -> Port
+getProxyPort = (+ 5000)
 
 -- NOTE: This is a little hacky but it's alright for now.
 -- TODO: Clean it up and make it robust.
 -- TODO: Make this more robust by using jq or aeson.
-replaceNeighboursWithProxy :: Map Port Port -> Int -> IO ()
-replaceNeighboursWithProxy proxyMapping i =
-    Map.foldrWithKey foldFunc (pure ()) proxyMapping
+replaceNeighboursWithProxy :: Array Port -> Int -> IO ()
+replaceNeighboursWithProxy ports i =
+    Stream.zipWith (,) (Stream.enumerateFrom 1) (Array.read ports)
+        & Stream.fold (Fold.drainMapM mappingFunc)
   where
     topologyFileS = topologyFile i
-    foldFunc orig prxy act = do
-        act
+    mappingFunc (ni, orig0) = do
+        let prxy = show $ getProxyPort ni
+            orig = show orig0
         runCmd_ [str|sed -i 's/#{orig}/#{prxy}/g' #{topologyFileS}|]
 
-replaceAllNeighboursWithProxy :: IO ()
-replaceAllNeighboursWithProxy = do
-    proxyMapping <- readProxyMapping
-    flip mapM_ [1..env_CARDANO_TESTNET_NUM_NODES] $
-        replaceNeighboursWithProxy proxyMapping
+replaceAllNeighboursWithProxy :: Array Port -> IO ()
+replaceAllNeighboursWithProxy ports =
+    mapM_ (replaceNeighboursWithProxy ports) [1..env_CARDANO_TESTNET_NUM_NODES]
 
-toxiproxyCreate :: IntMap Port -> Map Port Port -> Int -> IO ()
-toxiproxyCreate nodePortMapping proxyMapping i =
+toxiproxyCreate :: Array Port -> Int -> IO ()
+toxiproxyCreate ports i =
     runCmd_ [str|toxiproxy-cli create --listen 127.0.0.1:#{l} --upstream 127.0.0.1:#{u} #{n}|]
   where
     n = "node" ++ show i
-    u = maybe (error "toxiproxyCreate: Unknown Port") id $ IntMap.lookup i nodePortMapping
-    l = maybe (error "toxiproxyCreate: Unknown Proxy") id $ Map.lookup u proxyMapping
+    u = maybe (error "toxiproxyCreate: Unknown Port") show $ Array.getIndex (i - 1) ports
+    l = show $ getProxyPort i
 
-toxiproxyCreateClients :: IO ()
-toxiproxyCreateClients = do
-    proxyMapping <- readProxyMapping
-    nodePortMapping <- readNodePortMapping
-    flip mapM_ [1..env_CARDANO_TESTNET_NUM_NODES] $
-        toxiproxyCreate nodePortMapping proxyMapping
+toxiproxyCreateClients :: Array Port -> IO ()
+toxiproxyCreateClients ports =
+    mapM_ (toxiproxyCreate ports) [1..env_CARDANO_TESTNET_NUM_NODES]
 
 toxiproxyServer :: IO ()
 toxiproxyServer =
