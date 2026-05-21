@@ -17,7 +17,7 @@ import Streamly.FileSystem.FileIO qualified as File
 import Streamly.FileSystem.Path qualified as Path
 import Streamly.System.Command qualified as Cmd
 import Streamly.Unicode.String (str)
-import System.Environment (setEnv)
+import System.Environment (setEnv, lookupEnv)
 import System.FilePath ((</>))
 import System.IO (BufferMode (..), hSetBuffering, stderr, stdout)
 
@@ -295,8 +295,9 @@ main = do
     hSetBuffering stderr LineBuffering
     cmd <- execParser opts
 
-    setEnv "CARDANO_CLI" "cardano-cli"
-    setEnv "CARDANO_NODE" "cardano-node"
+    setEnvIfDoesNotExist "CARDANO_CLI" "cardano-cli"
+    setEnvIfDoesNotExist "CARDANO_NODE" "cardano-node"
+
     case cmd of
         StartLocalTestnet -> startLocalTestnet
         Clean -> clean
@@ -310,3 +311,10 @@ main = do
         Network NCAddToxicity -> addToxicity
         Network NCRemoveToxicity -> removeToxicity
         StdoutComposeYaml testnetCmd -> stdoutComposeYaml testnetCmd
+
+setEnvIfDoesNotExist :: String -> String -> IO ()
+setEnvIfDoesNotExist key val = do
+    existing <- lookupEnv key
+    case existing of
+        Nothing -> setEnv key val
+        Just _ -> pure ()
