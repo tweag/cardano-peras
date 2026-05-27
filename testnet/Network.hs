@@ -150,7 +150,7 @@ getTipBlockNo socketPath = do
             [ optNetwork
             , opt "socket-path" socketPath
             ]
-            & Cmd.pipeChunks [str|jq -r '.block,.hash'|]
+            & Cmd.pipeChunks [str|jq -r '.slot,.block,.hash'|]
             & nonEmptyLines
             & Stream.fold Fold.toList
     case res of
