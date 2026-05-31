@@ -4,12 +4,16 @@
 
 module Network (
     replaceAllNeighboursWithProxy,
+    replaceNeighboursWithProxy,
+    replaceNeighbourWithProxy,
     toxiproxyServer,
     toxiproxyCreateClients,
     getNodeTips,
     addToxicity,
     removeToxicity,
     portsIO,
+    NodeTip (..),
+    renderNodeTips,
 ) where
 
 -------------------------------------------------------------------------------
@@ -63,14 +67,19 @@ getProxyPort = (+ 5000)
 -- TODO: Make this more robust by using jq or aeson.
 replaceNeighboursWithProxy :: Array Port -> Int -> IO ()
 replaceNeighboursWithProxy ports i =
-    Stream.zipWith (,) (Stream.enumerateFrom 1) (Array.read ports)
-        & Stream.fold (Fold.drainMapM mappingFunc)
+    mapM_ (replaceNeighbourWithProxy ports i) [1..env_CARDANO_TESTNET_NUM_NODES]
+
+replaceNeighbourWithProxy :: Array Port -> Int -> Int -> IO ()
+replaceNeighbourWithProxy ports targetNodeIndex nbrIndex = do
+    let prxy = show $ getProxyPort nbrIndex
+        orig =
+            maybe
+                (error "replaceNeighbourWithProxy: Index out of bounds")
+                show
+                (Array.getIndex (nbrIndex - 1) ports)
+    runCmd_ [str|sed -i 's/#{orig}/#{prxy}/g' #{topologyFileS}|]
   where
-    topologyFileS = topologyFile i
-    mappingFunc (ni, orig0) = do
-        let prxy = show $ getProxyPort ni
-            orig = show orig0
-        runCmd_ [str|sed -i 's/#{orig}/#{prxy}/g' #{topologyFileS}|]
+    topologyFileS = topologyFile targetNodeIndex
 
 replaceAllNeighboursWithProxy :: Array Port -> IO ()
 replaceAllNeighboursWithProxy ports =
@@ -105,6 +114,12 @@ data ToxLatencyOpts =
         , tloJitter :: Int
         }
 
+toxToggle :: Int -> IO ()
+toxToggle i =
+    runCmd_ [str|toxiproxy-cli toggle #{proxyName}|]
+  where
+    proxyName = "node" ++ show i
+
 toxLatency :: String -> NetworkDirection -> ToxLatencyOpts -> Int -> IO ()
 toxLatency name ndir opts i =
     runCmd_ [str|toxiproxy-cli toxic add -n #{name} -t latency #{direction} #{attrs} #{proxyName}|]
@@ -125,13 +140,13 @@ toxRemove name i = do
 
 addToxicity :: IO ()
 addToxicity = do
-    let degradedNodes = [1..(div env_CARDANO_TESTNET_NUM_NODES 2)]
-    mapM_ (toxLatency "t1" Upstream (ToxLatencyOpts 5000 100)) degradedNodes
+    let allNodes = [1..env_CARDANO_TESTNET_NUM_NODES]
+    mapM_ toxToggle allNodes
 
 removeToxicity :: IO ()
 removeToxicity = do
-    let degradedNodes = [1..(div env_CARDANO_TESTNET_NUM_NODES 2)]
-    mapM_ (toxRemove "t1") degradedNodes
+    let allNodes = [1..env_CARDANO_TESTNET_NUM_NODES]
+    mapM_ toxToggle allNodes
 
 --------------------------------------------------------------------------------
 -- Telemetry
@@ -142,7 +157,7 @@ socketFile i = [str|#{env_TESTNET_WORK_DIR}/socket/#{nodeDir}/sock|]
   where
     nodeDir = "node" ++ show i
 
-getTipBlockNo :: FilePath -> IO (String, String)
+getTipBlockNo :: FilePath -> IO (String, String, String)
 getTipBlockNo socketPath = do
     res <-
         runCmd
@@ -154,16 +169,30 @@ getTipBlockNo socketPath = do
             & nonEmptyLines
             & Stream.fold Fold.toList
     case res of
-        [b, h] -> pure (b, h)
+        [s, b, h] -> pure (s, b, h)
         _ -> error [str|getTipBlockNo: Unable to parse block and hash.|]
 
-getNodeTips :: IO ()
-getNodeTips = do
-    res <- mapM getTipBlockNo_ [1..env_CARDANO_TESTNET_NUM_NODES]
-    putStrLn divider
-    putStrLn $ unlines res
+data NodeTip = NodeTip
+    { ntNodeName :: String
+    , ntBlockNo :: String
+    , ntSlotNo :: String
+    , ntBlockHash :: String
+    }
+
+getNodeTips :: IO [NodeTip]
+getNodeTips = mapM getNodeTip [1..env_CARDANO_TESTNET_NUM_NODES]
   where
-    getTipBlockNo_ i = do
-        (b, h) <- getTipBlockNo (socketFile i)
-        let iStr = show i
-        pure [str|#{iStr} -> #{b}, #{h}|]
+    getNodeTip i = do
+        (s, b, h) <- getTipBlockNo (socketFile i)
+        let n = "node-" ++ show i
+        pure $ NodeTip n b s h
+
+showNodeTip :: NodeTip -> String
+showNodeTip (NodeTip {..}) =
+    [str|#{ntNodeName} -> #{ntBlockNo}, #{ntSlotNo}, #{ntBlockHash}|]
+
+renderNodeTips :: IO ()
+renderNodeTips = do
+    res <- getNodeTips
+    putStrLn divider
+    putStrLn $ unlines $ map showNodeTip res
