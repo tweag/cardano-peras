@@ -112,21 +112,40 @@ voteForm st =
 nodeTipsDisplay :: UiState -> Widget ()
 nodeTipsDisplay st =
     B.borderWithLabel (str " Fetched Node Tips ") $
-        if null (fetchedTips st)
-            then C.hCenter $ padAll 1 $ str "No data fetched yet. Press [F] to query nodes."
-            else vBox (map drawRow (fetchedTips st))
+        padTopBottom 1 $
+            padLeftRight 2 $
+                vBox $
+                    headerRow : hBorder : bodyRows
   where
+    tips = fetchedTips st
+    headerRow =
+        withAttr nodeNameAttr $
+            str
+                ( padString 12 "Node Index"
+                    ++ " | "
+                    ++ padString 8 "Block"
+                    ++ " | "
+                    ++ padString 8 "Slot"
+                    ++ " | "
+                    ++ "Hash"
+                )
+    bodyRows =
+        if null tips
+            then [padTop (Pad 1) $ str "No data fetched yet. Press [f] to query nodes."]
+            else map drawRow tips
     drawRow tip =
-        let nameTag = withAttr nodeNameAttr $ str (padString 10 (ntNodeName tip))
-            details =
-                str $
-                    " | Block: "
-                        ++ padString 8 (ntBlockNo tip)
-                        ++ " | Slot: "
+        let nodeLabel = "Node [" ++ show (ntNodeIndex tip) ++ "]"
+            namePart = withAttr nodeNameAttr $ str (padString 12 nodeLabel)
+            pipe = str " | "
+            dataPart =
+                str
+                    ( padString 8 (ntBlockNo tip)
+                        ++ " | "
                         ++ padString 8 (ntSlotNo tip)
-                        ++ " | Hash: "
+                        ++ " | "
                         ++ ntBlockHash tip
-         in nameTag <+> details
+                    )
+         in namePart <+> pipe <+> dataPart
 
 logsDisplay :: UiState -> Widget ()
 logsDisplay st =
@@ -143,18 +162,13 @@ databaseTableDisplay st =
                     headerRow : hBorder : bodyRows
   where
     db = database st
-
-    -- Table Header
     headerRow =
         withAttr nodeNameAttr $
             str (padString 12 "Node Index" ++ " | " ++ "Active Vote Payload Status")
-
-    -- Table Body
     bodyRows =
         if V.null db
             then [str "No registered node data found in shared memory."]
             else map drawRow (V.toList (V.indexed db))
-
     drawRow (idx, info) =
         let nodeLabel = "Node [" ++ show (idx + 1) ++ "]"
             payloadText = case pnVoteCreateRequest info of
