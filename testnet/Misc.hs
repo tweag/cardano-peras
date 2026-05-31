@@ -145,7 +145,7 @@ env_PLUTUS_SCRIPTS_DIR :: FilePath
 env_PLUTUS_SCRIPTS_DIR = "plutus-scripts"
 
 env_CARDANO_TESTNET_NUM_NODES :: Int
-env_CARDANO_TESTNET_NUM_NODES = 2
+env_CARDANO_TESTNET_NUM_NODES = 4
 
 env_NODE1_SOCKET :: FilePath
 env_NODE1_SOCKET = env_TESTNET_WORK_DIR </> "socket/node1/sock"
