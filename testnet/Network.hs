@@ -173,7 +173,7 @@ getTipBlockNo socketPath = do
         _ -> error [str|getTipBlockNo: Unable to parse block and hash.|]
 
 data NodeTip = NodeTip
-    { ntNodeName :: String
+    { ntNodeIndex :: Int
     , ntBlockNo :: String
     , ntSlotNo :: String
     , ntBlockHash :: String
@@ -184,12 +184,13 @@ getNodeTips = mapM getNodeTip [1..env_CARDANO_TESTNET_NUM_NODES]
   where
     getNodeTip i = do
         (s, b, h) <- getTipBlockNo (socketFile i)
-        let n = "node-" ++ show i
-        pure $ NodeTip n b s h
+        pure $ NodeTip i b s h
 
 showNodeTip :: NodeTip -> String
 showNodeTip (NodeTip {..}) =
-    [str|#{ntNodeName} -> #{ntBlockNo}, #{ntSlotNo}, #{ntBlockHash}|]
+    [str|#{nodeName} -> #{ntBlockNo}, #{ntSlotNo}, #{ntBlockHash}|]
+  where
+    nodeName = "Node [" ++ show ntNodeIndex ++ "]"
 
 renderNodeTips :: IO ()
 renderNodeTips = do
