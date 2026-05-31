@@ -20,6 +20,8 @@ import Streamly.Unicode.String (str)
 import System.Environment (setEnv, lookupEnv)
 import System.FilePath ((</>))
 import System.IO (BufferMode (..), hSetBuffering, stderr, stdout)
+import UI qualified as UI
+import Streamly.Data.Array qualified as Array
 
 import Misc
 import Populate
@@ -48,6 +50,7 @@ data Command
     | Setup
     | Network NetworkCommand
     | StdoutComposeYaml String
+    | UI
 
 
 networkCommandParser :: Parser NetworkCommand
@@ -147,6 +150,12 @@ commandParser =
                     (StdoutComposeYaml <$> strArgument mempty)
                     (progDesc "Contents of process-compose.yaml")
                 )
+            <> command
+                "ui"
+                ( info
+                    (pure UI)
+                    (progDesc "User Interface")
+                )
         )
 
 opts :: ParserInfo Command
@@ -198,7 +207,9 @@ createTestnetConfig = do
         & Console.putChunks
     changeSecurityParam 100
     ports <- portsIO
-    replaceAllNeighboursWithProxy ports
+    -- We only replace neighbors of node 1 with proxies for partitioning node 1
+    replaceNeighboursWithProxy ports 1
+    mapM_ (flip (replaceNeighbourWithProxy ports) 1) [2..env_CARDANO_TESTNET_NUM_NODES]
 
 startLocalTestnet :: IO ()
 startLocalTestnet = do
@@ -221,6 +232,7 @@ setup = do
     createPopulateConfig
     createTestnetConfig
 
+-- TODO: Add a dependency between cardano-testnet and server
 stdoutComposeYaml :: String -> IO ()
 stdoutComposeYaml testnetCmd = putStr [str|
 version: "0.5"
@@ -307,10 +319,11 @@ main = do
         Setup -> setup
         Network NCSyncNodes -> toxiproxyCreateClients =<< portsIO
         Network NCToxiproxyServer -> toxiproxyServer
-        Network NCGetNodeTips -> getNodeTips
+        Network NCGetNodeTips -> renderNodeTips
         Network NCAddToxicity -> addToxicity
         Network NCRemoveToxicity -> removeToxicity
         StdoutComposeYaml testnetCmd -> stdoutComposeYaml testnetCmd
+        UI -> UI.main
 
 setEnvIfDoesNotExist :: String -> String -> IO ()
 setEnvIfDoesNotExist key val = do
