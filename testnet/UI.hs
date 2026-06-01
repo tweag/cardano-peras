@@ -162,20 +162,37 @@ databaseTableDisplay st =
                     headerRow : hBorder : bodyRows
   where
     db = database st
+
+    -- Balanced grid headers
     headerRow =
         withAttr nodeNameAttr $
-            str (padString 12 "Node Index" ++ " | " ++ "Active Vote Payload Status")
+            str
+                ( padString 12 "Node Index"
+                    ++ " | "
+                    ++ padString 35 "Active Vote Payload Status"
+                    ++ " | "
+                    ++ padString 12 "Votes Count"
+                    ++ " | "
+                    ++ "Certs Count"
+                )
+
     bodyRows =
         if V.null db
             then [str "No registered node data found in shared memory."]
             else map drawRow (V.toList (V.indexed db))
+
     drawRow (idx, info) =
         let nodeLabel = "Node [" ++ show (idx + 1) ++ "]"
-            payloadText = case pnVoteCreateRequest info of
-                Nothing -> withAttr partitionOffAttr (str "No active vote request")
+            (payloadAttr, payloadStr) = case pnVoteCreateRequest info of
+                Nothing ->
+                    (withAttr partitionOffAttr, "No active vote request")
                 Just (slot, hash) ->
-                    withAttr inputAttr (str $ "Slot: " ++ show slot ++ " (Hash: " ++ take 8 hash ++ "...)")
-         in str (padString 12 nodeLabel ++ " | ") <+> payloadText
+                    (withAttr inputAttr, "Slot: " ++ show slot ++ " (Hash: " ++ take 8 hash ++ "...)")
+            nodePart = str (padString 12 nodeLabel ++ " | ")
+            payloadPart = payloadAttr (str (padString 35 payloadStr)) <+> str " | "
+            votesPart = withAttr logTextAttr (str (padString 12 (show (pnNumVotes info)) ++ " | "))
+            certsPart = withAttr inputAttr (str (show (pnNumCerts info)))
+         in nodePart <+> payloadPart <+> votesPart <+> certsPart
 
 drawUi :: UiState -> [Widget ()]
 drawUi st =
