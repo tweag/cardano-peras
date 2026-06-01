@@ -15,12 +15,14 @@ import Misc (env_CARDANO_TESTNET_NUM_NODES)
 
 data PerNodeInfo = PerNodeInfo
   { pnVoteCreateRequest :: Maybe (Int, String)
+  , pnNumVotes :: Int
+  , pnNumCerts :: Int
   }
 
 type Database = V.Vector PerNodeInfo
 
 initialDB :: Database
-initialDB = V.replicate env_CARDANO_TESTNET_NUM_NODES (PerNodeInfo Nothing)
+initialDB = V.replicate env_CARDANO_TESTNET_NUM_NODES (PerNodeInfo Nothing 0 0)
 
 toVecIndex :: Int -> Int
 toVecIndex i = i - 1
@@ -34,6 +36,13 @@ removeVoteCreateRequestFrom nodeIndex db = do
     let vecIndex = toVecIndex nodeIndex
         old      = db V.! vecIndex
         new      = old { pnVoteCreateRequest = Nothing }
+     in db V.// [(vecIndex, new)]
+
+addAdvertInfo :: Int -> Int -> Int -> Database -> Database
+addAdvertInfo nodeIndex numVotes numCerts db = do
+    let vecIndex = toVecIndex nodeIndex
+        old      = db V.! vecIndex
+        new      = old { pnNumVotes = numVotes, pnNumCerts = numCerts }
      in db V.// [(vecIndex, new)]
 
 numVotesInFlight :: Database -> Int
@@ -58,3 +67,11 @@ runHttpServer ioRef = scotty 9000 $ do
                 , getVoteCreatingDetails nodeId old
                 )
         text $ TL.pack $ show res
+    get "/advert" $ do
+        nodeId <- queryParam "node_id"
+        numCerts <- read <$> queryParam "num_certs"
+        numVotes <- read <$> queryParam "num_votes"
+        liftIO $ atomicModifyIORef' ioRef $ \old ->
+            ( addAdvertInfo nodeId numVotes numCerts old
+            , ()
+            )
