@@ -13,16 +13,28 @@ import Misc (env_CARDANO_TESTNET_NUM_NODES)
 -- Database
 --------------------------------------------------------------------------------
 
+data Advert = Advert
+    { pnNumVotes :: Int
+    , pnNumCerts :: Int
+    , pnChainLen :: Int
+    , pnPerasBoost :: Int
+    , pnSlotNo :: Int
+    , pnBlockHash :: String
+    , pnBlockNo :: Int
+    } deriving (Show)
+
 data PerNodeInfo = PerNodeInfo
-  { pnVoteCreateRequest :: Maybe (Int, String)
-  , pnNumVotes :: Int
-  , pnNumCerts :: Int
-  }
+    { pnVoteCreateRequest :: Maybe (Int, String)
+    , pnLatestAdvert :: Advert
+    }
 
 type Database = V.Vector PerNodeInfo
 
 initialDB :: Database
-initialDB = V.replicate env_CARDANO_TESTNET_NUM_NODES (PerNodeInfo Nothing 0 0)
+initialDB =
+    V.replicate
+        env_CARDANO_TESTNET_NUM_NODES
+        (PerNodeInfo Nothing (Advert 0 0 0 0 0 (replicate 32 ' ') 0))
 
 toVecIndex :: Int -> Int
 toVecIndex i = i - 1
@@ -38,11 +50,11 @@ removeVoteCreateRequestFrom nodeIndex db = do
         new      = old { pnVoteCreateRequest = Nothing }
      in db V.// [(vecIndex, new)]
 
-addAdvertInfo :: Int -> Int -> Int -> Database -> Database
-addAdvertInfo nodeIndex numVotes numCerts db = do
+addAdvertInfo :: Int -> Advert -> Database -> Database
+addAdvertInfo nodeIndex advert db = do
     let vecIndex = toVecIndex nodeIndex
         old      = db V.! vecIndex
-        new      = old { pnNumVotes = numVotes, pnNumCerts = numCerts }
+        new      = old { pnLatestAdvert = advert }
      in db V.// [(vecIndex, new)]
 
 numVotesInFlight :: Database -> Int
@@ -71,7 +83,22 @@ runHttpServer ioRef = scotty 9000 $ do
         nodeId <- queryParam "node_id"
         numCerts <- read <$> queryParam "num_certs"
         numVotes <- read <$> queryParam "num_votes"
+        chainLen <- read <$> queryParam "chain_len"
+        perasBoost <- read <$> queryParam "peras_boost"
+        slotNo <- read <$> queryParam "slot_no"
+        blockHash <- queryParam "block_hash"
+        blockNo <- read <$> queryParam "block_no"
+        let advert =
+                Advert
+                    { pnNumVotes = numVotes
+                    , pnNumCerts = numCerts
+                    , pnChainLen = chainLen
+                    , pnPerasBoost = perasBoost
+                    , pnSlotNo = slotNo
+                    , pnBlockHash = blockHash
+                    , pnBlockNo = blockNo
+                    }
         liftIO $ atomicModifyIORef' ioRef $ \old ->
-            ( addAdvertInfo nodeId numVotes numCerts old
+            ( addAdvertInfo nodeId advert old
             , ()
             )
