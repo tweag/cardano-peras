@@ -205,7 +205,7 @@ createTestnetConfig = do
         , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
         & Console.putChunks
-    changeSecurityParam 100
+    changeSecurityParam 150
     ports <- portsIO
     -- We only replace neighbors of node 1 with proxies for partitioning node 1
     replaceNeighboursWithProxy ports 1
