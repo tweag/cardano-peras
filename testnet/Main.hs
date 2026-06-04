@@ -21,7 +21,6 @@ import System.Environment (setEnv, lookupEnv)
 import System.FilePath ((</>))
 import System.IO (BufferMode (..), hSetBuffering, stderr, stdout)
 import UI qualified as UI
-import Streamly.Data.Array qualified as Array
 
 import Misc
 import Populate

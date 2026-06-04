@@ -39,7 +39,7 @@ let
     buildInputs = extraInputs;
   };
 
-    app = pkgs.writeShellApplication {
+  app = pkgs.writeShellApplication {
     name = "testnet";
     runtimeInputs = extraInputs;
     runtimeEnv = {
