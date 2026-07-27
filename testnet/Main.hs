@@ -13,6 +13,7 @@ import Data.Function ((&))
 
 import Options.Applicative hiding (str)
 import Streamly.Console.Stdio qualified as Console
+import Streamly.Data.Stream qualified as Stream
 import Streamly.FileSystem.FileIO qualified as File
 import Streamly.FileSystem.Path qualified as Path
 import Streamly.System.Command qualified as Cmd
@@ -25,6 +26,7 @@ import UI qualified as UI
 import Misc
 import Populate
 import Network
+import Gov
 
 -------------------------------------------------------------------------------
 -- CLI
@@ -41,6 +43,7 @@ data NetworkCommand
     | NCGetNodeTips
     | NCAddToxicity
     | NCRemoveToxicity
+    | NCHardForkToDijkstra
 
 data Command
     = StartLocalTestnet
@@ -50,7 +53,6 @@ data Command
     | Network NetworkCommand
     | StdoutComposeYaml String
     | UI
-
 
 networkCommandParser :: Parser NetworkCommand
 networkCommandParser =
@@ -84,6 +86,12 @@ networkCommandParser =
                 ( info
                     (pure NCRemoveToxicity)
                     (progDesc "Remove toxicity")
+                )
+            <> command
+                "hard-fork-dijkstra"
+                ( info
+                    (pure NCHardForkToDijkstra)
+                    (progDesc "Hard fork to dijkstra")
                 )
         )
 
@@ -169,27 +177,53 @@ opts =
 -- Main
 --------------------------------------------------------------------------------
 
+setExperimentalHardForksEnabled :: IO ()
+setExperimentalHardForksEnabled = do
+    configTmpP <- Path.fromString configTmp
+    runCmd [str|jq '.ExperimentalHardForksEnabled = true' #{config}|] []
+        & Stream.fold (File.writeChunks configTmpP)
+    runCmd_ [str|mv #{configTmp} #{config}|]
+  where
+    configTmp = env_TESTNET_WORK_DIR </> "configuration.yaml.tmp"
+    config = env_TESTNET_WORK_DIR </> "configuration.yaml"
+
+updateParamAndCheck :: FilePath -> String -> String -> String -> IO ()
+updateParamAndCheck fp sedQ jqQ newParam = do
+    runCmd_ [str|sed -i '#{sedQ}' #{fp}|]
+    fpP <- Path.fromString fp
+    updated <-
+        File.readChunks fpP
+            & Cmd.pipeChunks [str|jq -r "#{jqQ}"|]
+            & firstNonEmptyLine "updateParamAndCheck"
+    when (updated /= newParam) . error $
+        "updateParamAndCheck: Unable to change param: " ++ fp
+
+changeEpochLength :: Int -> IO ()
+changeEpochLength secs =
+    updateParamAndCheck
+        shelley
+        [str|s/"epochLength": [0-9]*/"epochLength": #{targetVal}/|]
+        ".epochLength"
+        targetVal
+  where
+    shelley = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
+    targetVal = show secs
+
 changeSecurityParam :: Int -> IO ()
 changeSecurityParam i = do
     -- NOTE: Using jq here fails because of runCmd. Need to investigate this
     -- later.
     -- TODO: Use jq instead of sed
-    updateAndCheck
+    updateParamAndCheck
         shelly
         [str|s/"securityParam": [0-9]*/"securityParam": #{secParam}/|]
         ".securityParam"
-    updateAndCheck byron [str|s/"k": [0-9]*/"k": #{secParam}/|] ".protocolConsts.k"
+        secParam
+    updateParamAndCheck
+        byron
+        [str|s/"k": [0-9]*/"k": #{secParam}/|] ".protocolConsts.k"
+        secParam
   where
-    updateAndCheck fp sedQ jqQ = do
-        runCmd_ [str|sed -i '#{sedQ}' #{fp}|]
-        fpP <- Path.fromString fp
-        updated <-
-            File.readChunks fpP
-                & Cmd.pipeChunks [str|jq -r "#{jqQ}"|]
-                & firstNonEmptyLine "changeSecurityParam.updateAndCheck"
-        when (updated /= secParam) . error $
-            "changeSecurityParam: Unable to change security param: " ++ fp
-
     shelly = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
     byron = env_TESTNET_WORK_DIR </> "byron-genesis.json"
     secParam = show i
@@ -205,6 +239,8 @@ createTestnetConfig = do
         ]
         & Console.putChunks
     changeSecurityParam 500
+    changeEpochLength 120
+    setExperimentalHardForksEnabled
     ports <- portsIO
     -- We only replace neighbors of node 1 with proxies for partitioning node 1
     replaceNeighboursWithProxy ports 1
@@ -254,23 +290,17 @@ processes:
       success_threshold: 1
       failure_threshold: 60
 
-  get-node-tips:
-    command: "#{testnetCmd} network get-node-tips"
-    disabled: true
-
-  add-toxicity:
-    command: "#{testnetCmd} network add-toxicity"
-    disabled: true
-
-  remove-toxicity:
-    command: "#{testnetCmd} network remove-toxicity"
-    disabled: true
-
   sync-nodes:
     command: "#{testnetCmd} network sync-nodes"
     depends_on:
       toxiproxy-server:
         condition: process_healthy
+
+  hard-fork-dijkstra:
+    command: "#{testnetCmd} network hard-fork-dijkstra"
+    depends_on:
+      sync-nodes:
+        condition: process_completed_successfully
 
   toxiproxy-server:
     command: "#{testnetCmd} network toxiproxy-server"
@@ -321,6 +351,7 @@ main = do
         Network NCGetNodeTips -> renderNodeTips
         Network NCAddToxicity -> addToxicity
         Network NCRemoveToxicity -> removeToxicity
+        Network NCHardForkToDijkstra -> governProtocolUpdateTo12
         StdoutComposeYaml testnetCmd -> stdoutComposeYaml testnetCmd
         UI -> UI.main
 
