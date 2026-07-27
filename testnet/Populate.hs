@@ -3,6 +3,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Populate (
+    finalizeCurrentTransaction,
     createPopulateConfig,
     testScriptTrigger,
     escrow,

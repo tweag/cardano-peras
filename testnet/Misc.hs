@@ -11,8 +11,11 @@ module Misc (
     raw,
     -- Common Opts
     optNetwork,
+    optNodeSocket,
     optNode1Socket,
     optNode2Socket,
+    optAnchorUrl,
+    optAnchorDataHash,
     -- Utils
     printStep,
     runCmd_,
@@ -26,7 +29,11 @@ module Misc (
     ensureBlankWorkDir,
     hexify,
     -- Cardano Cli
+    govVoteCreate,
+    govQueryPrevHardforkActionTxId,
+    govActionHarkFork,
     getPolicyId,
+    getProtocolMajorVersion,
     getAddress,
     getScriptAddress,
     buildTransaction,
@@ -44,6 +51,7 @@ module Misc (
     mkWallet,
     walletKeyHash,
     fetchWallet,
+    waitTill,
     waitTillExists,
     fstOutput,
     transferAda,
@@ -110,11 +118,14 @@ ensureBlankWorkDir = do
     Cmd.toStdout [str|rm -rf #{env_POPULATE_WORK_DIR}|]
     Cmd.toStdout [str|mkdir -p #{env_POPULATE_WORK_DIR}|]
 
-waitTillExists :: String -> IO ()
-waitTillExists utxo =
-    Stream.repeatM (printStep "Waiting" >> threadDelay 3000000 >> nullUtxo utxo)
-        & Stream.takeWhile id
+waitTill :: String -> IO Bool -> IO ()
+waitTill tag action =
+    Stream.repeatM (printStep [str|Waiting: #{tag}|] >> threadDelay 3000000 >> action)
+        & Stream.takeWhile (not . id)
         & Stream.fold Fold.drain
+
+waitTillExists :: String -> IO ()
+waitTillExists = waitTill "Utxo exists" . fmap not . nullUtxo
 
 fstOutput :: String -> String
 fstOutput txid = [str|#{txid}#0|]
@@ -146,12 +157,6 @@ env_PLUTUS_SCRIPTS_DIR = "plutus-scripts"
 
 env_CARDANO_TESTNET_NUM_NODES :: Int
 env_CARDANO_TESTNET_NUM_NODES = 4
-
-env_NODE1_SOCKET :: FilePath
-env_NODE1_SOCKET = env_TESTNET_WORK_DIR </> "socket/node1/sock"
-
-env_NODE2_SOCKET :: FilePath
-env_NODE2_SOCKET = env_TESTNET_WORK_DIR </> "socket/node2/sock"
 
 env_CARDANO_TESTNET_MAGIC :: Int
 env_CARDANO_TESTNET_MAGIC = 42
@@ -199,14 +204,33 @@ flg = CoFlg
 raw :: String -> CmdOption
 raw = CoRaw
 
+nodeSocketPath :: Int -> FilePath
+nodeSocketPath i = env_TESTNET_WORK_DIR </> [str|socket/node#{iStr}/sock|]
+    where iStr = show i
+
+optAnchorUrl :: CmdOption
+optAnchorUrl =
+    opt
+        "anchor-url"
+        ("https://raw.githubusercontent.com/cardano-foundation/CIPs/b491a839708eb0296597008e7b6b093eda5e3363/CIP-0001/README.md" :: String)
+
+optAnchorDataHash :: CmdOption
+optAnchorDataHash =
+    opt
+        "anchor-data-hash"
+        ("3a8aaa2aa27230b35b27b8b11a360ecc5df6871df40bb4d0b5a51f3aefe5386b" :: String)
+
 optNetwork :: CmdOption
 optNetwork = opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
 
+optNodeSocket :: Int -> CmdOption
+optNodeSocket i = opt "socket-path" (nodeSocketPath i)
+
 optNode1Socket :: CmdOption
-optNode1Socket = opt "socket-path" env_NODE1_SOCKET
+optNode1Socket = optNodeSocket 1
 
 optNode2Socket :: CmdOption
-optNode2Socket = opt "socket-path" env_NODE2_SOCKET
+optNode2Socket = optNodeSocket 2
 
 runCmd' :: String -> Stream IO (Array Word8)
 runCmd' cmd = Stream.before (putStrLn [str|> #{cmd}|]) (Cmd.toChunks cmd)
@@ -225,6 +249,13 @@ runCmd cmd args = runCmd' cmdStr
 
     cmdList = cmd : map cmdOptStr args
     cmdStr = unwords cmdList
+
+getProtocolMajorVersion :: IO Int
+getProtocolMajorVersion =
+    runCmd "cardano-cli conway query protocol-parameters" [optNetwork, optNode2Socket]
+        & Cmd.pipeChunks [str|jq -r ".protocolVersion.major"|]
+        & firstNonEmptyLine "getProtocolMajorVersion"
+        & fmap read
 
 getPolicyId :: FilePath -> IO String
 getPolicyId scriptFile =
@@ -250,6 +281,34 @@ getScriptAddress scriptFile =
         , opt "payment-script-file" scriptFile
         ]
         & firstNonEmptyLine "getScriptAddress"
+
+govQueryPrevHardforkActionTxId :: IO (Maybe String)
+govQueryPrevHardforkActionTxId = do
+    runCmd
+        "cardano-cli conway query gov-state"
+        [ optNetwork
+        , optNodeSocket 2
+        ]
+        & Cmd.pipeChunks [str|jq -r ".nextRatifyState.nextEnactState.prevGovActionIds.HardFork.txId"|]
+        & firstNonEmptyLine "govQueryPrevHardforkAction"
+        & fmap toMaybe
+  where
+    toMaybe "null" = Nothing
+    toMaybe x = Just x
+
+govVoteCreate :: [CmdOption] -> IO ()
+govVoteCreate args =
+    runCmd
+        "cardano-cli conway governance vote create"
+        args
+        & drain
+
+govActionHarkFork :: [CmdOption] -> IO ()
+govActionHarkFork args =
+    runCmd
+        "cardano-cli conway governance action create-hardfork"
+        (flg "testnet" : args)
+        & drain
 
 buildTransaction :: [CmdOption] -> IO ()
 buildTransaction args =
