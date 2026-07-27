@@ -55,6 +55,7 @@ executable testnet
   other-modules: Misc
                  Populate
                  Network
+                 Gov
                  UI
                  UI.CommServer
   ghc-options:   -threaded -with-rtsopts=-N
