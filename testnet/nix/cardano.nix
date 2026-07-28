@@ -7,19 +7,13 @@ let
 
   # Patched versions of the necessary dependencies
   deps = {
-    # Branch: master
-    ouroboros-consensus = {
-      owner = "IntersectMBO";
-      repo = "ouroboros-consensus";
-      rev = "c87aa760001e60f0f0d3353f793eb089adb917e7";
-      sha256 = "sha256-p52sFxbcmciyM9piV7fnkrfClyy+kW7pzBOIEBmstcM=";
-    };
-    # Branch: master
+    # Branch: peras-patchwork
     cardano-node = {
-      owner = "IntersectMBO";
+      owner = "tweag";
       repo = "cardano-node";
-      rev = "045bc187a36ef0cbd236db902b85dd8f202fb059";
-      sha256 = "sha256-D2HMIr65q0RM9+ZAjbtA9xNKyoKYfr3Kc4Vv4+s64uY=";
+      rev = "0bc283f97cc59f90434f341d293ceb49e5d842b0";
+      sha256 = "sha256-B7Z/WMhjWev8JAP5z48h55e11tJeE6N0fPx24rVdurU=";
+      fetchSubmodules = true;
     };
   };
 
@@ -37,10 +31,6 @@ let
     let
       project = (import (pkgs.fetchFromGitHub deps.cardano-node) { inherit system; }).project.${system};
       patchedProject = project.appendModule {
-        # Override default packages with patched versions
-        cabalProjectLocal = ''
-          ${makeSourceRepoPackage deps.ouroboros-consensus}
-        '';
         # Override default GHC to enable compiling with warnings
         # NOTE: using a module is a workaround for
         # https://github.com/input-output-hk/haskell.nix/issues/1149

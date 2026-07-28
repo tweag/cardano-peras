@@ -55,11 +55,22 @@ executable testnet
   other-modules: Misc
                  Populate
                  Network
-
+                 UI
+                 UI.CommServer
+  ghc-options:   -threaded -with-rtsopts=-N
   build-depends:
     , base
     , filepath
     , optparse-applicative
     , streamly-core
     , streamly-process
-    , containers
+    -- NOTE: For the ui
+    , scotty
+    , bytestring
+    , brick
+    , vty
+    , vty-unix
+    , mtl
+    , directory
+    , vector
+    , text

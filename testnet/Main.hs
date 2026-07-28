@@ -17,9 +17,10 @@ import Streamly.FileSystem.FileIO qualified as File
 import Streamly.FileSystem.Path qualified as Path
 import Streamly.System.Command qualified as Cmd
 import Streamly.Unicode.String (str)
-import System.Environment (setEnv)
+import System.Environment (setEnv, lookupEnv)
 import System.FilePath ((</>))
 import System.IO (BufferMode (..), hSetBuffering, stderr, stdout)
+import UI qualified as UI
 
 import Misc
 import Populate
@@ -48,6 +49,7 @@ data Command
     | Setup
     | Network NetworkCommand
     | StdoutComposeYaml String
+    | UI
 
 
 networkCommandParser :: Parser NetworkCommand
@@ -147,6 +149,12 @@ commandParser =
                     (StdoutComposeYaml <$> strArgument mempty)
                     (progDesc "Contents of process-compose.yaml")
                 )
+            <> command
+                "ui"
+                ( info
+                    (pure UI)
+                    (progDesc "User Interface")
+                )
         )
 
 opts :: ParserInfo Command
@@ -192,23 +200,22 @@ createTestnetConfig = do
         "cardano-testnet create-env"
         [ opt "num-pool-nodes" env_CARDANO_TESTNET_NUM_NODES
         , opt "num-dreps" env_CARDANO_TESTNET_NUM_NODES
-        , flg "enable-new-epoch-state-logging"
         , opt "output" env_TESTNET_WORK_DIR
         , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
         & Console.putChunks
-    changeSecurityParam 100
-    savePortAndProxyMappings
-    replaceAllNeighboursWithProxy
+    changeSecurityParam 500
+    ports <- portsIO
+    -- We only replace neighbors of node 1 with proxies for partitioning node 1
+    replaceNeighboursWithProxy ports 1
+    mapM_ (flip (replaceNeighbourWithProxy ports) 1) [2..env_CARDANO_TESTNET_NUM_NODES]
 
 startLocalTestnet :: IO ()
 startLocalTestnet = do
     runCmd
         "cardano-testnet cardano"
-        [ opt "num-pool-nodes" env_CARDANO_TESTNET_NUM_NODES
+        [ opt "node-env" env_TESTNET_WORK_DIR
         , flg "enable-new-epoch-state-logging"
-        , opt "node-env" env_TESTNET_WORK_DIR
-        , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
         & Console.putChunks
 
@@ -224,6 +231,7 @@ setup = do
     createPopulateConfig
     createTestnetConfig
 
+-- TODO: Add a dependency between cardano-testnet and server
 stdoutComposeYaml :: String -> IO ()
 stdoutComposeYaml testnetCmd = putStr [str|
 version: "0.5"
@@ -284,7 +292,7 @@ processes:
   where
     nodeLogProcess i0 = let i = show i0 in [str|
   node-stdout-#{i}:
-    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log"
+    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log | grep --line-buffered -E 'TraceObjectDiffusion|PerasVoteDbEvent'"
     depends_on:
       cardano-testnet:
         condition: process_healthy
@@ -298,8 +306,9 @@ main = do
     hSetBuffering stderr LineBuffering
     cmd <- execParser opts
 
-    setEnv "CARDANO_CLI" "cardano-cli"
-    setEnv "CARDANO_NODE" "cardano-node"
+    setEnvIfDoesNotExist "CARDANO_CLI" "cardano-cli"
+    setEnvIfDoesNotExist "CARDANO_NODE" "cardano-node"
+
     case cmd of
         StartLocalTestnet -> startLocalTestnet
         Clean -> clean
@@ -307,9 +316,17 @@ main = do
         Populate PCEscrow -> escrow
         Populate PCFanout -> runFanout
         Setup -> setup
-        Network NCSyncNodes -> toxiproxyCreateClients
+        Network NCSyncNodes -> toxiproxyCreateClients =<< portsIO
         Network NCToxiproxyServer -> toxiproxyServer
-        Network NCGetNodeTips -> getNodeTips
+        Network NCGetNodeTips -> renderNodeTips
         Network NCAddToxicity -> addToxicity
         Network NCRemoveToxicity -> removeToxicity
         StdoutComposeYaml testnetCmd -> stdoutComposeYaml testnetCmd
+        UI -> UI.main
+
+setEnvIfDoesNotExist :: String -> String -> IO ()
+setEnvIfDoesNotExist key val = do
+    existing <- lookupEnv key
+    case existing of
+        Nothing -> setEnv key val
+        Just _ -> pure ()
