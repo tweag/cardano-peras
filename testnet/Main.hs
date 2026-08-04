@@ -183,7 +183,12 @@ setExperimentalHardForksEnabled = do
     runCmd [str|jq '.ExperimentalHardForksEnabled = true' #{config}|] []
         & Stream.fold (File.writeChunks configTmpP)
     runCmd_ [str|mv #{configTmp} #{config}|]
+    when startDirectlyInDijkstra $ do
+        runCmd [str|jq '.TestDijkstraHardForkAtEpoch = 0' #{config}|] []
+            & Stream.fold (File.writeChunks configTmpP)
+        runCmd_ [str|mv #{configTmp} #{config}|]
   where
+    startDirectlyInDijkstra = False
     configTmp = env_TESTNET_WORK_DIR </> "configuration.yaml.tmp"
     config = env_TESTNET_WORK_DIR </> "configuration.yaml"
 
@@ -231,14 +236,14 @@ changeSecurityParam i = do
 createTestnetConfig :: IO ()
 createTestnetConfig = do
     runCmd
-        "cardano-testnet create-env"
+        [str|#{cardanoTestnet} create-env|]
         [ opt "num-pool-nodes" env_CARDANO_TESTNET_NUM_NODES
         , opt "num-dreps" env_CARDANO_TESTNET_NUM_NODES
         , opt "output" env_TESTNET_WORK_DIR
         , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
         & Console.putChunks
-    changeSecurityParam 500
+    changeSecurityParam 5
     changeEpochLength 120
     setExperimentalHardForksEnabled
     ports <- portsIO
@@ -249,9 +254,8 @@ createTestnetConfig = do
 startLocalTestnet :: IO ()
 startLocalTestnet = do
     runCmd
-        "cardano-testnet cardano"
+        [str|#{cardanoTestnet} cardano|]
         [ opt "node-env" env_TESTNET_WORK_DIR
-        , flg "enable-new-epoch-state-logging"
         ]
         & Console.putChunks
 
@@ -298,9 +302,7 @@ processes:
 
   hard-fork-dijkstra:
     command: "#{testnetCmd} network hard-fork-dijkstra"
-    depends_on:
-      sync-nodes:
-        condition: process_completed_successfully
+    disabled: true
 
   toxiproxy-server:
     command: "#{testnetCmd} network toxiproxy-server"
