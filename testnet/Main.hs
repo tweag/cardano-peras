@@ -188,7 +188,7 @@ setExperimentalHardForksEnabled = do
             & Stream.fold (File.writeChunks configTmpP)
         runCmd_ [str|mv #{configTmp} #{config}|]
   where
-    startDirectlyInDijkstra = False
+    startDirectlyInDijkstra = True
     configTmp = env_TESTNET_WORK_DIR </> "configuration.yaml.tmp"
     config = env_TESTNET_WORK_DIR </> "configuration.yaml"
 
