@@ -9,13 +9,11 @@ import Control.Monad (forever, void)
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Monad.State.Class (MonadState)
 import Data.ByteString.Char8 qualified as BC
-import Data.Char (digitToInt, isDigit)
-import Data.IORef (IORef, atomicModifyIORef', newIORef, readIORef)
+import Data.IORef (IORef, newIORef, readIORef)
 import Data.List (intersperse)
 import GHC.IO.Handle (hDuplicate, hDuplicateTo)
 import System.Directory (removeFile)
 import System.IO (IOMode (WriteMode), hClose, hFlush, openFile, stderr, stdout)
-import Text.Read (readMaybe)
 
 import Brick
 import Brick.BChan (newBChan, writeBChan)
@@ -126,16 +124,10 @@ initialState =
 
 voteForm :: UiState -> Widget ()
 voteForm st =
-    B.borderWithLabel (str " Vote Form & Status ") $
+    B.borderWithLabel (str " Status ") $
         padAll 1 $
             propertyPanel
-                [ Property "Slot Number" $
-                    let text = if null (inputSlot st) then "<empty>" else inputSlot st
-                     in withAttr inputAttr (str text)
-                , Property "Block Hash" $
-                    let text = if null (inputHash st) then "<empty>" else inputHash st
-                     in withAttr inputAttr (str text)
-                , Property "Partition Status" $
+                [ Property "Partition Status" $
                     if partitionActive st
                         then withAttr partitionOnAttr (str "ACTIVE")
                         else withAttr partitionOffAttr (str "INACTIVE")
@@ -198,7 +190,7 @@ drawStatusBanner True =
 
 drawActionInstructions :: Bool -> Widget ()
 drawActionInstructions False =
-    str "[1-9]: Populate Vote Synthesis Form | [s]: Synthesize Vote | [p]: Toggle Partition | [esc]: Exit"
+    str "[p]: Toggle Partition | [esc]: Exit"
 drawActionInstructions True =
     withAttr warningAttr $ str "Control locked until votes are processed"
 
@@ -260,50 +252,14 @@ handlePartitionEvent =
                         , uiLogs = interceptedLogs ++ ["Partition created."] ++ uiLogs s
                         }
 
-handleVoteSynthesisEvent ::
-    ( MonadState UiState m
-    , MonadIO m
-    ) =>
-    IORef Database -> m ()
-handleVoteSynthesisEvent dbRef = withUnlockedState $ \st -> do
-    case (readMaybe (inputSlot st) :: Maybe Int, inputHash st) of
-        (Just s, h) | not (null h) -> do
-            liftIO $ atomicModifyIORef' dbRef ((,()) . addVoteCreateRequestToAllNodes (s, h))
-            modify $ \s' ->
-                s'
-                    { isSystemLocked = True
-                    , uiLogs = "Synthesizing Vote. Controls locked." : uiLogs s'
-                    }
-        _ ->
-            modify $ \s' -> s'{uiLogs = "Error: Cannot commit empty form fields." : uiLogs s'}
-
-handleVoteFormPopulationEvent ::
-    ( MonadState UiState m
-    , MonadIO m
-    ) =>
-    IORef Database -> Char -> m ()
-handleVoteFormPopulationEvent dbRef i = withUnlockedState $ \_ -> do
-    if isDigit i
-        then do
-            db <- liftIO $ readIORef dbRef
-            let advert = pnLatestAdvert $ db V.! (digitToInt i - 1)
-            modify $ \s ->
-                s
-                    { inputSlot = show $ pnSlotNo advert
-                    , inputHash = pnBlockHash advert
-                    }
-        else pure ()
-
 handleEvent :: IORef Database -> BrickEvent () UiEvent -> EventM () UiState ()
 handleEvent dbRef event = case event of
     VtyEvent (V.EvKey V.KEsc []) -> halt
-    AppEvent ReadFromDatabase -> do
+    AppEvent  ReadFromDatabase -> do
         db <- liftIO $ readIORef dbRef
-        let isSystemLocked = numVotesInFlight db > 0
+        let isSystemLocked = False
         modify $ \st -> st{isSystemLocked = isSystemLocked, database = db}
     VtyEvent (V.EvKey (V.KChar 'p') []) -> handlePartitionEvent
-    VtyEvent (V.EvKey (V.KChar 's') []) -> handleVoteSynthesisEvent dbRef
-    VtyEvent (V.EvKey (V.KChar i) []) -> handleVoteFormPopulationEvent dbRef i
     _ -> return ()
 
 --------------------------------------------------------------------------------

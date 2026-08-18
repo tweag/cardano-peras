@@ -74,4 +74,3 @@ executable testnet
     , mtl
     , directory
     , vector
-    , text
