@@ -27,3 +27,11 @@ export CARDANO_TESTNET=...
 ```
 ./launch ui
 ```
+
+## Developing with a custom cardano-node
+
+TODO.
+
+## Transitioning to Dijkstra
+
+TODO.
