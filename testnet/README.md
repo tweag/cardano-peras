@@ -24,13 +24,6 @@ Start the testnet in the second terminal session using,
 ./result/bin/testnet testnet
 ```
 
-## Developer Notes
+## Development
 
-```
-nix shell .#testnet
-cd testnet
-./launch compose|ui
-```
-
-**NOTE:** Sometimes it is possible that the processes may not shut down
-properly. In that case, some manual cleanup may be needed.
+Refer to the [Dev document](./Dev.md).
