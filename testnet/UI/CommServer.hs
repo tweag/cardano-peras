@@ -47,8 +47,8 @@ addAdvertInfo nodeIndex advert db = do
         new      = old { pnLatestAdvert = advert }
      in db V.// [(vecIndex, new)]
 
-env_COMM_SERVER_LOG_FILE :: FilePath
-env_COMM_SERVER_LOG_FILE = env_TESTNET_WORK_DIR </> "comm-server.log"
+nodeLogFile :: Int -> FilePath
+nodeLogFile nodeId = env_TESTNET_WORK_DIR </> ("comm-server-node" ++ show nodeId ++ ".log")
 
 serializeLogInfo :: Int -> String -> String
 serializeLogInfo nodeId logMsg = "[" ++ show nodeId ++ "] " ++ logMsg
@@ -56,7 +56,7 @@ serializeLogInfo nodeId logMsg = "[" ++ show nodeId ++ "] " ++ logMsg
 addLogInfo :: MVar () -> Int -> String -> IO ()
 addLogInfo logLock nodeId logMsg =
     withMVar logLock $ \() -> do
-        withFile env_COMM_SERVER_LOG_FILE AppendMode $ \handle ->
+        withFile (nodeLogFile nodeId) AppendMode $ \handle ->
             hPutStrLn handle (serializeLogInfo nodeId logMsg)
 
 --------------------------------------------------------------------------------
