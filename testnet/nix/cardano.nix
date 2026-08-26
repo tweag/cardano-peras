@@ -7,12 +7,12 @@ let
 
   # Patched versions of the necessary dependencies
   deps = {
-    # Branch: peras-patchwork
+    # Branch: peras-prototype
     cardano-node = {
       owner = "tweag";
       repo = "cardano-node";
-      rev = "3492e66968acc2ed78e16c46fc9264ae325a74bd";
-      sha256 = "sha256-OvdyDsmYdLjJ6ix0IzT6FNB2loZCPCc4CiiQWNRq3b0=";
+      rev = "b845356b19cb28a5bdb046bc2ac93082573e0e28";
+      sha256 = "sha256-D37EDJAI2BbwvCqJyg30YgFb6DO9+ar6DEiB8aXiZ7M=";
       fetchSubmodules = true;
     };
   };
