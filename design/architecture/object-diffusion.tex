@@ -47,12 +47,12 @@
       \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
       \node[state]                   (B) at (4, 0) {\StDone};
       \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
-      \node[state, myblue]          (D) at (-4, -4) {\StObjIdsNonBlocking};
-      \node[state, myblue]          (E) at ( 0,  4) {\StObjs};
-      \draw (D)  edge[bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
-      \draw (A)  edge[bend left=15]      node[fill = white, below = 2pt]{\MsgRequestObjIdsNB} (D);
-      \draw (A)  edge[bend right=45]      node[fill = white, above = 2pt]{\MsgRequestObjs}     (E);
-      \draw (E)  edge[bend right=45]      node[fill = white, below = 2pt]{\MsgReplyObjs}       (A);
+      \node[state, myblue, opacity=0.1]          (D) at (-4, -4) {\StObjIdsNonBlocking};
+      \node[state, myblue, opacity=0.1]          (E) at ( 0,  4) {\StObjs};
+      \draw[opacity=0.1] (D)  edge[bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
+      \draw[opacity=0.1] (A)  edge[bend left=15]      node[fill = white, below = 2pt]{\MsgRequestObjIdsNB} (D);
+      \draw[opacity=0.1] (A)  edge[bend right=45]      node[fill = white, above = 2pt]{\MsgRequestObjs}     (E);
+      \draw[opacity=0.1] (E)  edge[bend right=45]      node[fill = white, below = 2pt]{\MsgReplyObjs}       (A);
       \draw (I)  edge                    node[above]{\MsgInit}                                                 (A);
       \draw (A)  edge                    node[above]{\MsgDone}                                                 (B);
       \draw (A)  edge[bend left=45]       node[fill = white, anchor = west]{\MsgRequestObjIdsB}  (C);
