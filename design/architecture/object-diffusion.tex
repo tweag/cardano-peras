@@ -49,14 +49,14 @@
       \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
       \node[state, myblue]          (D) at (-4, -4) {\StObjIdsNonBlocking};
       \node[state, myblue]          (E) at ( 0,  4) {\StObjs};
-      \draw (I)  edge[above]                    node[above]{\MsgInit}                                                 (A);
-      \draw (A)  edge[above]                    node[above]{\MsgDone}                                                 (B);
-      \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestObjIdsB}               (C);
-      \draw (C)  edge[right, bend left=15]      node[fill = white, anchor = center, above = 2pt]{\MsgReplyObjIds}     (A);
-      \draw (D)  edge[right, bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
-      \draw (A)  edge[right, bend left=15]      node[fill = white, anchor = center, below = 2pt]{\MsgRequestObjIdsNB} (D);
-      \draw (A)  edge[left, bend right=45]      node[fill = white, anchor = center, above = 2pt]{\MsgRequestObjs}     (E);
-      \draw (E)  edge[right,bend right=45]      node[fill = white, anchor = center, below = 2pt]{\MsgReplyObjs}       (A);
+      \draw (D)  edge[bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
+      \draw (A)  edge[bend left=15]      node[fill = white, below = 2pt]{\MsgRequestObjIdsNB} (D);
+      \draw (A)  edge[bend right=45]      node[fill = white, above = 2pt]{\MsgRequestObjs}     (E);
+      \draw (E)  edge[bend right=45]      node[fill = white, below = 2pt]{\MsgReplyObjs}       (A);
+      \draw (I)  edge                    node[above]{\MsgInit}                                                 (A);
+      \draw (A)  edge                    node[above]{\MsgDone}                                                 (B);
+      \draw (A)  edge[bend left=45]       node[fill = white, anchor = west]{\MsgRequestObjIdsB}  (C);
+      \draw (C)  edge[bend left=15]      node[fill = white, above = -6pt]{\MsgReplyObjIds}     (A);
     \end{tikzpicture}
   \end{center}
   \caption{Object diffusion state machine}%
