@@ -28,6 +28,8 @@
 \newcommand{\StIdle}{\state{StIdle}}
 \newcommand{\StDone}{\state{StDone}}
 \newcommand{\StObjIdsBlocking}    {\state{StObjIds Blocking}}
+\newcommand{\StObjIdsBlockingR}    {\state{StObjIds Blocking MustReply}}
+\newcommand{\StObjIdsBlockingA}    {\state{StObjIds Blocking CanAwait}}
 \newcommand{\StObjIdsNonBlocking} {\state{StObjIds NonBlocking}}
 \newcommand{\StObjs}              {\state{StObjs}}
 
@@ -39,6 +41,7 @@
 \newcommand{\MsgReplyObjs}        {\msg{MsgReplyObjs}}
 \newcommand{\MsgDone}{\msg{MsgDone}}
 \newcommand{\MsgServerIdle} {\msg{MsgServerIdle}}
+\newcommand{\MsgAwaitReply} {\msg{MsgAwaitReply}}
 
 \begin{figure}[h]
   \begin{center}
@@ -47,7 +50,8 @@
       \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
       \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
       \node[state]                   (B) at (4, 0) {\StDone};
-      \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
+      \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlockingA};
+      \node[state, myblue]          (F) at ( 0, -6) {\StObjIdsBlockingR};
       \node[state, myblue, opacity=0.1]          (D) at (-4, -4) {\StObjIdsNonBlocking};
       \node[state, myblue, opacity=0.1]          (E) at ( 0,  4) {\StObjs};
       \draw[opacity=0.1] (D)  edge[bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
@@ -57,8 +61,10 @@
       \draw (I)  edge                    node[above]{\MsgInit}                                                 (A);
       \draw (A)  edge                    node[above]{\MsgDone}                                                 (B);
       \draw (A)  edge[bend left=45]       node[fill = white, anchor = west]{\MsgRequestObjIdsB}  (C);
+      \draw (C)  edge[bend left=15]             node[fill = white, anchor = west]{\MsgAwaitReply}      (F);
+      \draw (F)  edge[bend left=45]      node[fill = white, left = -4pt]{\MsgServerIdle}     (A);
       \draw (C)  edge[bend left=15]      node[fill = white, above = -6pt]{\MsgReplyObjIds}     (A);
-      \draw (C)  edge[bend left=45]      node[fill = white, left = -4pt]{\MsgServerIdle}     (A);
+      \draw (F)  edge[bend left=15]      node[fill = white, right = -16pt]{\MsgReplyObjIds}     (A);
     \end{tikzpicture}
   \end{center}
   \caption{Object diffusion state machine}%
