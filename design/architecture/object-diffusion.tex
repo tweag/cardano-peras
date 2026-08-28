@@ -38,6 +38,7 @@
 \newcommand{\MsgRequestObjs}      {\msg{MsgReqObjs}}
 \newcommand{\MsgReplyObjs}        {\msg{MsgReplyObjs}}
 \newcommand{\MsgDone}{\msg{MsgDone}}
+\newcommand{\MsgServerIdle} {\msg{MsgServerIdle}}
 
 \begin{figure}[h]
   \begin{center}
@@ -57,6 +58,7 @@
       \draw (A)  edge                    node[above]{\MsgDone}                                                 (B);
       \draw (A)  edge[bend left=45]       node[fill = white, anchor = west]{\MsgRequestObjIdsB}  (C);
       \draw (C)  edge[bend left=15]      node[fill = white, above = -6pt]{\MsgReplyObjIds}     (A);
+      \draw (C)  edge[bend left=45]      node[fill = white, left = -4pt]{\MsgServerIdle}     (A);
     \end{tikzpicture}
   \end{center}
   \caption{Object diffusion state machine}%
