@@ -10,6 +10,7 @@ module Main (main) where
 
 import Control.Monad (when)
 import Data.Function ((&))
+import Data.List qualified as List
 
 import Options.Applicative hiding (str)
 import Streamly.Console.Stdio qualified as Console
@@ -246,10 +247,14 @@ changeSecurityParam i = do
 
 createTestnetConfig :: IO ()
 createTestnetConfig = do
+    let
+      nodesArg = concat $ List.intersperse "," $
+            [ "spo" | _ <- [1..env_CARDANO_TESTNET_NUM_SPO_NODES]] ++
+            [ "relay" | _ <- [1..env_CARDANO_TESTNET_NUM_RELAY_NODES]]
     runCmd
         [str|#{cardanoTestnet} create-env|]
-        [ opt "num-pool-nodes" env_CARDANO_TESTNET_NUM_NODES
-        , opt "num-dreps" env_CARDANO_TESTNET_NUM_NODES
+        [ opt "nodes" nodesArg
+        , opt "num-dreps" env_CARDANO_TESTNET_NUM_RELAY_NODES
         , opt "output" env_TESTNET_WORK_DIR
         , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
