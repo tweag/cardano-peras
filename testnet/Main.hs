@@ -214,6 +214,17 @@ changeEpochLength secs =
     shelley = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
     targetVal = show secs
 
+changeSlotLength :: Double -> IO ()
+changeSlotLength i =
+    updateParamAndCheck
+        shelley
+        [str|s/"slotLength": [0-9\.]*/"slotLength": #{targetVal}/|]
+        ".slotLength"
+        targetVal
+  where
+    shelley = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
+    targetVal = show i
+
 changeSecurityParam :: Int -> IO ()
 changeSecurityParam i = do
     -- NOTE: Using jq here fails because of runCmd. Need to investigate this
@@ -245,6 +256,7 @@ createTestnetConfig = do
         & Console.putChunks
     changeSecurityParam 5
     changeEpochLength 120
+    changeSlotLength 0.1
     setExperimentalHardForksEnabled
     ports <- portsIO
     -- We only replace neighbors of node 1 with proxies for partitioning node 1
