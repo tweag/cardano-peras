@@ -9,10 +9,10 @@ let
   deps = {
     # Branch: peras-prototype
     cardano-node = {
-      owner = "tweag";
+      owner = "IntersectMBO";
       repo = "cardano-node";
-      rev = "d1f52adec180de36384d9043eacade0fd0b1f60a";
-      sha256 = "sha256-DO04YpjEtjzMK3dq11bSEB/y626GMxox9INCPTDI9Dc=";
+      rev = "a38eac60bceb1a64a4ffa29e2d49d802787ce171";
+      sha256 = "sha256-MdKkcrS8a5tfP/Dx9g4gWbdpFbwLAHvtmdtCtOerKBo=";
       fetchSubmodules = true;
     };
   };
