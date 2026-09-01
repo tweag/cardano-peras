@@ -12,8 +12,7 @@ case "${1:-}" in
     testnet)
         process-compose \
             -f <("$TESTNET_BIN" stdout-compose-yaml "$TESTNET_BIN") \
-            -p 3030 \
-            -L process-compose.log
+            -p 3030
         ;;
     ui)
         "$TESTNET_BIN" ui
