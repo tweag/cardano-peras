@@ -45,6 +45,7 @@ data NetworkCommand
     | NCAddToxicity
     | NCRemoveToxicity
     | NCHardForkToDijkstra
+    | NCChairman
 
 data Command
     = StartLocalTestnet
@@ -93,6 +94,12 @@ networkCommandParser =
                 ( info
                     (pure NCHardForkToDijkstra)
                     (progDesc "Hard fork to dijkstra")
+                )
+            <> command
+                "chairman"
+                ( info
+                    (pure NCChairman)
+                    (progDesc "Watch all nodes and check they stay in consensus")
                 )
         )
 
@@ -321,6 +328,12 @@ processes:
     command: "#{testnetCmd} network hard-fork-dijkstra"
     disabled: true
 
+  chairman:
+    command: "#{testnetCmd} network chairman"
+    depends_on:
+      cardano-testnet:
+        condition: process_healthy
+
   toxiproxy-server:
     command: "#{testnetCmd} network toxiproxy-server"
     depends_on:
@@ -371,6 +384,7 @@ main = do
         Network NCAddToxicity -> addToxicity
         Network NCRemoveToxicity -> removeToxicity
         Network NCHardForkToDijkstra -> governProtocolUpdateTo12
+        Network NCChairman -> runChairman
         StdoutComposeYaml testnetCmd -> stdoutComposeYaml testnetCmd
         UI -> UI.main
 

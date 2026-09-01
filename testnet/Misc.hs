@@ -13,6 +13,7 @@ module Misc (
     cardanoCli,
     cardanoNode,
     cardanoTestnet,
+    cardanoNodeChairman,
     -- Common Opts
     optNetwork,
     optNodeSocket,
@@ -68,6 +69,8 @@ module Misc (
     env_CARDANO_TESTNET_NUM_NODES,
     env_CARDANO_TESTNET_NUM_SPO_NODES,
     env_CARDANO_TESTNET_NUM_RELAY_NODES,
+    env_CHAIRMAN_TIMEOUT_SECONDS,
+    env_CHAIRMAN_MIN_PROGRESS,
     env_FAUCET_WALLET_VKEY_FILE,
     env_FAUCET_WALLET_SKEY_FILE,
     env_FAUCET_WALLET_ADDR,
@@ -175,6 +178,12 @@ env_CARDANO_TESTNET_NUM_RELAY_NODES = env_CARDANO_TESTNET_NUM_NODES - env_CARDAN
 env_CARDANO_TESTNET_MAGIC :: Int
 env_CARDANO_TESTNET_MAGIC = 42
 
+env_CHAIRMAN_TIMEOUT_SECONDS :: Int
+env_CHAIRMAN_TIMEOUT_SECONDS = 24 * 60 * 60
+
+env_CHAIRMAN_MIN_PROGRESS :: Int
+env_CHAIRMAN_MIN_PROGRESS = 10
+
 env_FAUCET_WALLET_VKEY_FILE :: FilePath
 env_FAUCET_WALLET_VKEY_FILE = env_TESTNET_WORK_DIR </> "utxo-keys/utxo1/utxo.vkey"
 
@@ -278,6 +287,11 @@ cardanoNode =
 cardanoTestnet :: FilePath
 cardanoTestnet =
     maybe "cardano-testnet" id $ unsafePerformIO (lookupEnv "CARDANO_TESTNET")
+
+{-# NOINLINE cardanoNodeChairman #-}
+cardanoNodeChairman :: FilePath
+cardanoNodeChairman =
+    maybe "cardano-node-chairman" id $ unsafePerformIO (lookupEnv "CARDANO_NODE_CHAIRMAN")
 
 getProtocolMajorVersion :: IO Int
 getProtocolMajorVersion =

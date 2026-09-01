@@ -14,6 +14,7 @@ let
     cardano.cardano-node
     cardano.cardano-cli
     cardano.cardano-testnet
+    cardano.cardano-node-chairman
     pkgs.process-compose
     pkgs.curl
     pkgs.bash
