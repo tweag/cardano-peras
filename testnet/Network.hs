@@ -17,6 +17,7 @@ module Network (
     portsIO,
     NodeTip (..),
     renderNodeTips,
+    runChairman,
 ) where
 
 -------------------------------------------------------------------------------
@@ -200,3 +201,17 @@ renderNodeTips = do
     res <- getNodeTips
     putStrLn divider
     putStrLn $ unlines $ map showNodeTip res
+
+runChairman :: IO ()
+runChairman =
+    runCmd
+        [str|#{cardanoNodeChairman} run|]
+        ( [ opt "config" configurationYamlFile
+          , opt "timeout" env_CHAIRMAN_TIMEOUT_SECONDS
+          , opt "require-progress" env_CHAIRMAN_MIN_PROGRESS
+          ]
+            ++ [opt "socket-path" (socketFile i) | i <- [1 .. env_CARDANO_TESTNET_NUM_NODES]]
+        )
+        & Stream.fold Stdio.writeChunks
+  where
+    configurationYamlFile = [str|#{env_TESTNET_WORK_DIR}/configuration.yaml|]
