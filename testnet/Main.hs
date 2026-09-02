@@ -188,7 +188,7 @@ setExperimentalHardForksEnabled = do
             & Stream.fold (File.writeChunks configTmpP)
         runCmd_ [str|mv #{configTmp} #{config}|]
   where
-    startDirectlyInDijkstra = True
+    startDirectlyInDijkstra = False
     configTmp = env_TESTNET_WORK_DIR </> "configuration.yaml.tmp"
     config = env_TESTNET_WORK_DIR </> "configuration.yaml"
 
@@ -255,9 +255,9 @@ createTestnetConfig = do
         ]
         & Console.putChunks
     changeSecurityParam 5
-    changeEpochLength 120
-    changeSlotLength 0.1
-    setExperimentalHardForksEnabled
+    -- changeEpochLength 120
+    -- changeSlotLength 0.1
+    -- setExperimentalHardForksEnabled
     ports <- portsIO
     -- We only replace neighbors of node 1 with proxies for partitioning node 1
     replaceNeighboursWithProxy ports 1
