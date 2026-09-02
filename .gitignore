@@ -321,7 +321,7 @@ dashboard/dist/
 devnet-env/
 work/
 local-config/
-testnet/devnet-env/
+testnet/devnet-env*/
 testnet/dist-newstyle/
 testnet/devnet-env/
 testnet/work/
