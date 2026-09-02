@@ -2,6 +2,12 @@
 
 set -e
 
+cleanup() {
+    trap - EXIT INT TERM
+    kill -- -$$ 2>/dev/null || true
+}
+trap cleanup EXIT INT TERM
+
 if [ -z "$TESTNET_BIN" ]; then
     cabal build testnet
     TESTNET_BIN=$(cabal list-bin testnet)
