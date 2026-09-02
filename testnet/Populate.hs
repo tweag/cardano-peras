@@ -6,7 +6,7 @@ module Populate (
     finalizeCurrentTransaction,
     createPopulateConfig,
     testScriptTrigger,
-    escrow,
+    walletTransfer,
     runFanout,
 ) where
 
@@ -21,7 +21,7 @@ import Data.Maybe (fromJust)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 import Streamly.Unicode.String (str)
-import System.FilePath ((</>))
+import System.FilePath ((</>), (<.>))
 
 -------------------------------------------------------------------------------
 -- Setup
@@ -386,14 +386,14 @@ runFanout = do
         pure (incF spread, outs)
 
 --------------------------------------------------------------------------------
--- Escrow
+-- Wallet transfer
 --------------------------------------------------------------------------------
 
--- TODO: Add escrow logic
-escrow :: IO ()
-escrow = do
-    alice <- fetchWallet env_LOCAL_CONFIG_DIR "alice"
-    bob <- fetchWallet env_LOCAL_CONFIG_DIR "bob"
+walletTransfer :: FilePath -> Int -> IO ()
+walletTransfer fp amount = do
+    let vkey = fp <.> "vkey"
+        skey = fp <.> "skey"
+    addr <- getAddress vkey
+    let wallet = Wallet vkey skey addr
     faucet <- env_FAUCET_WALLET
-    void $ transferAda faucet alice 2000000
-    void $ transferAda faucet bob 2000000
+    void $ transferAda faucet wallet amount

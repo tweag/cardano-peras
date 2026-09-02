@@ -34,7 +34,7 @@ import Gov
 
 data PopulateCommand
     = PCTriggerTest
-    | PCEscrow
+    | PCWallet FilePath Int
     | PCFanout
 
 data NetworkCommand
@@ -105,10 +105,12 @@ populateCommandParser =
                 (progDesc "Run the trigger test")
             )
             <> command
-                "escrow"
+                "wallet"
                 ( info
-                    (pure PCEscrow)
-                    (progDesc "Run the escrow scenario")
+                    (PCWallet
+                         <$> strArgument (metavar "FILE")
+                         <*> argument auto (metavar "INT"))
+                    (progDesc "Transfer funds")
                 )
             <> command
                 "fanout"
@@ -357,7 +359,7 @@ main = do
         StartLocalTestnet -> startLocalTestnet
         Clean -> clean
         Populate PCTriggerTest -> testScriptTrigger
-        Populate PCEscrow -> escrow
+        Populate (PCWallet fp n) -> walletTransfer fp n
         Populate PCFanout -> runFanout
         Setup -> setup
         Network NCSyncNodes -> toxiproxyCreateClients =<< portsIO
