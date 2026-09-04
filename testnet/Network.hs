@@ -18,6 +18,7 @@ module Network (
     NodeTip (..),
     renderNodeTips,
     runChairman,
+    applyFaults,
 ) where
 
 -------------------------------------------------------------------------------
@@ -25,6 +26,8 @@ module Network (
 -------------------------------------------------------------------------------
 
 import Misc
+import Scenario (FaultAction(..))
+import Scenario qualified as Scenario
 import Streamly.Console.Stdio qualified as Stdio
 import Data.Function ((&))
 import Streamly.Data.Fold qualified as Fold
@@ -213,5 +216,17 @@ runChairman =
             ++ [opt "socket-path" (socketFile i) | i <- [1 .. env_CARDANO_TESTNET_NUM_NODES]]
         )
         & Stream.fold Stdio.writeChunks
+
+applyFaults :: [Scenario.FaultAction] -> IO ()
+applyFaults = mapM_ applyFault
   where
-    configurationYamlFile = [str|#{env_TESTNET_WORK_DIR}/configuration.yaml|]
+    applyFault :: FaultAction -> IO ()
+    applyFault (FaultIsolate nodes) = mapM_ toxToggle nodes
+    applyFault (FaultLatency nodes direction latencyMs jitterMs) = mapM_ (applyLatencyToNode direction) nodes
+      where
+        opts = ToxLatencyOpts{tloLatency = latencyMs, tloJitter = jitterMs}
+        applyLatencyToNode Scenario.Upstream i = toxLatency "scenario-latency-up" Upstream opts i
+        applyLatencyToNode Scenario.Downstream i = toxLatency "scenario-latency-down" Downstream opts i
+        applyLatencyToNode Scenario.Both i = do
+            toxLatency "scenario-latency-up" Upstream opts i
+            toxLatency "scenario-latency-down" Downstream opts i

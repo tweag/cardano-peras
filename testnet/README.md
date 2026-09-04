@@ -21,8 +21,12 @@ Start the UI in the first terminal session using,
 
 Start the testnet in the second terminal session using,
 ```
-./result/bin/testnet testnet
+./result/bin/testnet vanilla
 ```
+(`vanilla` is the default scenario, can be omitted). See
+[`scenarios/`](./scenarios) for the rest.
+
+`nix run github:tweag/cardano-peras#testnet <scenario>` is also supported.
 
 ## Development
 

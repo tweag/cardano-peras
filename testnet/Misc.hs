@@ -60,6 +60,11 @@ module Misc (
     waitTillExists,
     fstOutput,
     transferAda,
+    getPoolId,
+    poolColdVkeyFile,
+    shelleyGenesisFile,
+    byronGenesisFile,
+    configurationYamlFile,
     -- Globals
     env_LOCAL_CONFIG_DIR,
     env_PLUTUS_SCRIPTS_DIR,
@@ -69,6 +74,13 @@ module Misc (
     env_CARDANO_TESTNET_NUM_NODES,
     env_CARDANO_TESTNET_NUM_SPO_NODES,
     env_CARDANO_TESTNET_NUM_RELAY_NODES,
+    env_GENESIS_NUM_DREPS,
+    env_GENESIS_SECURITY_PARAM_K,
+    env_GENESIS_EPOCH_LENGTH_SLOTS,
+    env_GENESIS_SLOT_LENGTH_SECONDS,
+    env_GENESIS_MAX_LOVELACE_SUPPLY,
+    env_GENESIS_START_DIRECTLY_IN_DIJKSTRA,
+    env_SPO_GROUP_POOL_INDICES,
     env_CHAIRMAN_TIMEOUT_SECONDS,
     env_CHAIRMAN_MIN_PROGRESS,
     env_FAUCET_WALLET_VKEY_FILE,
@@ -96,6 +108,7 @@ import Streamly.Unicode.String (str)
 import System.FilePath ((<.>), (</>))
 import System.Environment (lookupEnv)
 import System.IO.Unsafe (unsafePerformIO)
+import Scenario
 
 -------------------------------------------------------------------------------
 -- Utils
@@ -166,17 +179,65 @@ env_LOCAL_CONFIG_DIR = "local-config"
 env_PLUTUS_SCRIPTS_DIR :: FilePath
 env_PLUTUS_SCRIPTS_DIR = "plutus-scripts"
 
-env_CARDANO_TESTNET_NUM_NODES :: Int
-env_CARDANO_TESTNET_NUM_NODES = 5
-
 env_CARDANO_TESTNET_NUM_SPO_NODES :: Int
-env_CARDANO_TESTNET_NUM_SPO_NODES = 3
+env_CARDANO_TESTNET_NUM_SPO_NODES =
+    sum [groupCount g | g <- topologyGroups (scenarioConfigTopology scenarioConfig), groupRole g == Spo]
 
 env_CARDANO_TESTNET_NUM_RELAY_NODES :: Int
-env_CARDANO_TESTNET_NUM_RELAY_NODES = env_CARDANO_TESTNET_NUM_NODES - env_CARDANO_TESTNET_NUM_SPO_NODES
+env_CARDANO_TESTNET_NUM_RELAY_NODES =
+    sum [groupCount g | g <- topologyGroups (scenarioConfigTopology scenarioConfig), groupRole g == Relay]
+
+env_CARDANO_TESTNET_NUM_NODES :: Int
+env_CARDANO_TESTNET_NUM_NODES = env_CARDANO_TESTNET_NUM_SPO_NODES + env_CARDANO_TESTNET_NUM_RELAY_NODES
 
 env_CARDANO_TESTNET_MAGIC :: Int
-env_CARDANO_TESTNET_MAGIC = 42
+env_CARDANO_TESTNET_MAGIC = topologyMagic (scenarioConfigTopology scenarioConfig)
+
+env_GENESIS_NUM_DREPS :: Int
+env_GENESIS_NUM_DREPS = genesisNumDReps (scenarioConfigGenesis scenarioConfig)
+
+env_GENESIS_SECURITY_PARAM_K :: Int
+env_GENESIS_SECURITY_PARAM_K = genesisSecurityParamK (scenarioConfigGenesis scenarioConfig)
+
+env_GENESIS_EPOCH_LENGTH_SLOTS :: Int
+env_GENESIS_EPOCH_LENGTH_SLOTS = genesisEpochLengthSlots (scenarioConfigGenesis scenarioConfig)
+
+env_GENESIS_SLOT_LENGTH_SECONDS :: Double
+env_GENESIS_SLOT_LENGTH_SECONDS = genesisSlotLengthSeconds (scenarioConfigGenesis scenarioConfig)
+
+env_GENESIS_MAX_LOVELACE_SUPPLY :: Integer
+env_GENESIS_MAX_LOVELACE_SUPPLY = genesisMaxLovelaceSupply (scenarioConfigGenesis scenarioConfig)
+
+env_GENESIS_START_DIRECTLY_IN_DIJKSTRA :: Bool
+env_GENESIS_START_DIRECTLY_IN_DIJKSTRA = genesisStartDirectlyInDijkstra (scenarioConfigGenesis scenarioConfig)
+
+env_SPO_GROUP_POOL_INDICES :: [(NodeGroup, [Int])]
+env_SPO_GROUP_POOL_INDICES =
+    go 1 [g | g <- topologyGroups (scenarioConfigTopology scenarioConfig), groupRole g == Spo]
+  where
+    go _ [] = []
+    go start (g : gs) = (g, [start .. start + groupCount g - 1]) : go (start + groupCount g) gs
+
+poolColdVkeyFile :: Int -> FilePath
+poolColdVkeyFile i = env_TESTNET_WORK_DIR </> "pools-keys" </> ("pool" ++ show i) </> "cold.vkey"
+
+shelleyGenesisFile :: FilePath
+shelleyGenesisFile = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
+
+byronGenesisFile :: FilePath
+byronGenesisFile = env_TESTNET_WORK_DIR </> "byron-genesis.json"
+
+configurationYamlFile :: FilePath
+configurationYamlFile = env_TESTNET_WORK_DIR </> "configuration.yaml"
+
+getPoolId :: FilePath -> IO String
+getPoolId coldVkeyFile =
+    runCmd
+        [str|#{cardanoCli} conway stake-pool id|]
+        [ opt "cold-verification-key-file" coldVkeyFile
+        , flg "output-hex"
+        ]
+        & firstNonEmptyLine "getPoolId"
 
 env_CHAIRMAN_TIMEOUT_SECONDS :: Int
 env_CHAIRMAN_TIMEOUT_SECONDS = 24 * 60 * 60
@@ -273,20 +334,29 @@ runCmd cmd args = runCmd' cmdStr
     cmdList = cmd : map cmdOptStr args
     cmdStr = unwords cmdList
 
+-- | Resolve an executable path in the following order:
+-- 1. ENV var
+-- 2. Path from the scenario file
+-- 3. default from PATH
+resolveExecutable :: String -> (Executables -> Maybe FilePath) -> FilePath -> FilePath
+resolveExecutable envVar fromScenario defaultPath =
+    maybe fromScenarioOrDefault id $ unsafePerformIO (lookupEnv envVar)
+  where
+    fromScenarioOrDefault =
+        maybe defaultPath id $
+            topologyExecutables (scenarioConfigTopology scenarioConfig) >>= fromScenario
+
 {-# NOINLINE cardanoCli #-}
 cardanoCli :: FilePath
-cardanoCli =
-    maybe "cardano-cli" id $ unsafePerformIO (lookupEnv "CARDANO_CLI")
+cardanoCli = resolveExecutable "CARDANO_CLI" execCardanoCli "cardano-cli"
 
 {-# NOINLINE cardanoNode #-}
 cardanoNode :: FilePath
-cardanoNode =
-    maybe "cardano-node" id $ unsafePerformIO (lookupEnv "CARDANO_NODE")
+cardanoNode = resolveExecutable "CARDANO_NODE" execCardanoNode "cardano-node"
 
 {-# NOINLINE cardanoTestnet #-}
 cardanoTestnet :: FilePath
-cardanoTestnet =
-    maybe "cardano-testnet" id $ unsafePerformIO (lookupEnv "CARDANO_TESTNET")
+cardanoTestnet = resolveExecutable "CARDANO_TESTNET" execCardanoTestnet "cardano-testnet"
 
 {-# NOINLINE cardanoNodeChairman #-}
 cardanoNodeChairman :: FilePath

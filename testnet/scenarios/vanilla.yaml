@@ -1,0 +1,32 @@
+# 3 SPO nodes + 2 relay nodes, stake split evenly by cardano-testnet itself.
+#
+scenario:
+  name: vanilla
+  description: "3 SPOs, 2 relays, even stake, no faults"
+
+topology:
+  magic: 42
+  groups:
+    - name: pools
+      role: spo
+      count: 3
+
+    - name: relays
+      role: relay
+      count: 2
+
+genesis:
+  epoch_length_slots: 120
+  slot_length_seconds: 0.1
+  security_param_k: 5
+  active_slot_coeff_f: 0.05
+  num_dreps: 3
+  max_lovelace_supply: 100000020000000
+  start_directly_in_dijkstra: true
+
+faults: []
+
+observability:
+  trace_filters:
+    - TraceObjectDiffusion
+    - PerasVoteDbEvent
