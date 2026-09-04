@@ -1,0 +1,34 @@
+scenario:
+  name: stake-60-40
+  description: "3 core SPOs sharing 60% stake (20% each), 1 edge SPO holding 40%, 2 relays"
+
+topology:
+  magic: 42
+  groups:
+    - name: core
+      role: spo
+      count: 3
+      stake: 60
+    - name: edge
+      role: spo
+      count: 1
+      stake: 40
+    - name: relays
+      role: relay
+      count: 2
+
+genesis:
+  epoch_length_slots: 120
+  slot_length_seconds: 0.1
+  security_param_k: 5
+  active_slot_coeff_f: 0.05
+  num_dreps: 4 # must be >= total SPO pool count (3 core + 1 edge)
+  max_lovelace_supply: 100000020000000
+  start_directly_in_dijkstra: true
+
+faults: []
+
+observability:
+  trace_filters:
+    - TraceObjectDiffusion
+    - PerasVoteDbEvent

@@ -45,6 +45,8 @@ let
     runtimeInputs = extraInputs;
     runtimeEnv = {
       TESTNET_BIN = "${testnetExe}/bin/testnet";
+      # Include scenarios for `nix run`
+      TESTNET_SCENARIOS_DIR = "${./scenarios}";
     };
     text = builtins.readFile ./launch.sh;
   };
