@@ -1,0 +1,37 @@
+scenario:
+  name: isolated-latency
+  description: "Node 1 isolated; latency injected between nodes 2 and 3"
+
+topology:
+  magic: 42
+  groups:
+    - name: pools
+      role: spo
+      count: 3
+    - name: relays
+      role: relay
+      count: 2
+
+genesis:
+  epoch_length_slots: 120
+  slot_length_seconds: 0.1
+  security_param_k: 5
+  active_slot_coeff_f: 0.05
+  num_dreps: 3
+  max_lovelace_supply: 100000020000000
+  start_directly_in_dijkstra: true
+
+faults:
+  - type: isolate
+    nodes: [1]
+
+  - type: latency
+    nodes: [2, 3]
+    direction: both # upstream | downstream | both
+    latency_ms: 200
+    jitter_ms: 50
+
+observability:
+  trace_filters:
+    - TraceObjectDiffusion
+    - PerasVoteDbEvent
