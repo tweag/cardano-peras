@@ -56,6 +56,9 @@ executable testnet
                  Populate
                  Network
                  Gov
+                 Scenario
+                 Stake
+                 JsonFile
                  UI
                  UI.CommServer
   ghc-options:   -threaded -with-rtsopts=-N
@@ -74,3 +77,8 @@ executable testnet
     , mtl
     , directory
     , vector
+    , aeson
+    , aeson-pretty
+    , yaml
+    , text
+    , scientific

@@ -8,26 +8,26 @@ module Main (main) where
 -- Imports
 -------------------------------------------------------------------------------
 
-import Control.Monad (when)
+import Data.Aeson (Value (..))
 import Data.Function ((&))
 import Data.List qualified as List
+import Data.Scientific qualified as Scientific
+import Data.Text qualified as Text
 
 import Options.Applicative hiding (str)
 import Streamly.Console.Stdio qualified as Console
-import Streamly.Data.Stream qualified as Stream
-import Streamly.FileSystem.FileIO qualified as File
-import Streamly.FileSystem.Path qualified as Path
-import Streamly.System.Command qualified as Cmd
 import Streamly.Unicode.String (str)
 import System.Environment (setEnv, lookupEnv)
-import System.FilePath ((</>))
 import System.IO (BufferMode (..), hSetBuffering, stderr, stdout)
 import UI qualified as UI
 
+import JsonFile
 import Misc
 import Populate
 import Network
 import Gov
+import Scenario
+import Stake
 
 -------------------------------------------------------------------------------
 -- CLI
@@ -46,6 +46,7 @@ data NetworkCommand
     | NCRemoveToxicity
     | NCHardForkToDijkstra
     | NCChairman
+    | NCApplyFaults
 
 data Command
     = StartLocalTestnet
@@ -54,6 +55,8 @@ data Command
     | Setup
     | Network NetworkCommand
     | StdoutComposeYaml String
+    | ValidateScenario FilePath
+    | RedistributeStake
     | UI
 
 networkCommandParser :: Parser NetworkCommand
@@ -100,6 +103,12 @@ networkCommandParser =
                 ( info
                     (pure NCChairman)
                     (progDesc "Watch all nodes and check they stay in consensus")
+                )
+            <> command
+                "apply-faults"
+                ( info
+                    (pure NCApplyFaults)
+                    (progDesc "Apply the faults defined in the active scenario (TESTNET_SCENARIO)")
                 )
         )
 
@@ -166,6 +175,18 @@ commandParser =
                     (progDesc "Contents of process-compose.yaml")
                 )
             <> command
+                "validate-scenario"
+                ( info
+                    (ValidateScenario <$> strArgument (metavar "FILE"))
+                    (progDesc "Parse and validate a scenario YAML file")
+                )
+            <> command
+                "redistribute-stake"
+                ( info
+                    (pure RedistributeStake)
+                    (progDesc "Rebalance genesis stake per topology.groups[].stake (TESTNET_SCENARIO)")
+                )
+            <> command
                 "ui"
                 ( info
                     (pure UI)
@@ -187,70 +208,34 @@ opts =
 
 setExperimentalHardForksEnabled :: IO ()
 setExperimentalHardForksEnabled = do
-    configTmpP <- Path.fromString configTmp
-    runCmd [str|jq '.ExperimentalHardForksEnabled = true' #{config}|] []
-        & Stream.fold (File.writeChunks configTmpP)
-    runCmd_ [str|mv #{configTmp} #{config}|]
-    when startDirectlyInDijkstra $ do
-        runCmd [str|jq '.TestDijkstraHardForkAtEpoch = 0' #{config}|] []
-            & Stream.fold (File.writeChunks configTmpP)
-        runCmd_ [str|mv #{configTmp} #{config}|]
-  where
-    startDirectlyInDijkstra = True
-    configTmp = env_TESTNET_WORK_DIR </> "configuration.yaml.tmp"
-    config = env_TESTNET_WORK_DIR </> "configuration.yaml"
-
-updateParamAndCheck :: FilePath -> String -> String -> String -> IO ()
-updateParamAndCheck fp sedQ jqQ newParam = do
-    runCmd_ [str|sed -i '#{sedQ}' #{fp}|]
-    fpP <- Path.fromString fp
-    updated <-
-        File.readChunks fpP
-            & Cmd.pipeChunks [str|jq -r "#{jqQ}"|]
-            & firstNonEmptyLine "updateParamAndCheck"
-    when (updated /= newParam) . error $
-        "updateParamAndCheck: Unable to change param: " ++ fp
+    config <- readJsonFile configurationYamlFile
+    let config' = setPath ["ExperimentalHardForksEnabled"] (Bool True) config
+        config'' =
+            if env_GENESIS_START_DIRECTLY_IN_DIJKSTRA
+                then setPath ["TestDijkstraHardForkAtEpoch"] (Number 0) config'
+                else config'
+    writeJsonFile configurationYamlFile config''
 
 changeEpochLength :: Int -> IO ()
-changeEpochLength secs =
-    updateParamAndCheck
-        shelley
-        [str|s/"epochLength": [0-9]*/"epochLength": #{targetVal}/|]
-        ".epochLength"
-        targetVal
-  where
-    shelley = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
-    targetVal = show secs
+changeEpochLength secs = do
+    genesis <- readJsonFile shelleyGenesisFile
+    writeJsonFile shelleyGenesisFile $
+        setPath ["epochLength"] (Number (fromIntegral secs)) genesis
 
 changeSlotLength :: Double -> IO ()
-changeSlotLength i =
-    updateParamAndCheck
-        shelley
-        [str|s/"slotLength": [0-9\.]*/"slotLength": #{targetVal}/|]
-        ".slotLength"
-        targetVal
-  where
-    shelley = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
-    targetVal = show i
+changeSlotLength secs = do
+    genesis <- readJsonFile shelleyGenesisFile
+    writeJsonFile shelleyGenesisFile $
+        setPath ["slotLength"] (Number (Scientific.fromFloatDigits secs)) genesis
 
 changeSecurityParam :: Int -> IO ()
-changeSecurityParam i = do
-    -- NOTE: Using jq here fails because of runCmd. Need to investigate this
-    -- later.
-    -- TODO: Use jq instead of sed
-    updateParamAndCheck
-        shelly
-        [str|s/"securityParam": [0-9]*/"securityParam": #{secParam}/|]
-        ".securityParam"
-        secParam
-    updateParamAndCheck
-        byron
-        [str|s/"k": [0-9]*/"k": #{secParam}/|] ".protocolConsts.k"
-        secParam
-  where
-    shelly = env_TESTNET_WORK_DIR </> "shelley-genesis.json"
-    byron = env_TESTNET_WORK_DIR </> "byron-genesis.json"
-    secParam = show i
+changeSecurityParam k = do
+    shelley <- readJsonFile shelleyGenesisFile
+    writeJsonFile shelleyGenesisFile $
+        setPath ["securityParam"] (Number (fromIntegral k)) shelley
+    byron <- readJsonFile byronGenesisFile
+    writeJsonFile byronGenesisFile $
+        setPath ["protocolConsts", "k"] (Number (fromIntegral k)) byron
 
 createTestnetConfig :: IO ()
 createTestnetConfig = do
@@ -261,14 +246,16 @@ createTestnetConfig = do
     runCmd
         [str|#{cardanoTestnet} create-env|]
         [ opt "nodes" nodesArg
-        , opt "num-dreps" env_CARDANO_TESTNET_NUM_RELAY_NODES
+        , opt "num-dreps" env_GENESIS_NUM_DREPS
+        , opt "max-lovelace-supply" env_GENESIS_MAX_LOVELACE_SUPPLY
         , opt "output" env_TESTNET_WORK_DIR
         , opt "testnet-magic" env_CARDANO_TESTNET_MAGIC
         ]
         & Console.putChunks
-    changeSecurityParam 5
-    changeEpochLength 120
-    changeSlotLength 0.1
+    changeSecurityParam env_GENESIS_SECURITY_PARAM_K
+    changeEpochLength env_GENESIS_EPOCH_LENGTH_SLOTS
+    changeSlotLength env_GENESIS_SLOT_LENGTH_SECONDS
+    redistributeStake
     setExperimentalHardForksEnabled
     ports <- portsIO
     -- We only replace neighbors of node 1 with proxies for partitioning node 1
@@ -296,9 +283,10 @@ setup = do
     createTestnetConfig
 
 -- TODO: Add a dependency between cardano-testnet and server
-stdoutComposeYaml :: String -> IO ()
-stdoutComposeYaml testnetCmd = putStr [str|
+stdoutComposeYaml :: String -> String -> IO ()
+stdoutComposeYaml scenarioName testnetCmd = putStr [str|
 version: "0.5"
+name: "testnet-#{scenarioName}"
 
 processes:
   setup:
@@ -348,19 +336,36 @@ processes:
       success_threshold: 1
       failure_threshold: 5
 
+  apply-faults:
+    command: "#{testnetCmd} network apply-faults"
+    depends_on:
+      sync-nodes:
+        condition: process_completed_successfully
+
 #{nodeLogProcessAll}
 
 |]
   where
+    traceFilterPattern =
+        List.intercalate "|" (Text.unpack <$> observabilityTraceFilters (scenarioConfigObservability scenarioConfig))
     nodeLogProcess i0 = let i = show i0 in [str|
   node-stdout-#{i}:
-    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log | grep --line-buffered -E 'TraceObjectDiffusion|PerasVoteDbEvent'"
+    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log | grep --line-buffered -E '#{traceFilterPattern}'"
     depends_on:
       cardano-testnet:
         condition: process_healthy
 |]
     nodeLogProcessAll =
         unlines $ nodeLogProcess <$> [1..env_CARDANO_TESTNET_NUM_NODES]
+
+validateScenario :: FilePath -> IO ()
+validateScenario path = do
+    config <- loadScenario path
+    putStrLn $ "Correct: " ++ path
+    putStrLn $ "  name: " ++ Text.unpack (scenarioConfigName config)
+    putStrLn $ "  groups: " ++ show (length (topologyGroups (scenarioConfigTopology config)))
+    putStrLn $ "  nodes: " ++ show (sum (groupCount <$> topologyGroups (scenarioConfigTopology config)))
+    putStrLn $ "  faults: " ++ show (length (scenarioConfigFaults config))
 
 main :: IO ()
 main = do
@@ -385,7 +390,10 @@ main = do
         Network NCRemoveToxicity -> removeToxicity
         Network NCHardForkToDijkstra -> governProtocolUpdateTo12
         Network NCChairman -> runChairman
-        StdoutComposeYaml testnetCmd -> stdoutComposeYaml testnetCmd
+        Network NCApplyFaults -> applyFaults (scenarioConfigFaults scenarioConfig)
+        StdoutComposeYaml testnetCmd -> stdoutComposeYaml (Text.unpack $ scenarioConfigName scenarioConfig) testnetCmd
+        ValidateScenario path -> validateScenario path
+        RedistributeStake -> redistributeStake
         UI -> UI.main
 
 setEnvIfDoesNotExist :: String -> String -> IO ()
