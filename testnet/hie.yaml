@@ -1,0 +1,22 @@
+cradle:
+  cabal:
+    - path: "./Main.hs"
+      component: "testnet:exe:testnet"
+
+    - path: "./Misc.hs"
+      component: "testnet:exe:testnet"
+
+    - path: "./Populate.hs"
+      component: "testnet:exe:testnet"
+
+    - path: "./Network.hs"
+      component: "testnet:exe:testnet"
+
+    - path: "./Gov.hs"
+      component: "testnet:exe:testnet"
+
+    - path: "./UI.hs"
+      component: "testnet:exe:testnet"
+
+    - path: "./UI/CommServer.hs"
+      component: "testnet:exe:testnet"

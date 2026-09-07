@@ -1,8 +1,9 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module UI where
 
+import Brick
+import Brick.BChan (newBChan, writeBChan)
+import Brick.Widgets.Border as B
+import Brick.Widgets.Center as C
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Exception (finally)
 import Control.Monad (forever, void)
@@ -11,19 +12,13 @@ import Control.Monad.State.Class (MonadState)
 import Data.ByteString.Char8 qualified as BC
 import Data.IORef (IORef, newIORef, readIORef)
 import Data.List (intersperse)
-import GHC.IO.Handle (hDuplicate, hDuplicateTo)
-import System.Directory (removeFile)
-import System.IO (IOMode (WriteMode), hClose, hFlush, openFile, stderr, stdout)
-
-import Brick
-import Brick.BChan (newBChan, writeBChan)
-import Brick.Widgets.Border as B
-import Brick.Widgets.Center as C
 import Data.Vector qualified as V
+import GHC.IO.Handle (hDuplicate, hDuplicateTo)
 import Graphics.Vty qualified as V
 import Graphics.Vty.Platform.Unix (mkVty)
-
 import Network
+import System.Directory (removeFile)
+import System.IO (IOMode (WriteMode), hClose, hFlush, openFile, stderr, stdout)
 import UI.CommServer
 
 --------------------------------------------------------------------------------
@@ -33,16 +28,16 @@ import UI.CommServer
 data UiEvent = ReadFromDatabase
 
 data ColumnSpec a = ColumnSpec
-    { colHeader :: String
-    , colWidth :: Int
-    , colRender :: a -> Widget ()
-    }
+  { colHeader :: String,
+    colWidth :: Int,
+    colRender :: a -> Widget ()
+  }
 
 brickTable :: [ColumnSpec a] -> [Widget ()] -> [a] -> Widget ()
 brickTable cols emptyFallback rows =
-    if null rows
-        then vBox emptyFallback
-        else vBox (headerRow : hBorder : bodyRows)
+  if null rows
+    then vBox emptyFallback
+    else vBox (headerRow : hBorder : bodyRows)
   where
     pipe = str " | "
     headerRow = hBox $ intersperse pipe $ map drawHeaderCell cols
@@ -52,18 +47,18 @@ brickTable cols emptyFallback rows =
     drawBodyCell col item = hLimit (colWidth col) (padRight Max (colRender col item))
 
 data Property = Property
-    { propLabel :: String
-    , propValue :: Widget ()
-    }
+  { propLabel :: String,
+    propValue :: Widget ()
+  }
 
 propertyPanel :: [Property] -> Widget ()
 propertyPanel properties = vBox $ map drawRow properties
   where
     maxLabelWidth = maximum (0 : map (length . propLabel) properties)
     drawRow prop =
-        let labelStr = propLabel prop ++ ":"
-            labelWidget = hLimit (maxLabelWidth + 2) (padRight Max (str labelStr))
-         in labelWidget <+> propValue prop
+      let labelStr = propLabel prop ++ ":"
+          labelWidget = hLimit (maxLabelWidth + 2) (padRight Max (str labelStr))
+       in labelWidget <+> propValue prop
 
 --------------------------------------------------------------------------------
 -- Low-Level Output Capture Engine
@@ -71,52 +66,52 @@ propertyPanel properties = vBox $ map drawRow properties
 
 captureExternalOutputs :: IO a -> IO (a, [String])
 captureExternalOutputs action = do
-    let tempPath = "temp_capture.log"
-    savedStdout <- hDuplicate stdout
-    savedStderr <- hDuplicate stderr
-    logFileHandle <- openFile tempPath WriteMode
-    hDuplicateTo logFileHandle stdout
-    hDuplicateTo logFileHandle stderr
-    hClose logFileHandle
+  let tempPath = "temp_capture.log"
+  savedStdout <- hDuplicate stdout
+  savedStderr <- hDuplicate stderr
+  logFileHandle <- openFile tempPath WriteMode
+  hDuplicateTo logFileHandle stdout
+  hDuplicateTo logFileHandle stderr
+  hClose logFileHandle
 
-    let restoreHandles = do
-            hFlush stdout
-            hFlush stderr
-            hDuplicateTo savedStdout stdout
-            hDuplicateTo savedStderr stderr
-            hClose savedStdout
-            hClose savedStderr
+  let restoreHandles = do
+        hFlush stdout
+        hFlush stderr
+        hDuplicateTo savedStdout stdout
+        hDuplicateTo savedStderr stderr
+        hClose savedStdout
+        hClose savedStderr
 
-    result <- action `finally` restoreHandles
-    capturedBytes <- BC.readFile tempPath
-    removeFile tempPath
-    return (result, map BC.unpack (BC.lines capturedBytes))
+  result <- action `finally` restoreHandles
+  capturedBytes <- BC.readFile tempPath
+  removeFile tempPath
+  return (result, map BC.unpack (BC.lines capturedBytes))
 
 --------------------------------------------------------------------------------
 -- TUI State Engine
 --------------------------------------------------------------------------------
 
 data UiState = UiState
-    { inputSlot :: String
-    , inputHash :: String
-    , fetchedTips :: [NodeTip]
-    , uiLogs :: [String]
-    , isSystemLocked :: Bool
-    , partitionActive :: Bool
-    , database :: Database
-    }
+  { inputSlot :: String,
+    inputHash :: String,
+    fetchedTips :: [NodeTip],
+    uiLogs :: [String],
+    isSystemLocked :: Bool,
+    partitionActive :: Bool,
+    database :: Database
+  }
 
 initialState :: UiState
 initialState =
-    UiState
-        { inputSlot = ""
-        , inputHash = ""
-        , fetchedTips = []
-        , uiLogs = ["Console initialized. Actions available."]
-        , isSystemLocked = False
-        , partitionActive = False
-        , database = initialDB
-        }
+  UiState
+    { inputSlot = "",
+      inputHash = "",
+      fetchedTips = [],
+      uiLogs = ["Console initialized. Actions available."],
+      isSystemLocked = False,
+      partitionActive = False,
+      database = initialDB
+    }
 
 --------------------------------------------------------------------------------
 -- View Layer (UI Layout)
@@ -124,75 +119,75 @@ initialState =
 
 voteForm :: UiState -> Widget ()
 voteForm st =
-    B.borderWithLabel (str " Status ") $
-        padAll 1 $
-            propertyPanel
-                [ Property "Partition Status" $
-                    if partitionActive st
-                        then withAttr partitionOnAttr (str "ACTIVE")
-                        else withAttr partitionOffAttr (str "INACTIVE")
-                ]
+  B.borderWithLabel (str " Status ") $
+    padAll 1 $
+      propertyPanel
+        [ Property "Partition Status" $
+            if partitionActive st
+              then withAttr partitionOnAttr (str "ACTIVE")
+              else withAttr partitionOffAttr (str "INACTIVE")
+        ]
 
 logsDisplay :: UiState -> Widget ()
 logsDisplay st =
-    B.borderWithLabel (str " Logs ") $
-        let visibleLogs = take 4 (uiLogs st)
-         in if null visibleLogs
-                then str " "
-                else vBox (map (withAttr logTextAttr . str) visibleLogs)
+  B.borderWithLabel (str " Logs ") $
+    let visibleLogs = take 4 (uiLogs st)
+     in if null visibleLogs
+          then str " "
+          else vBox (map (withAttr logTextAttr . str) visibleLogs)
 
 databaseTableDisplay :: UiState -> Widget ()
 databaseTableDisplay st =
-    B.borderWithLabel (str " Per-Node Database Registry ")
-        . padTopBottom 1
-        . padLeftRight 2
-        . brickTable columnConfig fallback
-        . fmap (fmap pnLatestAdvert)
-        $ zip ([1 ..] :: [Int]) (V.toList (database st))
+  B.borderWithLabel (str " Per-Node Database Registry ")
+    . padTopBottom 1
+    . padLeftRight 2
+    . brickTable columnConfig fallback
+    . fmap (fmap pnLatestAdvert)
+    $ zip ([1 ..] :: [Int]) (V.toList (database st))
   where
     fallback = [str "No registered node data found in shared memory."]
 
     columnConfig =
-        [ ColumnSpec "Node Index" 12 (\(idx, _) -> str ("Node [" ++ show idx ++ "]"))
-        , ColumnSpec "Slot" 6 (\(_, info) -> withAttr logTextAttr (str (show (pnSlotNo info))))
-        , ColumnSpec "Block No" 6 (\(_, info) -> withAttr logTextAttr (str (show (pnBlockNo info))))
-        , ColumnSpec "Block Hash" 12 (\(_, info) -> withAttr logTextAttr (str (pnBlockHash info)))
-        , ColumnSpec "Votes Count" 6 (\(_, info) -> withAttr inputAttr (str (show (pnNumVotes info))))
-        , ColumnSpec "Certs Count" 6 (\(_, info) -> withAttr inputAttr (str (show (pnNumCerts info))))
-        , ColumnSpec
-            "Chain Weight"
-            12
-            ( \(_, info) ->
-                let weightPartStr = show (pnChainLen info) ++ " + " ++ show (pnPerasBoost info)
-                 in withAttr inputAttr (str weightPartStr)
-            )
-        ]
+      [ ColumnSpec "Node Index" 12 (\(idx, _) -> str ("Node [" ++ show idx ++ "]")),
+        ColumnSpec "Slot" 6 (\(_, info) -> withAttr logTextAttr (str (show (pnSlotNo info)))),
+        ColumnSpec "Block No" 6 (\(_, info) -> withAttr logTextAttr (str (show (pnBlockNo info)))),
+        ColumnSpec "Block Hash" 12 (\(_, info) -> withAttr logTextAttr (str (pnBlockHash info))),
+        ColumnSpec "Votes Count" 6 (\(_, info) -> withAttr inputAttr (str (show (pnNumVotes info)))),
+        ColumnSpec "Certs Count" 6 (\(_, info) -> withAttr inputAttr (str (show (pnNumCerts info)))),
+        ColumnSpec
+          "Chain Weight"
+          12
+          ( \(_, info) ->
+              let weightPartStr = show (pnChainLen info) ++ " + " ++ show (pnPerasBoost info)
+               in withAttr inputAttr (str weightPartStr)
+          )
+      ]
 
 drawUi :: UiState -> [Widget ()]
 drawUi st =
-    [ C.center $
-        B.borderWithLabel (str " Node Tip Monitor ") $
-            vBox
-                [ drawStatusBanner (isSystemLocked st)
-                , padAll 1 $ voteForm st
-                , padLeftRight 1 $ databaseTableDisplay st
-                , padLeftRight 1 $ logsDisplay st
-                , hBorder
-                , padAll 1 $ drawActionInstructions (isSystemLocked st)
-                ]
-    ]
+  [ C.center $
+      B.borderWithLabel (str " Node Tip Monitor ") $
+        vBox
+          [ drawStatusBanner (isSystemLocked st),
+            padAll 1 $ voteForm st,
+            padLeftRight 1 $ databaseTableDisplay st,
+            padLeftRight 1 $ logsDisplay st,
+            hBorder,
+            padAll 1 $ drawActionInstructions (isSystemLocked st)
+          ]
+  ]
 
 drawStatusBanner :: Bool -> Widget ()
 drawStatusBanner False =
-    withAttr successAttr $ C.hCenter $ str " [SYSTEM IDLE] "
+  withAttr successAttr $ C.hCenter $ str " [SYSTEM IDLE] "
 drawStatusBanner True =
-    withAttr loadingAttr $ C.hCenter $ str $ " [LOCKED] "
+  withAttr loadingAttr $ C.hCenter $ str " [LOCKED] "
 
 drawActionInstructions :: Bool -> Widget ()
 drawActionInstructions False =
-    str "[p]: Toggle Partition | [esc]: Exit"
+  str "[p]: Toggle Partition | [esc]: Exit"
 drawActionInstructions True =
-    withAttr warningAttr $ str "Control locked until votes are processed"
+  withAttr warningAttr $ str "Control locked until votes are processed"
 
 --------------------------------------------------------------------------------
 -- Styling / Attributes
@@ -210,17 +205,17 @@ partitionOffAttr = attrName "partitionOff"
 
 uiStyles :: AttrMap
 uiStyles =
-    attrMap
-        V.defAttr
-        [ (inputAttr, V.defAttr `V.withForeColor` V.cyan `V.withStyle` V.bold)
-        , (nodeNameAttr, V.defAttr `V.withForeColor` V.yellow)
-        , (logTextAttr, V.defAttr `V.withForeColor` V.green)
-        , (successAttr, V.black `on` V.green)
-        , (loadingAttr, V.black `on` V.yellow)
-        , (warningAttr, V.defAttr `V.withForeColor` V.red `V.withStyle` V.bold)
-        , (partitionOnAttr, V.black `on` V.cyan)
-        , (partitionOffAttr, V.defAttr `V.withForeColor` V.white `V.withStyle` V.dim)
-        ]
+  attrMap
+    V.defAttr
+    [ (inputAttr, V.defAttr `V.withForeColor` V.cyan `V.withStyle` V.bold),
+      (nodeNameAttr, V.defAttr `V.withForeColor` V.yellow),
+      (logTextAttr, V.defAttr `V.withForeColor` V.green),
+      (successAttr, V.black `on` V.green),
+      (loadingAttr, V.black `on` V.yellow),
+      (warningAttr, V.defAttr `V.withForeColor` V.red `V.withStyle` V.bold),
+      (partitionOnAttr, V.black `on` V.cyan),
+      (partitionOffAttr, V.defAttr `V.withForeColor` V.white `V.withStyle` V.dim)
+    ]
 
 --------------------------------------------------------------------------------
 -- Controller Layer (Keyboard Guard Router)
@@ -228,39 +223,39 @@ uiStyles =
 
 withUnlockedState :: (MonadState UiState m) => (UiState -> m ()) -> m ()
 withUnlockedState next = do
-    st <- get
-    case isSystemLocked st of
-        True -> modify $ \s -> s{uiLogs = "Command Rejected: Locked while memory populated." : uiLogs s}
-        False -> next st
+  st <- get
+  if isSystemLocked st
+    then modify $ \s -> s {uiLogs = "Command Rejected: Locked while memory populated." : uiLogs s}
+    else next st
 
 handlePartitionEvent :: EventM () UiState ()
 handlePartitionEvent =
-    withUnlockedState $ \st ->
-        if partitionActive st
-            then do
-                ((), interceptedLogs) <- liftIO $ captureExternalOutputs removeToxicity
-                modify $ \s ->
-                    s
-                        { partitionActive = False
-                        , uiLogs = interceptedLogs ++ ["Partition removed."] ++ uiLogs s
-                        }
-            else do
-                ((), interceptedLogs) <- liftIO $ captureExternalOutputs addToxicity
-                modify $ \s ->
-                    s
-                        { partitionActive = True
-                        , uiLogs = interceptedLogs ++ ["Partition created."] ++ uiLogs s
-                        }
+  withUnlockedState $ \st ->
+    if partitionActive st
+      then do
+        ((), interceptedLogs) <- liftIO $ captureExternalOutputs removeToxicity
+        modify $ \s ->
+          s
+            { partitionActive = False,
+              uiLogs = interceptedLogs ++ ["Partition removed."] ++ uiLogs s
+            }
+      else do
+        ((), interceptedLogs) <- liftIO $ captureExternalOutputs addToxicity
+        modify $ \s ->
+          s
+            { partitionActive = True,
+              uiLogs = interceptedLogs ++ ["Partition created."] ++ uiLogs s
+            }
 
 handleEvent :: IORef Database -> BrickEvent () UiEvent -> EventM () UiState ()
 handleEvent dbRef event = case event of
-    VtyEvent (V.EvKey V.KEsc []) -> halt
-    AppEvent  ReadFromDatabase -> do
-        db <- liftIO $ readIORef dbRef
-        let isSystemLocked = False
-        modify $ \st -> st{isSystemLocked = isSystemLocked, database = db}
-    VtyEvent (V.EvKey (V.KChar 'p') []) -> handlePartitionEvent
-    _ -> return ()
+  VtyEvent (V.EvKey V.KEsc []) -> halt
+  AppEvent ReadFromDatabase -> do
+    db <- liftIO $ readIORef dbRef
+    let isSystemLocked = False
+    modify $ \st -> st {isSystemLocked = isSystemLocked, database = db}
+  VtyEvent (V.EvKey (V.KChar 'p') []) -> handlePartitionEvent
+  _ -> return ()
 
 --------------------------------------------------------------------------------
 -- Application Loop Wiring
@@ -268,25 +263,25 @@ handleEvent dbRef event = case event of
 
 app :: IORef Database -> App UiState UiEvent ()
 app ioRef =
-    App
-        { appDraw = drawUi
-        , appChooseCursor = showFirstCursor
-        , appHandleEvent = handleEvent ioRef
-        , appStartEvent = return ()
-        , appAttrMap = const uiStyles
-        }
+  App
+    { appDraw = drawUi,
+      appChooseCursor = showFirstCursor,
+      appHandleEvent = handleEvent ioRef,
+      appStartEvent = return (),
+      appAttrMap = const uiStyles
+    }
 
 main :: IO ()
 main = do
-    ioRef <- newIORef initialDB
-    _ <- forkIO $ runHttpServer ioRef
+  ioRef <- newIORef initialDB
+  _ <- forkIO $ runHttpServer ioRef
 
-    eventChan <- newBChan 10
+  eventChan <- newBChan 10
 
-    _ <- forkIO $ forever $ do
-        threadDelay 200000
-        writeBChan eventChan ReadFromDatabase
+  _ <- forkIO $ forever $ do
+    threadDelay 200000
+    writeBChan eventChan ReadFromDatabase
 
-    let buildVty = mkVty V.defaultConfig
-    initialVty <- buildVty
-    void $ customMain initialVty buildVty (Just eventChan) (app ioRef) initialState
+  let buildVty = mkVty V.defaultConfig
+  initialVty <- buildVty
+  void $ customMain initialVty buildVty (Just eventChan) (app ioRef) initialState

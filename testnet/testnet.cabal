@@ -61,6 +61,7 @@ executable testnet
   ghc-options:   -threaded -with-rtsopts=-N
   build-depends:
     , base
+    , cooked-validators
     , filepath
     , optparse-applicative
     , streamly-core
