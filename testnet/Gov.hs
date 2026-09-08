@@ -6,7 +6,6 @@ module Gov (governProtocolUpdateTo12) where
 
 import Control.Concurrent (threadDelay)
 import Misc
-import Populate (finalizeCurrentTransaction)
 import Streamly.Unicode.String (str)
 import System.FilePath ((-<.>), (</>))
 
@@ -54,26 +53,21 @@ governProtocolUpdateTo12 = do
       let allVotes = nodeVotes ++ drepVotes
           allVotesSigners =
             getSkey
-              <$> concat
-                [ vKeyPool <$> nodes,
-                  vKeyDrep <$> nodes
-                ]
-      buildTransaction $
-        concat
-          [ opt "vote-file" <$> allVotes,
-            [ opt "tx-in" faucetUtxo,
-              opt "change-address" faucetAddr,
-              opt "out-file" env_TX_UNSIGNED
-            ]
-          ]
-      signTransaction $
-        concat
-          [ opt "signing-key-file" <$> allVotesSigners,
-            [ opt "signing-key-file" env_FAUCET_WALLET_SKEY_FILE,
-              opt "tx-body-file" env_TX_UNSIGNED,
-              opt "out-file" env_TX_SIGNED
-            ]
-          ]
+              <$> ((vKeyPool <$> nodes) ++ (vKeyDrep <$> nodes))
+      buildTransaction
+        ( (opt "vote-file" <$> allVotes)
+            ++ [ opt "tx-in" faucetUtxo,
+                 opt "change-address" faucetAddr,
+                 opt "out-file" env_TX_UNSIGNED
+               ]
+        )
+      signTransaction
+        ( (opt "signing-key-file" <$> allVotesSigners)
+            ++ [ opt "signing-key-file" env_FAUCET_WALLET_SKEY_FILE,
+                 opt "tx-body-file" env_TX_UNSIGNED,
+                 opt "out-file" env_TX_SIGNED
+               ]
+        )
       submitTransaction
         [ opt "tx-file" env_TX_SIGNED
         ]

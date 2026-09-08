@@ -68,6 +68,7 @@ executable testnet
     , plutus-ledger-api
     , cooked-validators
     , filepath
+    , optics-core
     , optparse-applicative
     , streamly-core
     , streamly-process

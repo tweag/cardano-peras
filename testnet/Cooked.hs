@@ -9,16 +9,20 @@ import Data.Map qualified as Map
 import Data.String
 import Plutus.Script.Utils.Address qualified as Script
 
-faucetSignatory :: Int -> IO TxSkelSignatory
-faucetSignatory i =
+newtype NodeIndex = NodeIndex Int
+
+newtype FaucetIndex = FaucetIndex Int
+
+faucetSignatory :: FaucetIndex -> IO TxSkelSignatory
+faucetSignatory (FaucetIndex i) =
   signatoryFromFile
     @GenesisUTxOKey
     $ "/home/monsieuro/tweag/cardano-peras/testnet/devnet-env/utxo-keys/utxo"
       <> show i
       <> "/utxo.skey"
 
-nodeConfig :: Int -> LocalNodeConnectInfo
-nodeConfig i =
+nodeConfig :: NodeIndex -> LocalNodeConnectInfo
+nodeConfig (NodeIndex i) =
   LocalNodeConnectInfo
     { localConsensusModeParams = CardanoModeParams (EpochSlots 21600),
       localNodeNetworkId = Testnet (NetworkMagic 42),
@@ -46,5 +50,5 @@ fetchAll =
     >>= retrieve (fmap snd)
     >>= noteL "All Utxos"
 
-runInIO :: (Show a) => Int -> DirectBlockChain a -> IO ()
+runInIO :: (Show a) => NodeIndex -> DirectBlockChain a -> IO ()
 runInIO i = runBlockChainFromConfTemplate $ nodeConfig i

@@ -38,7 +38,6 @@ module Misc
     getScriptAddress,
     buildTransaction,
     signTransaction,
-    submitTransaction,
     buildStakeAddress,
     genRegCertStakeAddress,
     genDeregCertStakeAddress,
@@ -47,10 +46,8 @@ module Misc
     getUtxoListAt,
     nullUtxo,
     keygen,
-    Wallet (..),
-    mkWallet,
+    Wallet,
     walletKeyHash,
-    fetchWallet,
     waitTill,
     waitTillExists,
     fstOutput,
@@ -65,7 +62,6 @@ module Misc
     env_FAUCET_WALLET_VKEY_FILE,
     env_FAUCET_WALLET_SKEY_FILE,
     env_FAUCET_WALLET_ADDR,
-    env_FAUCET_WALLET,
     env_TX_UNSIGNED,
     env_TX_SIGNED,
   )
@@ -76,9 +72,15 @@ where
 -------------------------------------------------------------------------------
 
 import Control.Concurrent (threadDelay)
-import Data.Function ((&))
+import Control.Monad
+import Cooked.BlockChain
+import Cooked.Effect
+import Cooked.Pretty
+import Cooked.Skeleton
 import Data.Maybe
 import Data.Word (Word8)
+import Optics.Core
+import Plutus.Script.Utils.Value qualified as Script
 import Streamly.Data.Array (Array)
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream (Stream)
@@ -87,7 +89,7 @@ import Streamly.System.Command qualified as Cmd
 import Streamly.Unicode.Stream qualified as Unicode
 import Streamly.Unicode.String (str)
 import System.Environment (lookupEnv)
-import System.FilePath ((<.>), (</>))
+import System.FilePath ((</>))
 import System.IO.Unsafe (unsafePerformIO)
 
 -------------------------------------------------------------------------------
@@ -174,11 +176,6 @@ env_FAUCET_WALLET_SKEY_FILE = env_TESTNET_WORK_DIR </> "utxo-keys/utxo1/utxo.ske
 env_FAUCET_WALLET_ADDR :: IO String
 env_FAUCET_WALLET_ADDR =
   readFile $ env_TESTNET_WORK_DIR </> "utxo-keys/utxo1/utxo.addr"
-
-env_FAUCET_WALLET :: IO Wallet
-env_FAUCET_WALLET =
-  Wallet env_FAUCET_WALLET_VKEY_FILE env_FAUCET_WALLET_SKEY_FILE
-    <$> env_FAUCET_WALLET_ADDR
 
 env_TX_UNSIGNED :: String
 env_TX_UNSIGNED = env_POPULATE_WORK_DIR </> "tx.unsigned"
@@ -427,61 +424,22 @@ keygen vkey skey =
     ]
     & drain
 
-data Wallet
-  = Wallet
-  { wVKeyFile :: FilePath,
-    wSKeyFile :: FilePath,
-    wAddress :: String
-  }
+type Wallet = TxSkelSignatory
 
-mkWallet :: FilePath -> String -> IO Wallet
-mkWallet dir name = do
-  let vkey = dir </> name <.> "vkey"
-      skey = dir </> name <.> "skey"
-  keygen vkey skey
-  addr <- getAddress vkey
-  pure $ Wallet vkey skey addr
-
-walletKeyHash :: Wallet -> IO String
-walletKeyHash Wallet {..} =
-  runCmd
-    [str|#{cardanoCli} address key-hash|]
-    [ opt "payment-verification-key-file" wVKeyFile
-    ]
-    & firstNonEmptyLine "walletKeyHash"
-
-fetchWallet :: FilePath -> String -> IO Wallet
-fetchWallet dir name = do
-  let vkey = dir </> name <.> "vkey"
-      skey = dir </> name <.> "skey"
-  addr <- getAddress vkey
-  pure $ Wallet vkey skey addr
+walletKeyHash :: Wallet -> DirectBlockChain ()
+walletKeyHash =
+  (\hash -> note (`prettyHash` hash))
+    . view txSkelSignatoryPubKeyHashL
 
 --------------------------------------------------------------------------------
 -- Complex Utils
 --------------------------------------------------------------------------------
 
-transferAda :: Wallet -> Wallet -> Int -> IO String
-transferAda (Wallet _ inSign inAddr) (Wallet _ outSign outAddr) adaToTransfer = do
-  ensureBlankWorkDir
-  utxoList <- getUtxoListAt inAddr
-  let txInList = opt "tx-in" <$> utxoList
-      adaStr = show adaToTransfer
-  buildTransaction . (txInList ++) $
-    [ opt "tx-out" [str|#{outAddr} + #{adaStr}|],
-      opt "change-address" inAddr,
-      opt "out-file" env_TX_UNSIGNED
-    ]
-  signTransaction
-    [ opt "signing-key-file" inSign,
-      opt "signing-key-file" outSign,
-      opt "tx-body-file" env_TX_UNSIGNED,
-      opt "out-file" env_TX_SIGNED
-    ]
-  txId <- getTransactionId env_TX_SIGNED
-  printVar "transferAda.txId" txId
-  submitTransaction
-    [ opt "tx-file" env_TX_SIGNED
-    ]
-  waitTillExists $ fstOutput txId
-  pure txId
+transferAda :: Wallet -> Wallet -> Integer -> DirectBlockChain ()
+transferAda source target amount = do
+  validateTxSkel_ $
+    txSkelNodeTemplate
+      { txSkelSignatories = [source],
+        txSkelOutputs = [target `receives` Value (Script.ada amount)]
+      }
+  void $ waitNSlots 80
