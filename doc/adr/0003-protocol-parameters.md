@@ -181,6 +181,7 @@ Introduce following parameters:
 - $B$ (`ppPerasCertBoost`) Certification boost: `Word16`, default: 15
 - $n$ (`ppPerasTargetCommitteeSize`) CommiteeSize: `Word16`, detault: 900
 - $R_{\text{bootstrap}}$ (`ppPerasBootstrapRound`) Peras bootstrap round: (`StrictMaybe Word64`), default: SNothing
+- $h$ (`ppHealingFactor`) Peras healing factor: rational, default: $2/1$.
 
 ## Consequences
 
