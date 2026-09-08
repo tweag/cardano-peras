@@ -31,9 +31,9 @@ List of the parameters proposed for consideration in various places, they should
 1. $A$ (`ppPerasCertMaxRounds`) Certificate expiration  - The maximum age for a certificate to be included in a block.
 1. $R$ Chain ignorance period - The number of rounds for which to ignore certificates after entering a cool-down period.
 1. $K$ Cool-down period - The minimum number of rounds to wait before voting again after a cool-down period starts.
-1. $B$ (`ppPerasExtraChainWeight`) Certification boost - The extra chain weight that a certificate gives to a block.
+1. $B$ (`ppPerasCertBoost`) Certification boost - The extra chain weight that a certificate gives to a block.
 1. $\tau$ Quorum size - The number of votes required to create a certificate.
-1. $n$ (`ppCommitteeSize`) Committee size — The number of members on the voting committee.
+1. $n$ (`ppPerasTargetCommitteeSize`) Committee size — The number of members on the voting committee.
 1. $\Delta$ Network diffusion time — Upper limit on the time needed to diffuse a message to all nodes.
 1. $f$ Active slot coefficient — The probability that a party will be the slot leader for a particular slot.
 1. $T_{\text{heal}}$ Healing time
@@ -178,8 +178,8 @@ We keep at most one parameter so we do not make decision space too complex to fo
 Introduce following parameters:
 
 - $L$ (`ppPerasMinCandidateBlockAge`)  Block selection offset: `SlotInterval`, default: 30
-- $B$ (`ppPerasCertBoost`) Certification boost: `Word64`, default: 15
-- $n$ (`ppCommitteeSize`) CommiteeSize: `Word16`, detault: 900
+- $B$ (`ppPerasCertBoost`) Certification boost: `Word16`, default: 15
+- $n$ (`ppPerasTargetCommitteeSize`) CommiteeSize: `Word16`, detault: 900
 - $R_{\text{bootstrap}}$ (`ppPerasBootstrapRound`) Peras bootstrap round: (`StrictMaybe Word64`), default: SNothing
 
 ## Consequences
