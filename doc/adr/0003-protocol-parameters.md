@@ -46,7 +46,7 @@ List of the parameters proposed for consideration in various places, they should
 1. (`ppPerasBootstrapRound`) Peras bootstrap round — Peras round number used to manually bootstrap Peras voting for the first time and to resynchronize voting after unexpected failures.
 1. (`ppTruncationRatio`) Committee truncation — a ratio to be used in truncation algorithm to be implemented.
 1. (`ppCommitteeRatio`) Committee ratio — alternative variant of the `ppTruncationRatio` and `ppCommiteeSize` that works for both
-1. `h` healing factor
+1. `h` (`ppPerasHealingFactor`) Healing factor — coefficient in the $T_\text{heal} = h(B/f)$ formula
 
 There are some facts about those that could detemate the solution:
 
@@ -181,7 +181,7 @@ Introduce following parameters:
 - $B$ (`ppPerasCertBoost`) Certification boost: `Word16`, default: 15
 - $n$ (`ppPerasTargetCommitteeSize`) CommiteeSize: `Word16`, detault: 900
 - $R_{\text{bootstrap}}$ (`ppPerasBootstrapRound`) Peras bootstrap round: (`StrictMaybe Word64`), default: SNothing
-- $h$ (`ppHealingFactor`) Peras healing factor: rational, default: $2/1$.
+- $h$ (`ppPerasHealingFactor`) Peras healing factor: rational, default: $2/1$.
 
 ## Consequences
 
