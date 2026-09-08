@@ -255,7 +255,7 @@ createTestnetConfig = do
         ]
         & Console.putChunks
     changeSecurityParam 5
-    changeEpochLength 120
+    changeEpochLength 180
     changeSlotLength 0.1
     setExperimentalHardForksEnabled
     ports <- portsIO
