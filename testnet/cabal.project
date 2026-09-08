@@ -10,8 +10,8 @@ packages:
 source-repository-package
   type: git
   location: https://github.com/tweag/cooked-validators.git
-  tag: baf9b12e1baf1a414960a43884d7a2d758212e4f
-  --sha256: sha256-jTqq4HSogqYCuX1l05Am/QdijX5A1qraZ0jUPyCweno=
+  tag: a067152aee171e36020195fb3855920f9f1a647d
+  --sha256: sha256-BjHdEk7FCLayLgplMyEtB+9SP1oMCgnNl/iEwEzXzZo=
 
 -- Custom repository for cardano haskell packages, required by
 -- cooked-validators. See

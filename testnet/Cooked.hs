@@ -3,13 +3,11 @@ module Cooked where
 import Cardano.Api
 import Cooked.BlockChain
 import Cooked.Effect
-import Cooked.Pretty
 import Cooked.Skeleton
 import Cooked.Utilities
 import Data.Map qualified as Map
 import Data.String
 import Plutus.Script.Utils.Address qualified as Script
-import PlutusLedgerApi.V3 qualified as Api
 
 faucetSignatory :: Int -> IO TxSkelSignatory
 faucetSignatory i =
@@ -32,12 +30,9 @@ nodeConfig i =
     }
 
 fetchFrom :: (Script.ToAddress addr) => addr -> String -> DirectBlockChain ()
-fetchFrom wal title = do
-  define_ title $
-    case Script.toAddress wal of
-      Api.Address (Api.PubKeyCredential cred) _ -> toHash cred
-      Api.Address (Api.ScriptCredential cred) _ -> toHash cred
-  utxosAt wal
+fetchFrom (Script.toAddress -> wal) title = do
+  define title wal
+    >>= utxosAt
     >>= retrieveUtxos
     >>= retrieve Map.toList
     >>= retrieve (fmap snd)
