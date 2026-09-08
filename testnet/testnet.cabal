@@ -58,9 +58,14 @@ executable testnet
                  Gov
                  UI
                  UI.CommServer
+                 Cooked
   ghc-options:   -threaded -with-rtsopts=-N
   build-depends:
     , base
+    , cardano-api
+    , plutus-script-utils
+    , containers
+    , plutus-ledger-api
     , cooked-validators
     , filepath
     , optparse-applicative

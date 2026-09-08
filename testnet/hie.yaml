@@ -20,3 +20,6 @@ cradle:
 
     - path: "./UI/CommServer.hs"
       component: "testnet:exe:testnet"
+
+    - path: "./Cooked.hs"
+      component: "testnet:exe:testnet"
