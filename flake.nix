@@ -31,7 +31,7 @@
 
         dashboard = import ./dashboard { inherit pkgs; };
         demo = import ./demo { inherit pkgs system; };
-        testnet = import ./testnet { inherit pkgs system; };
+        testnet = import ./testnet { inherit pkgs system nixpkgs haskellNix; };
         demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
         design = import ./design { inherit pkgs; };
       in

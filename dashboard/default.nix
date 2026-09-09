@@ -5,7 +5,7 @@ let
   # Precomputed hash for the pnpm dependencies. Needs to be updated when
   # dependencies change. The easiest way is to replace it with:
   # `pkgs.lib.fakeHash` and run `nix-build` to get the actual hash.
-  hash = "sha256-xXIZlW2E5U1u3d4xGcJr6c/hGNxL+y6tmFJzg8aI5i4=";
+  hash = "sha256-jYo1L1MDdEL6TwNhpDwh+vyc6YMnzaVk0XhJxZS8T3c=";
 in
 pkgs.stdenv.mkDerivation (final: {
   pname = "dashboard";
@@ -29,6 +29,7 @@ pkgs.stdenv.mkDerivation (final: {
   pnpmDeps = pkgs.pnpm.fetchDeps {
     inherit (final) pname version src;
     inherit hash;
+    fetcherVersion = 4;
   };
   buildPhase = ''
     runHook preBuild
