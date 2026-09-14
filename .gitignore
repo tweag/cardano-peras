@@ -318,6 +318,7 @@ dashboard/node_modules/
 dashboard/dist/
 
 ### Testnet ###
+devenv/
 devnet-env/
 work/
 local-config/
