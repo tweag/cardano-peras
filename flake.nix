@@ -34,6 +34,13 @@
         testnet = import ./testnet { inherit pkgs system; };
         demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
         design = import ./design { inherit pkgs; };
+        setup-devenv = pkgs.writeShellApplication {
+          name = "setup-devenv";
+          runtimeInputs = [pkgs.gnused pkgs.git];
+          runtimeEnv = {
+          };
+          text = builtins.readFile ./scripts/setup-devenv.sh;
+        };
       in
       {
         packages = {
@@ -45,6 +52,7 @@
             ;
           testnet = testnet.package;
           default = design;
+          setup-devenv = setup-devenv;
         };
         devShells = {
           inherit
