@@ -232,8 +232,7 @@ configurationYamlFile = env_TESTNET_WORK_DIR </> "configuration.yaml"
 
 getPoolId :: FilePath -> IO String
 getPoolId coldVkeyFile =
-    runCmd
-        [str|#{cardanoCli} conway stake-pool id|]
+    runCardano "conway stake-pool id"
         [ opt "cold-verification-key-file" coldVkeyFile
         , flg "output-hex"
         ]
@@ -365,8 +364,7 @@ cardanoNodeChairman =
 
 getProtocolMajorVersion :: IO Int
 getProtocolMajorVersion =
-    runCmd
-        [str|#{cardanoCli} conway query protocol-parameters|]
+    runCardano "conway query protocol-parameters"
         [optNetwork, optNode2Socket]
         & Cmd.pipeChunks [str|jq -r ".protocolVersion.major"|]
         & firstNonEmptyLine "getProtocolMajorVersion"
@@ -374,15 +372,13 @@ getProtocolMajorVersion =
 
 getPolicyId :: FilePath -> IO String
 getPolicyId scriptFile =
-    runCmd
-        [str|#{cardanoCli} conway transaction policyid|]
+    runCardano "conway transaction policyid"
         [opt "script-file" scriptFile]
         & firstNonEmptyLine "getPolicyId"
 
 getAddress :: FilePath -> IO String
 getAddress vkeyFile =
-    runCmd
-        [str|#{cardanoCli} conway address build|]
+    runCardano "conway address build"
         [ optNetwork
         , opt "payment-verification-key-file" vkeyFile
         ]
@@ -390,8 +386,7 @@ getAddress vkeyFile =
 
 getScriptAddress :: FilePath -> IO String
 getScriptAddress scriptFile =
-    runCmd
-        [str|#{cardanoCli} conway address build|]
+    runCardano "conway address build"
         [ optNetwork
         , opt "payment-script-file" scriptFile
         ]
@@ -399,8 +394,7 @@ getScriptAddress scriptFile =
 
 govQueryPrevHardforkActionTxId :: IO (Maybe String)
 govQueryPrevHardforkActionTxId = do
-    runCmd
-        [str|#{cardanoCli} conway query gov-state|]
+    runCardano "conway query gov-state"
         [ optNetwork
         , optNodeSocket 2
         ]
@@ -411,66 +405,60 @@ govQueryPrevHardforkActionTxId = do
     toMaybe "null" = Nothing
     toMaybe x = Just x
 
-govVoteCreate :: [CmdOption] -> IO ()
-govVoteCreate args =
+runCardano :: CmdStmt -> [CmdOption] -> Stream IO (Array Word8)
+runCardano cmd args =
+    runCardano
+        (mconcat [ cardanoCli, " ", cmd])
+        args
+
+runCardano_ :: CmdStmt -> [CmdOption] -> IO ()
+runCardano_ cmd args =
     runCmd
-        [str|#{cardanoCli} conway governance vote create|]
+        (mconcat [ cardanoCli, " ", cmd])
         args
         & drain
+
+govVoteCreate :: [CmdOption] -> IO ()
+govVoteCreate = runCardano_ "conway governance vote create"
 
 govActionHarkFork :: [CmdOption] -> IO ()
 govActionHarkFork args =
-    runCmd
-        [str|#{cardanoCli} conway governance action create-hardfork|]
+    runCardano_ "conway governance action create-hardfork"
         (flg "testnet" : args)
-        & drain
 
 buildTransaction :: [CmdOption] -> IO ()
 buildTransaction args =
-    runCmd
-        [str|#{cardanoCli} conway transaction build|]
+    runCardano_ "conway transaction build"
         (optNetwork : optNode2Socket : args)
-        & drain
 
 signTransaction :: [CmdOption] -> IO ()
 signTransaction args =
-    runCmd
-        [str|#{cardanoCli} conway transaction sign|]
+    runCardano_ "conway transaction sign"
         (optNetwork : args)
-        & drain
 
 submitTransaction :: [CmdOption] -> IO ()
 submitTransaction args =
-    runCmd
-        [str|#{cardanoCli} conway transaction submit|]
+    runCardano_ "conway transaction submit"
         (optNetwork : optNode2Socket : args)
-        & drain
 
 buildStakeAddress :: [CmdOption] -> IO ()
 buildStakeAddress args =
-    runCmd
-        [str|#{cardanoCli} conway stake-address build|]
+    runCardano_ "conway stake-address build"
         (optNetwork : args)
-        & drain
 
 genRegCertStakeAddress :: [CmdOption] -> IO ()
 genRegCertStakeAddress args =
-    runCmd
-        [str|#{cardanoCli} conway stake-address registration-certificate|]
+    runCardano_ "conway stake-address registration-certificate"
         args
-        & drain
 
 genDeregCertStakeAddress :: [CmdOption] -> IO ()
 genDeregCertStakeAddress args =
-    runCmd
-        [str|#{cardanoCli} conway stake-address deregistration-certificate|]
+    runCardano_ "conway stake-address deregistration-certificate"
         args
-        & drain
 
 getTransactionId :: String -> IO String
 getTransactionId txSigned =
-    runCmd
-        [str|#{cardanoCli} conway transaction txid|]
+    runCardano "conway transaction txid"
         [ opt "tx-body-file" txSigned
         ]
         & Cmd.pipeChunks [str|jq -r ".txhash"|]
@@ -478,8 +466,7 @@ getTransactionId txSigned =
 
 getFirstUtxoAt :: String -> IO String
 getFirstUtxoAt walletAddr =
-    runCmd
-        [str|#{cardanoCli} conway query utxo|]
+    runCardano "conway query utxo"
         [ optNetwork
         , optNode2Socket
         , opt "address" walletAddr
@@ -489,8 +476,7 @@ getFirstUtxoAt walletAddr =
 
 getUtxoListAt :: String -> IO [String]
 getUtxoListAt walletAddr =
-    runCmd
-        [str|#{cardanoCli} conway query utxo|]
+    runCardano "conway query utxo"
         [ optNetwork
         , optNode2Socket
         , opt "address" walletAddr
@@ -501,8 +487,7 @@ getUtxoListAt walletAddr =
 
 nullUtxo :: String -> IO Bool
 nullUtxo utxo =
-    runCmd
-        [str|#{cardanoCli} latest query utxo|]
+    runCardano "latest query utxo"
         [ optNetwork
         , optNode2Socket
         , opt "tx-in" utxo
@@ -513,12 +498,10 @@ nullUtxo utxo =
 
 keygen :: FilePath -> FilePath -> IO ()
 keygen vkey skey =
-    runCmd
-        [str|#{cardanoCli} address key-gen|]
+    runCardano_ "address key-gen"
         [ opt "verification-key-file" vkey
         , opt "signing-key-file" skey
         ]
-        & drain
 
 data Wallet
     = Wallet
@@ -537,8 +520,7 @@ mkWallet dir name = do
 
 walletKeyHash :: Wallet -> IO String
 walletKeyHash Wallet{..} =
-    runCmd
-        [str|#{cardanoCli} address key-hash|]
+    runCardano "address key-hash"
         [ opt "payment-verification-key-file" wVKeyFile
         ]
         & firstNonEmptyLine "walletKeyHash"
