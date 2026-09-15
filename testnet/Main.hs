@@ -244,7 +244,7 @@ createTestnetConfig = do
             [ "spo" | _ <- [1..env_CARDANO_TESTNET_NUM_SPO_NODES]] ++
             [ "relay" | _ <- [1..env_CARDANO_TESTNET_NUM_RELAY_NODES]]
     runCmd
-        [str|#{cardanoTestnet} create-env|]
+        (cardanoTestnet <> " create-env")
         [ opt "nodes" nodesArg
         , opt "num-dreps" env_GENESIS_NUM_DREPS
         , opt "max-lovelace-supply" env_GENESIS_MAX_LOVELACE_SUPPLY
@@ -265,16 +265,16 @@ createTestnetConfig = do
 startLocalTestnet :: IO ()
 startLocalTestnet = do
     runCmd
-        [str|#{cardanoTestnet} cardano|]
+        (cardanoTestnet <> " cardano")
         [ opt "node-env" env_TESTNET_WORK_DIR
         ]
         & Console.putChunks
 
 clean :: IO ()
 clean = do
-    runCmd_ [str|rm -rf #{env_LOCAL_CONFIG_DIR}|]
-    runCmd_ [str|rm -rf #{env_TESTNET_WORK_DIR}|]
-    runCmd_ [str|rm -rf #{env_POPULATE_WORK_DIR}|]
+    runCmd_ $ "rm -rf " <> env_LOCAL_CONFIG_DIR
+    runCmd_ $ "rm -rf " <> env_TESTNET_WORK_DIR
+    runCmd_ $ "rm -rf " <> env_POPULATE_WORK_DIR
 
 setup :: IO ()
 setup = do

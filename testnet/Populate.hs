@@ -62,7 +62,7 @@ createTracingConfig ::
 createTracingConfig policyTxt validatorTxt scriptsDirName = do
     let scriptsDirPath = env_LOCAL_CONFIG_DIR </> scriptsDirName
 
-    runCmd_ [str|mkdir -p #{scriptsDirPath}|]
+    runCmd_ $ "mkdir -p " <> scriptsDirPath
     writeFile (scriptsDirPath </> "policy.plutus") policyTxt
     writeFile (scriptsDirPath </> "validator.plutus") validatorTxt
 
@@ -88,7 +88,7 @@ createTracingConfig policyTxt validatorTxt scriptsDirName = do
 
 createPopulateConfig :: IO ()
 createPopulateConfig = do
-    runCmd_ [str|mkdir -p #{env_LOCAL_CONFIG_DIR}|]
+    runCmd_ $ "mkdir -p " <> env_LOCAL_CONFIG_DIR
     createTracingConfig alwaysTrueV3 alwaysTrueV3 "tracing-plutus-v3"
     createTracingConfig alwaysTruePolicyV2 alwaysTrueValidatorV2 "tracing-plutus-v2"
 
@@ -125,7 +125,7 @@ makeAppEnv scriptsDirName = do
     faucetAddr <- env_FAUCET_WALLET_ADDR
     tokenNameHex <- hexify tokenName
     validatorAddress <- getScriptAddress validatorFilePath
-    let assetClass = [str|#{policyId}.#{tokenNameHex}|]
+    let assetClass = mconcat [policyId, ".", tokenNameHex]
 
     printVar "faucetAddr" faucetAddr
     printVar "validatorAddress" validatorAddress
@@ -163,9 +163,9 @@ runMint AppEnv{..} = do
     buildTransaction
         [ opt "tx-in" faucetUtxo
         , opt "tx-in-collateral" faucetUtxo
-        , opt "tx-out" [str|#{validatorAddress} + 2000000 + #{assetAmount} #{assetClass}|]
+        , opt "tx-out" $ mconcat [validatorAddress, " + 2000000 + ", assetAmount, " ", assetClass]
         , opt "tx-out-inline-datum-value" (10 :: Int)
-        , opt "mint" [str|#{assetAmount} #{assetClass}|]
+        , opt "mint" $ mconcat [assetAmount, " ", assetClass]
         , opt "mint-script-file" policyFilePath
         , opt "mint-redeemer-value" (5 :: Int)
         , opt "change-address" faucetAddr
@@ -192,7 +192,7 @@ runSpend AppEnv{..} lockedUtxo = do
         , flg "tx-in-inline-datum-present"
         , opt "tx-in-redeemer-value" (10 :: Int)
         , opt "tx-in-collateral" faucetUtxo
-        , opt "tx-out" [str|#{validatorAddress} + 2000000 + #{assetAmount} #{assetClass}|]
+        , opt "tx-out" $ mconcat [validatorAddress, " + 2000000 + ", assetAmount, " ", assetClass]
         , opt "tx-out-inline-datum-value" (20 :: Int)
         , opt "change-address" faucetAddr
         , opt "out-file" env_TX_UNSIGNED
@@ -218,7 +218,7 @@ runBurn AppEnv{..} lockedUtxo = do
         , flg "tx-in-inline-datum-present"
         , opt "tx-in-redeemer-value" (10 :: Int)
         , opt "tx-in-collateral" faucetUtxo
-        , opt "mint" [str|-#{assetAmount} #{assetClass}|]
+        , opt "mint" $ mconcat ["-", assetAmount, " ", assetClass]
         , opt "mint-script-file" policyFilePath
         , opt "mint-redeemer-value" (5 :: Int)
         , opt "change-address" faucetAddr
@@ -279,7 +279,7 @@ runReward AppEnv{..} = do
         , opt "change-address" faucetAddr
         , -- NOTE: +0 is a handy way to trigger the script without involving any
           -- funds.
-          opt "withdrawal" [str|#{stakeAddr}+0|]
+          opt "withdrawal" $ stakeAddr <> "+0"
         , opt "withdrawal-script-file" policyFilePath
         , opt "withdrawal-redeemer-value" (9 :: Int)
         , opt "out-file" env_TX_UNSIGNED
@@ -347,7 +347,7 @@ fanout FanoutConfig{..} spread inpUtxos = do
         txInList = (: optTxInAdditional) . opt "tx-in" <$> inpUtxos
         txOutList =
             opt "tx-out"
-                <$> replicate spread [str|#{fcValidatorAddr} + 1000000|]
+                <$> replicate spread (fcValidatorAddr <> " + 1000000")
 
     printStep "fanout"
     buildTransaction $
