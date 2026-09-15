@@ -12,7 +12,7 @@ module Gov (
 
 import Misc
 import Streamly.Unicode.String (str)
-import System.FilePath ((</>), (-<.>))
+import System.FilePath ((</>), (-<.>), (<.>))
 import Populate (finalizeCurrentTransaction)
 import Control.Concurrent (threadDelay)
 
@@ -48,8 +48,8 @@ governProtocolUpdateTo12 = do
 
   where
 
-    vKeyPool iStr = env_TESTNET_WORK_DIR </> "pools-keys" </> [str|pool#{iStr}|] </> "cold.vkey"
-    vKeyDrep iStr = env_TESTNET_WORK_DIR </> "drep-keys"</> [str|drep#{iStr}|]</> "drep.vkey"
+    vKeyPool iStr = env_TESTNET_WORK_DIR </> "pools-keys" </> "pool" <> iStr </> "cold.vkey"
+    vKeyDrep iStr = env_TESTNET_WORK_DIR </> "drep-keys"</> "drep" <> iStr </> "drep.vkey"
     getSkey = (-<.> "skey")
 
     createVotes faucetAddr govTxId = do
@@ -85,7 +85,7 @@ governProtocolUpdateTo12 = do
 
     createPoolVote govTxId iStr = do
         let poolKey = vKeyPool iStr
-            outFile = env_LOCAL_CONFIG_DIR </> [str|pool#{iStr}.vote|]
+            outFile = env_LOCAL_CONFIG_DIR </> "pool" <> iStr <.> "vote"
         govVoteCreate
             [ flg "yes"
             , opt "governance-action-tx-id" govTxId
@@ -97,7 +97,7 @@ governProtocolUpdateTo12 = do
 
     createDrepVote govTxId iStr = do
         let drepKey = vKeyDrep iStr
-            outFile = env_LOCAL_CONFIG_DIR </> [str|drep#{iStr}.vote|]
+            outFile = env_LOCAL_CONFIG_DIR </> "drep" <> iStr <.> "vote"
         govVoteCreate
             [ flg "yes"
             , opt "governance-action-tx-id" govTxId

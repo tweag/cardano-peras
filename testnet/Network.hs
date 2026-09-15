@@ -33,9 +33,9 @@ import Data.Function ((&))
 import Streamly.Data.Fold qualified as Fold
 import Streamly.Data.Stream qualified as Stream
 import Streamly.System.Command qualified as Cmd
-import Streamly.Unicode.String (str)
 import Streamly.Data.Array qualified as Array
 import Streamly.Data.Array (Array)
+import System.FilePath ((</>), (<.>))
 
 --------------------------------------------------------------------------------
 -- Toxicity
@@ -43,15 +43,15 @@ import Streamly.Data.Array (Array)
 
 portFile :: Int -> FilePath
 portFile i =
-    [str|#{env_TESTNET_WORK_DIR}/node-data/#{nodeDir}/port|]
+    env_TESTNET_WORK_DIR </> "node-data" </> nodeDir </> "port"
   where
-    nodeDir = "node" ++ show i
+    nodeDir = "node" <> show i
 
 topologyFile :: Int -> FilePath
 topologyFile i =
-    [str|#{env_TESTNET_WORK_DIR}/node-data/#{nodeDir}/topology.json|]
+    env_TESTNET_WORK_DIR </>"node-data" </> nodeDir </> "topology" <.> "json"
   where
-    nodeDir = "node" ++ show i
+    nodeDir = "node" <> show i
 
 type Port = Int
 
@@ -61,8 +61,7 @@ getOriginalNodePort = fmap read . readFile . portFile
 portsIO :: IO (Array Port)
 portsIO = do
     ports <- mapM getOriginalNodePort [1..env_CARDANO_TESTNET_NUM_NODES]
-    let portsStr = show ports
-    putStrLn [str|Ports: #{portsStr}|]
+    putStrLn $ "Ports: " <> show ports
     pure $ Array.fromList ports
 
 
@@ -84,7 +83,8 @@ replaceNeighbourWithProxy ports targetNodeIndex nbrIndex = do
                 (error "replaceNeighbourWithProxy: Index out of bounds")
                 show
                 (Array.getIndex (nbrIndex - 1) ports)
-    runCmd_ [str|sed -i 's/#{orig}/#{prxy}/g' #{topologyFileS}|]
+    runCmd_ $ mconcat
+      ["sed -i 's/", orig, "/", prxy, "/g' ", topologyFileS]
   where
     topologyFileS = topologyFile targetNodeIndex
 
@@ -94,7 +94,12 @@ replaceAllNeighboursWithProxy ports =
 
 toxiproxyCreate :: Array Port -> Int -> IO ()
 toxiproxyCreate ports i =
-    runCmd_ [str|toxiproxy-cli create --listen 127.0.0.1:#{l} --upstream 127.0.0.1:#{u} #{n}|]
+    runCmd_ $ mconcat
+      [ "toxiproxy-cli create --listen 127.0.0.1:", l
+      , " --upstream 127.0.0.1:", u
+      , " "
+      , n
+      ]
   where
     n = "node" ++ show i
     u = maybe (error "toxiproxyCreate: Unknown Port") show $ Array.getIndex (i - 1) ports
@@ -123,13 +128,20 @@ data ToxLatencyOpts =
 
 toxToggle :: Int -> IO ()
 toxToggle i =
-    runCmd_ [str|toxiproxy-cli toggle #{proxyName}|]
+    runCmd_ $ "toxiproxy-cli toggle " <> proxyName
   where
     proxyName = "node" ++ show i
 
 toxLatency :: String -> NetworkDirection -> ToxLatencyOpts -> Int -> IO ()
 toxLatency name ndir opts i =
-    runCmd_ [str|toxiproxy-cli toxic add -n #{name} -t latency #{direction} #{attrs} #{proxyName}|]
+    runCmd_ $ unwords
+      [ "toxiproxy-cli toxic add -n"
+      , name
+      , "-t latency"
+      , direction
+      , attrs
+      , proxyName
+      ]
   where
     latency = show (tloLatency opts)
     jitter = show (tloJitter opts)
@@ -137,13 +149,14 @@ toxLatency name ndir opts i =
         case ndir of
             Upstream -> "-u"
             Downstream -> "-d"
-    attrs = [str|-a latency=#{latency} -a jitter=#{jitter}|]
+    attrs = mconcat ["-a latency=", latency, " -a jitter=", jitter]
     proxyName = "node" ++ show i
 
 toxRemove :: String -> Int -> IO ()
 toxRemove name i = do
     let proxyName = "node" ++ show i
-    runCmd_ [str|toxiproxy-cli toxic remove -n #{name} #{proxyName}|]
+    runCmd_ $ mconcat
+      [ "toxiproxy-cli toxic remove -n ", name, " ", proxyName]
 
 addToxicity :: IO ()
 addToxicity = do
@@ -160,7 +173,7 @@ removeToxicity = do
 --------------------------------------------------------------------------------
 
 socketFile :: Int -> FilePath
-socketFile i = [str|#{env_TESTNET_WORK_DIR}/socket/#{nodeDir}/sock|]
+socketFile i = env_TESTNET_WORK_DIR </> "socket" </> nodeDir </> "sock"
   where
     nodeDir = "node" ++ show i
 
@@ -172,12 +185,12 @@ getTipBlockNo socketPath = do
             [ optNetwork
             , opt "socket-path" socketPath
             ]
-            & Cmd.pipeChunks [str|jq -r '.slot,.block,.hash'|]
+            & Cmd.pipeChunks "jq -r '.slot,.block,.hash'"
             & nonEmptyLines
             & Stream.fold Fold.toList
     case res of
         [s, b, h] -> pure (s, b, h)
-        _ -> error [str|getTipBlockNo: Unable to parse block and hash.|]
+        _ -> error "getTipBlockNo: Unable to parse block and hash."
 
 data NodeTip = NodeTip
     { ntNodeIndex :: Int
@@ -195,7 +208,7 @@ getNodeTips = mapM getNodeTip [1..env_CARDANO_TESTNET_NUM_NODES]
 
 showNodeTip :: NodeTip -> String
 showNodeTip (NodeTip {..}) =
-    [str|#{nodeName} -> #{ntBlockNo}, #{ntSlotNo}, #{ntBlockHash}|]
+    mconcat [nodeName, " -> ", ntBlockNo, ", ", ntSlotNo, ", ", ntBlockHash]
   where
     nodeName = "Node [" ++ show ntNodeIndex ++ "]"
 
@@ -208,7 +221,7 @@ renderNodeTips = do
 runChairman :: IO ()
 runChairman =
     runCmd
-        [str|#{cardanoNodeChairman} run|]
+        (cardanoNodeChairman <> " run")
         ( [ opt "config" configurationYamlFile
           , opt "timeout" env_CHAIRMAN_TIMEOUT_SECONDS
           , opt "require-progress" env_CHAIRMAN_MIN_PROGRESS

@@ -131,20 +131,20 @@ nonEmptyLines inp =
 
 firstNonEmptyLine :: String -> Stream IO (Array Word8) -> IO String
 firstNonEmptyLine tag =
-    Stream.fold (maybe (error [str|Empty: #{tag}|]) id <$> Fold.one)
+    Stream.fold (maybe (error $ "Empty: " <> tag) id <$> Fold.one)
         . nonEmptyLines
 
 printVar :: String -> String -> IO ()
-printVar tag val = putStrLn [str|[#{tag}]: #{val}|]
+printVar tag val = putStrLn $ mconcat [tag, ": ", val]
 
 ensureBlankWorkDir :: IO ()
 ensureBlankWorkDir = do
-    Cmd.toStdout [str|rm -rf #{env_POPULATE_WORK_DIR}|]
-    Cmd.toStdout [str|mkdir -p #{env_POPULATE_WORK_DIR}|]
+    Cmd.toStdout $ "rm -rf " <> env_POPULATE_WORK_DIR
+    Cmd.toStdout $ "mkdir -p " <> env_POPULATE_WORK_DIR
 
 waitTill :: String -> IO Bool -> IO ()
 waitTill tag action =
-    Stream.repeatM (printStep [str|Waiting: #{tag}|] >> threadDelay 3000000 >> action)
+    Stream.repeatM (printStep ("Waiting: " <> tag) >> threadDelay 3000000 >> action)
         & Stream.takeWhile (not . id)
         & Stream.fold Fold.drain
 
@@ -152,7 +152,7 @@ waitTillExists :: String -> IO ()
 waitTillExists = waitTill "Utxo exists" . fmap not . nullUtxo
 
 fstOutput :: String -> String
-fstOutput txid = [str|#{txid}#0|]
+fstOutput txid = txid <> "#0"
 
 hexify :: String -> IO String
 hexify val =
@@ -288,8 +288,7 @@ raw :: String -> CmdOption
 raw = CoRaw
 
 nodeSocketPath :: Int -> FilePath
-nodeSocketPath i = env_TESTNET_WORK_DIR </> [str|socket/node#{iStr}/sock|]
-    where iStr = show i
+nodeSocketPath i = env_TESTNET_WORK_DIR </> "socket" </> "node" <> show i </> "sock"
 
 optAnchorUrl :: CmdOption
 optAnchorUrl =
@@ -316,18 +315,18 @@ optNode2Socket :: CmdOption
 optNode2Socket = optNodeSocket 2
 
 runCmd' :: String -> Stream IO (Array Word8)
-runCmd' cmd = Stream.before (putStrLn [str|> #{cmd}|]) (Cmd.toChunks cmd)
+runCmd' cmd = Stream.before (putStrLn $ "> " <> cmd) (Cmd.toChunks cmd)
 
 runCmd_ :: String -> IO ()
 runCmd_ cmd = do
-    putStrLn [str|> #{cmd}|]
+    putStrLn $ "> " <> cmd
     Cmd.toStdout cmd
 
 runCmd :: CmdStmt -> [CmdOption] -> Stream IO (Array Word8)
 runCmd cmd args = runCmd' cmdStr
   where
-    cmdOptStr (CoOpt k v) = [str|--#{k} #{v}|]
-    cmdOptStr (CoFlg k) = [str|--#{k}|]
+    cmdOptStr (CoOpt k v) = mconcat ["--", k, " ", v]
+    cmdOptStr (CoFlg k) = "--" <> k
     cmdOptStr (CoRaw v) = v
 
     cmdList = cmd : map cmdOptStr args
@@ -541,9 +540,8 @@ transferAda (Wallet _ inSign inAddr) (Wallet _ outSign outAddr) adaToTransfer = 
     ensureBlankWorkDir
     utxoList <- getUtxoListAt inAddr
     let txInList = opt "tx-in" <$> utxoList
-        adaStr = show adaToTransfer
     buildTransaction . (txInList ++) $
-        [ opt "tx-out" [str|#{outAddr} + #{adaStr}|]
+        [ opt "tx-out" $ mconcat [outAddr, " + ", show adaToTransfer]
         , opt "change-address" inAddr
         , opt "out-file" env_TX_UNSIGNED
         ]
