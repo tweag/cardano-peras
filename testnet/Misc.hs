@@ -135,7 +135,7 @@ firstNonEmptyLine tag =
         . nonEmptyLines
 
 printVar :: String -> String -> IO ()
-printVar tag val = putStrLn $ mconcat [tag, ": ", val]
+printVar tag val = putStrLn $ mconcat ["[", tag, "]: ", val]
 
 ensureBlankWorkDir :: IO ()
 ensureBlankWorkDir = do
@@ -406,16 +406,12 @@ govQueryPrevHardforkActionTxId = do
 
 runCardano :: CmdStmt -> [CmdOption] -> Stream IO (Array Word8)
 runCardano cmd args =
-    runCardano
-        (mconcat [ cardanoCli, " ", cmd])
+    runCmd
+        (mconcat [cardanoCli, " ", cmd])
         args
 
 runCardano_ :: CmdStmt -> [CmdOption] -> IO ()
-runCardano_ cmd args =
-    runCmd
-        (mconcat [ cardanoCli, " ", cmd])
-        args
-        & drain
+runCardano_ cmd args = runCardano cmd args & drain
 
 govVoteCreate :: [CmdOption] -> IO ()
 govVoteCreate = runCardano_ "conway governance vote create"
