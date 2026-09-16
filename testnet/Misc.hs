@@ -98,8 +98,10 @@ module Misc (
 -- Imports
 -------------------------------------------------------------------------------
 
+import Control.Applicative (asum)
 import Control.Concurrent (threadDelay)
 import Data.Function ((&))
+import Data.Maybe (fromMaybe)
 import Data.Word (Word8)
 import Streamly.Data.Array (Array)
 import Streamly.Data.Fold qualified as Fold
@@ -134,7 +136,7 @@ nonEmptyLines inp =
 
 firstNonEmptyLine :: String -> Stream IO (Array Word8) -> IO String
 firstNonEmptyLine tag =
-    Stream.fold (maybe (error $ "Empty: " <> tag) id <$> Fold.one)
+    Stream.fold (fromMaybe (error $ "Empty: " <> tag) <$> Fold.one)
         . nonEmptyLines
 
 printVar :: String -> String -> IO ()
@@ -148,7 +150,7 @@ ensureBlankWorkDir = do
 waitTill :: String -> IO Bool -> IO ()
 waitTill tag action =
     Stream.repeatM (printStep ("Waiting: " <> tag) >> threadDelay 3000000 >> action)
-        & Stream.takeWhile (not . id)
+        & Stream.takeWhile not
         & Stream.fold Fold.drain
 
 waitTillExists :: String -> IO ()
@@ -345,11 +347,10 @@ runCmd cmd args = runCmd' cmdStr
 -- 3. default from PATH
 resolveExecutable :: String -> (Executables -> Maybe FilePath) -> FilePath -> FilePath
 resolveExecutable envVar fromScenario defaultPath =
-    maybe fromScenarioOrDefault id $ unsafePerformIO (lookupEnv envVar)
-  where
-    fromScenarioOrDefault =
-        maybe defaultPath id $
-            topologyExecutables (scenarioConfigTopology scenarioConfig) >>= fromScenario
+  fromMaybe defaultPath $ asum
+    [ unsafePerformIO $ lookupEnv envVar
+    , topologyExecutables (scenarioConfigTopology scenarioConfig) >>= fromScenario
+    ]
 
 {-# NOINLINE cardanoCli #-}
 cardanoCli :: FilePath
@@ -366,7 +367,7 @@ cardanoTestnet = resolveExecutable "CARDANO_TESTNET" execCardanoTestnet "cardano
 {-# NOINLINE cardanoNodeChairman #-}
 cardanoNodeChairman :: FilePath
 cardanoNodeChairman =
-    maybe "cardano-node-chairman" id $ unsafePerformIO (lookupEnv "CARDANO_NODE_CHAIRMAN")
+    fromMaybe "cardano-node-chairman" $ unsafePerformIO (lookupEnv "CARDANO_NODE_CHAIRMAN")
 
 getProtocolMajorVersion :: IO Int
 getProtocolMajorVersion =

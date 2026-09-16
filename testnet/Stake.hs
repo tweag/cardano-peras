@@ -9,6 +9,7 @@ import Data.Aeson (Object, Value (..))
 import Data.Aeson.Key qualified as Key
 import Data.Aeson.KeyMap (KeyMap)
 import Data.Aeson.KeyMap qualified as KeyMap
+import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Text qualified as Text
 
@@ -102,7 +103,7 @@ redistributeStake = do
           ++ "to rebalance."
 
     let
-      currentAmount addr = maybe 0 id (KeyMap.lookup (Key.fromText addr) initialFunds >>= asInteger)
+      currentAmount addr = fromMaybe 0 $ KeyMap.lookup (Key.fromText addr) initialFunds >>= asInteger
       allAddrs = [a | (_, _, pools) <- groupsInfo, p <- pools, a <- psiAddresses p]
       totalLovelace = sum (map currentAmount allAddrs)
       totalWeight = sum [w | (_, w, _) <- groupsInfo]
