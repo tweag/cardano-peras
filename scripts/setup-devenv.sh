@@ -14,14 +14,14 @@ fi
 if [ ! -d "$DEVENV_PATH"/cardano-node ]; then
   git clone git@github.com:tweag/cardano-node.git ${DEVENV_PATH}/cardano-node
   pushd ${DEVENV_PATH}/cardano-node > /dev/null
-  git checkout 053ad3e439881a59f108dfa0b780f7f426d18e47 
+  git checkout 905fcac607bac02e8e2438f649c507c5c00307b7
   popd > /dev/null
 fi
 
 if [ ! -d "$DEVENV_PATH"/ouroboros-consensus ]; then
   git clone git@github.com:tweag/ouroboros-consensus.git ${DEVENV_PATH}/ouroboros-consensus
   pushd ${DEVENV_PATH}/ouroboros-consensus > /dev/null
-  git checkout 7b8ee9bb54fc4359a1e96d9920eda5b70917ef88 
+  git checkout 7b8ee9bb54fc4359a1e96d9920eda5b70917ef88
   popd > /dev/null
 fi
 

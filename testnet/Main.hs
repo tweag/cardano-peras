@@ -267,6 +267,7 @@ startLocalTestnet = do
     runCmd
         (cardanoTestnet <> " cardano")
         [ opt "node-env" env_TESTNET_WORK_DIR
+        , flg "enable-tracer"
         ]
         & Console.putChunks
 
