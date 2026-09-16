@@ -41,17 +41,14 @@ import System.FilePath ((</>), (<.>))
 -- Toxicity
 --------------------------------------------------------------------------------
 
+nodeDataDir :: Int -> FilePath
+nodeDataDir i = env_TESTNET_WORK_DIR </> "node-data" </> nodeName i
+
 portFile :: Int -> FilePath
-portFile i =
-    env_TESTNET_WORK_DIR </> "node-data" </> nodeDir </> "port"
-  where
-    nodeDir = "node" <> show i
+portFile i = nodeDataDir i </> "port"
 
 topologyFile :: Int -> FilePath
-topologyFile i =
-    env_TESTNET_WORK_DIR </>"node-data" </> nodeDir </> "topology" <.> "json"
-  where
-    nodeDir = "node" <> show i
+topologyFile i = nodeDataDir i </> "topology" <.> "json"
 
 type Port = Int
 
@@ -98,10 +95,9 @@ toxiproxyCreate ports i =
       [ "toxiproxy-cli create --listen 127.0.0.1:", l
       , " --upstream 127.0.0.1:", u
       , " "
-      , n
+      , nodeName i
       ]
   where
-    n = "node" ++ show i
     u = maybe (error "toxiproxyCreate: Unknown Port") show $ Array.getIndex (i - 1) ports
     l = show $ getProxyPort i
 
@@ -126,11 +122,11 @@ data ToxLatencyOpts =
         , tloJitter :: Int
         }
 
+
+
 toxToggle :: Int -> IO ()
 toxToggle i =
-    runCmd_ $ "toxiproxy-cli toggle " <> proxyName
-  where
-    proxyName = "node" ++ show i
+    runCmd_ $ "toxiproxy-cli toggle " <> nodeName i
 
 toxLatency :: String -> NetworkDirection -> ToxLatencyOpts -> Int -> IO ()
 toxLatency name ndir opts i =
@@ -140,7 +136,7 @@ toxLatency name ndir opts i =
       , "-t latency"
       , direction
       , attrs
-      , proxyName
+      , nodeName i
       ]
   where
     latency = show (tloLatency opts)
@@ -150,13 +146,11 @@ toxLatency name ndir opts i =
             Upstream -> "-u"
             Downstream -> "-d"
     attrs = mconcat ["-a latency=", latency, " -a jitter=", jitter]
-    proxyName = "node" ++ show i
 
 toxRemove :: String -> Int -> IO ()
 toxRemove name i = do
-    let proxyName = "node" ++ show i
     runCmd_ $ mconcat
-      [ "toxiproxy-cli toxic remove -n ", name, " ", proxyName]
+      [ "toxiproxy-cli toxic remove -n ", name, " ", nodeName i]
 
 addToxicity :: IO ()
 addToxicity = do
@@ -171,11 +165,6 @@ removeToxicity = do
 --------------------------------------------------------------------------------
 -- Telemetry
 --------------------------------------------------------------------------------
-
-socketFile :: Int -> FilePath
-socketFile i = env_TESTNET_WORK_DIR </> "socket" </> nodeDir </> "sock"
-  where
-    nodeDir = "node" ++ show i
 
 getTipBlockNo :: FilePath -> IO (String, String, String)
 getTipBlockNo socketPath = do
@@ -203,14 +192,12 @@ getNodeTips :: IO [NodeTip]
 getNodeTips = mapM getNodeTip [1..env_CARDANO_TESTNET_NUM_NODES]
   where
     getNodeTip i = do
-        (s, b, h) <- getTipBlockNo (socketFile i)
+        (s, b, h) <- getTipBlockNo (nodeSocketPath i)
         pure $ NodeTip i b s h
 
 showNodeTip :: NodeTip -> String
 showNodeTip (NodeTip {..}) =
-    mconcat [nodeName, " -> ", ntBlockNo, ", ", ntSlotNo, ", ", ntBlockHash]
-  where
-    nodeName = "Node [" ++ show ntNodeIndex ++ "]"
+    mconcat ["Node [", show ntNodeIndex, "] -> ", ntBlockNo, ", ", ntSlotNo, ", ", ntBlockHash]
 
 renderNodeTips :: IO ()
 renderNodeTips = do
@@ -226,7 +213,7 @@ runChairman =
           , opt "timeout" env_CHAIRMAN_TIMEOUT_SECONDS
           , opt "require-progress" env_CHAIRMAN_MIN_PROGRESS
           ]
-            ++ [opt "socket-path" (socketFile i) | i <- [1 .. env_CARDANO_TESTNET_NUM_NODES]]
+            ++ [opt "socket-path" (nodeSocketPath i) | i <- [1 .. env_CARDANO_TESTNET_NUM_NODES]]
         )
         & Stream.fold Stdio.writeChunks
 

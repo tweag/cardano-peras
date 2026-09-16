@@ -7,8 +7,8 @@ import Control.Concurrent.MVar (MVar, newMVar, withMVar)
 import Data.IORef (IORef, atomicModifyIORef')
 import qualified Data.Vector as V
 import Web.Scotty
-import Misc (env_CARDANO_TESTNET_NUM_NODES, env_TESTNET_WORK_DIR)
-import System.FilePath ((</>))
+import Misc (env_CARDANO_TESTNET_NUM_NODES, env_TESTNET_WORK_DIR, nodeName)
+import System.FilePath ((</>), (<.>))
 import System.IO (IOMode (AppendMode), hPutStrLn, withFile)
 
 --------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ addAdvertInfo nodeIndex advert db = do
      in db V.// [(vecIndex, new)]
 
 nodeLogFile :: Int -> FilePath
-nodeLogFile nodeId = env_TESTNET_WORK_DIR </> ("comm-server-node" ++ show nodeId ++ ".log")
+nodeLogFile nodeId = env_TESTNET_WORK_DIR </> "comm-server-" <> nodeName nodeId <.> "log"
 
 serializeLogInfo :: Int -> String -> String
 serializeLogInfo nodeId logMsg = "[" ++ show nodeId ++ "] " ++ logMsg

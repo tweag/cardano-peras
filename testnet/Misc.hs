@@ -65,6 +65,9 @@ module Misc (
     shelleyGenesisFile,
     byronGenesisFile,
     configurationYamlFile,
+    -- Paths
+    nodeName,
+    nodeSocketPath,
     -- Globals
     env_LOCAL_CONFIG_DIR,
     env_PLUTUS_SCRIPTS_DIR,
@@ -287,8 +290,12 @@ flg = CoFlg
 raw :: String -> CmdOption
 raw = CoRaw
 
+
+nodeName :: Int -> String
+nodeName i = "node" <> show i
+
 nodeSocketPath :: Int -> FilePath
-nodeSocketPath i = env_TESTNET_WORK_DIR </> "socket" </> "node" <> show i </> "sock"
+nodeSocketPath i = env_TESTNET_WORK_DIR </> "socket" </> nodeName i </> "sock"
 
 optAnchorUrl :: CmdOption
 optAnchorUrl =

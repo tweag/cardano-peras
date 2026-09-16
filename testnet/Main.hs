@@ -348,9 +348,12 @@ processes:
   where
     traceFilterPattern =
         List.intercalate "|" (Text.unpack <$> observabilityTraceFilters (scenarioConfigObservability scenarioConfig))
-    nodeLogProcess i0 = let i = show i0 in [str|
+    nodeLogProcess i0 =
+      let i = show i0
+          node = nodeName i0
+       in [str|
   node-stdout-#{i}:
-    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/node#{i}/stdout.log | grep --line-buffered -E '#{traceFilterPattern}'"
+    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/#{node}/stdout.log | grep --line-buffered -E '#{traceFilterPattern}'"
     depends_on:
       cardano-testnet:
         condition: process_healthy
