@@ -402,7 +402,7 @@ govQueryPrevHardforkActionTxId :: IO (Maybe String)
 govQueryPrevHardforkActionTxId = do
     runCardano "conway query gov-state"
         [ optNetwork
-        , optNodeSocket 2
+        , optNode2Socket
         ]
         & Cmd.pipeChunks [str|jq -r ".nextRatifyState.nextEnactState.prevGovActionIds.HardFork.txId"|]
         & firstNonEmptyLine "govQueryPrevHardforkAction"
