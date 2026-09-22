@@ -12,11 +12,17 @@ else
 fi
 
 if [ ! -d "$DEVENV_PATH"/cardano-node ]; then
-  git clone -b peras-testnet-devenv git@github.com:tweag/cardano-node.git ${DEVENV_PATH}/cardano-node
+  git clone git@github.com:tweag/cardano-node.git ${DEVENV_PATH}/cardano-node
+  pushd ${DEVENV_PATH}/cardano-node > /dev/null
+  git checkout 053ad3e439881a59f108dfa0b780f7f426d18e47 
+  popd > /dev/null
 fi
 
 if [ ! -d "$DEVENV_PATH"/ouroboros-consensus ]; then
-  git clone -b peras-testnet-devenv git@github.com:tweag/ouroboros-consensus.git ${DEVENV_PATH}/ouroboros-consensus
+  git clone git@github.com:tweag/ouroboros-consensus.git ${DEVENV_PATH}/ouroboros-consensus
+  pushd ${DEVENV_PATH}/ouroboros-consensus > /dev/null
+  git checkout 7b8ee9bb54fc4359a1e96d9920eda5b70917ef88 
+  popd > /dev/null
 fi
 
 if [ ! -f "$DEVENV_PATH"/build-node.sh ]; then
