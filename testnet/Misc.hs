@@ -237,7 +237,7 @@ configurationYamlFile = env_TESTNET_WORK_DIR </> "configuration.yaml"
 
 getPoolId :: FilePath -> IO String
 getPoolId coldVkeyFile =
-    runCardano "conway stake-pool id"
+    runCardano "dijkstra stake-pool id"
         [ opt "cold-verification-key-file" coldVkeyFile
         , flg "output-hex"
         ]
@@ -371,7 +371,7 @@ cardanoNodeChairman =
 
 getProtocolMajorVersion :: IO Int
 getProtocolMajorVersion =
-    runCardano "conway query protocol-parameters"
+    runCardano "dijkstra query protocol-parameters"
         [optNetwork, optNode2Socket]
         & Cmd.pipeChunks [str|jq -r ".protocolVersion.major"|]
         & firstNonEmptyLine "getProtocolMajorVersion"
@@ -379,13 +379,13 @@ getProtocolMajorVersion =
 
 getPolicyId :: FilePath -> IO String
 getPolicyId scriptFile =
-    runCardano "conway transaction policyid"
+    runCardano "dijkstra transaction policyid"
         [opt "script-file" scriptFile]
         & firstNonEmptyLine "getPolicyId"
 
 getAddress :: FilePath -> IO String
 getAddress vkeyFile =
-    runCardano "conway address build"
+    runCardano "dijkstra address build"
         [ optNetwork
         , opt "payment-verification-key-file" vkeyFile
         ]
@@ -393,7 +393,7 @@ getAddress vkeyFile =
 
 getScriptAddress :: FilePath -> IO String
 getScriptAddress scriptFile =
-    runCardano "conway address build"
+    runCardano "dijkstra address build"
         [ optNetwork
         , opt "payment-script-file" scriptFile
         ]
@@ -401,7 +401,7 @@ getScriptAddress scriptFile =
 
 govQueryPrevHardforkActionTxId :: IO (Maybe String)
 govQueryPrevHardforkActionTxId = do
-    runCardano "conway query gov-state"
+    runCardano "dijkstra query gov-state"
         [ optNetwork
         , optNode2Socket
         ]
@@ -422,46 +422,46 @@ runCardano_ :: CmdStmt -> [CmdOption] -> IO ()
 runCardano_ cmd args = runCardano cmd args & drain
 
 govVoteCreate :: [CmdOption] -> IO ()
-govVoteCreate = runCardano_ "conway governance vote create"
+govVoteCreate = runCardano_ "dijkstra governance vote create"
 
 govActionHarkFork :: [CmdOption] -> IO ()
 govActionHarkFork args =
-    runCardano_ "conway governance action create-hardfork"
+    runCardano_ "dijkstra governance action create-hardfork"
         (flg "testnet" : args)
 
 buildTransaction :: [CmdOption] -> IO ()
 buildTransaction args =
-    runCardano_ "conway transaction build"
+    runCardano_ "dijkstra transaction build"
         (optNetwork : optNode2Socket : args)
 
 signTransaction :: [CmdOption] -> IO ()
 signTransaction args =
-    runCardano_ "conway transaction sign"
+    runCardano_ "dijkstra transaction sign"
         (optNetwork : args)
 
 submitTransaction :: [CmdOption] -> IO ()
 submitTransaction args =
-    runCardano_ "conway transaction submit"
+    runCardano_ "dijkstra transaction submit"
         (optNetwork : optNode2Socket : args)
 
 buildStakeAddress :: [CmdOption] -> IO ()
 buildStakeAddress args =
-    runCardano_ "conway stake-address build"
+    runCardano_ "dijkstra stake-address build"
         (optNetwork : args)
 
 genRegCertStakeAddress :: [CmdOption] -> IO ()
 genRegCertStakeAddress args =
-    runCardano_ "conway stake-address registration-certificate"
+    runCardano_ "dijkstra stake-address registration-certificate"
         args
 
 genDeregCertStakeAddress :: [CmdOption] -> IO ()
 genDeregCertStakeAddress args =
-    runCardano_ "conway stake-address deregistration-certificate"
+    runCardano_ "dijkstra stake-address deregistration-certificate"
         args
 
 getTransactionId :: String -> IO String
 getTransactionId txSigned =
-    runCardano "conway transaction txid"
+    runCardano "dijkstra transaction txid"
         [ opt "tx-body-file" txSigned
         ]
         & Cmd.pipeChunks [str|jq -r ".txhash"|]
@@ -469,7 +469,7 @@ getTransactionId txSigned =
 
 getFirstUtxoAt :: String -> IO String
 getFirstUtxoAt walletAddr =
-    runCardano "conway query utxo"
+    runCardano "dijkstra query utxo"
         [ optNetwork
         , optNode2Socket
         , opt "address" walletAddr
@@ -479,7 +479,7 @@ getFirstUtxoAt walletAddr =
 
 getUtxoListAt :: String -> IO [String]
 getUtxoListAt walletAddr =
-    runCardano "conway query utxo"
+    runCardano "dijkstra query utxo"
         [ optNetwork
         , optNode2Socket
         , opt "address" walletAddr
