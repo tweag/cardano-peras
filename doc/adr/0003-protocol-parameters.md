@@ -47,7 +47,7 @@ List of the parameters proposed for consideration in various places, they should
 1. (`ppTruncationRatio`) Committee truncation — a ratio to be used in truncation algorithm to be implemented.
 1. (`ppCommitteeRatio`) Committee ratio — alternative variant of the `ppTruncationRatio` and `ppCommiteeSize` that works for both
 1. `h` (`ppPerasHealingFactor`) Healing factor — coefficient in the $T_\text{heal} = h(B/f)$ formula
-1. $tau_\mathsf{margin}$ (`ppPerasQuorumThresholdSafetyMargin`)  extra margin on the top of the required quorum number
+1. $\tau_\mathsf{margin}$ (`ppPerasQuorumThresholdSafetyMargin`)  extra margin ontop of the ideal quorum threshold baseline (75%)
 
 There are some facts about those that could detemate the solution:
 
