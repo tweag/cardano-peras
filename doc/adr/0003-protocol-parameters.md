@@ -168,7 +168,7 @@ Current default is 2 (TODO: no explanation why)
 
 ### Extra quorum margin
 
-$\tau_\mathsf{margin}$ (`ppPerasQuorumThresholdSafetyMargin`)  extra margin on the top of the required quorum number, this 
+$\tau_\mathsf{margin}$ (`ppPerasQuorumThresholdSafetyMargin`)  extra margin ontop of the ideal quorum threshold baseline (75%) 
 parameters is required to be able to cover potential stake shift and security loss because of that
 
 ## Decision
