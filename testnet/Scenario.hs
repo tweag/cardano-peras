@@ -25,6 +25,7 @@ import Data.Text (Text)
 import Data.Yaml qualified as Yaml
 import System.Environment (lookupEnv)
 import System.IO.Unsafe (unsafePerformIO)
+import System.FilePath ((</>))
 
 data NodeRole = Spo | Relay
   deriving (Show, Eq)
@@ -181,11 +182,15 @@ instance FromJSON ScenarioConfig where
 
 loadScenario :: FilePath -> IO ScenarioConfig
 loadScenario path = do
-  result <- Yaml.decodeFileEither path
+  result <- Yaml.decodeFileEither $ "testnet" </> path
   case result of
-      Left err ->
-        ioError . userError $
-          "Failed to parse scenario file " <> path <> ":\n" <> Yaml.prettyPrintParseException err
+      Left _ -> do
+        result2 <- Yaml.decodeFileEither path
+        case result2 of
+          Left err -> 
+            ioError . userError $
+              "Failed to parse scenario file " <> path <> ":\n" <> Yaml.prettyPrintParseException err
+          Right config -> pure config
       Right config -> pure config
 
 env_TESTNET_SCENARIO_DEFAULT :: FilePath
