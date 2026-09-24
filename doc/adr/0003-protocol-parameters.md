@@ -47,6 +47,7 @@ List of the parameters proposed for consideration in various places, they should
 1. (`ppTruncationRatio`) Committee truncation — a ratio to be used in truncation algorithm to be implemented.
 1. (`ppCommitteeRatio`) Committee ratio — alternative variant of the `ppTruncationRatio` and `ppCommiteeSize` that works for both
 1. `h` (`ppPerasHealingFactor`) Healing factor — coefficient in the $T_\text{heal} = h(B/f)$ formula
+1. $tau_\mathsf{margin}$ (`ppPerasQuorumThresholdSafetyMargin`)  extra margin on the top of the required quorum number
 
 There are some facts about those that could detemate the solution:
 
@@ -165,6 +166,11 @@ Alternative is healing time.
 
 Current default is 2 (TODO: no explanation why)
 
+### Extra quorum margin
+
+$\tau_\mathsf{margin}$ (`ppPerasQuorumThresholdSafetyMargin`)  extra margin on the top of the required quorum number, this 
+parameters is required to be able to cover potential stake shift and security loss because of that
+
 ## Decision
 
 The change that we're proposing or have agreed to implement.
@@ -182,6 +188,7 @@ Introduce following parameters:
 - $n$ (`ppPerasTargetCommitteeSize`) CommiteeSize: `Word16`, detault: 900
 - $R_{\text{bootstrap}}$ (`ppPerasBootstrapRound`) Peras bootstrap round: (`StrictMaybe Word64`), default: SNothing
 - $h$ (`ppPerasHealingFactor`) Peras healing factor: rational, default: $2/1$.
+- $\tau_\mathsf{margin}$ (`ppPerasQuorumThresholdSafetyMargin`) Extra margin, default: 0.1. 
 
 ## Consequences
 
@@ -191,6 +198,8 @@ until the hardfork will happen
 2. We should ensure that we have a nice story for $k$ when peras is enable.
 
 3. We should introduce an additional guardrail that epoch lenght must be a round of the length $U=90$.
+
+4. All changes in the commitee selection scheme parameters should be expressible in terms of `n`
 
 [ledger-repo]: https://github.com/IntersectMBO/cardano-ledger
 [cip-140]: https://cips.cardano.org/cip/CIP-0140
