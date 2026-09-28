@@ -5,6 +5,7 @@ start_line="$((total_lines - 6))"
 sed -i "${start_line},\$s/^/--/" cabal.project
 
 cabal build cardano-node
+cabal build cardano-tracer
 
 # reverse
 sed -i "${start_line},\$s/^--//" cabal.project

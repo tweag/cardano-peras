@@ -14,7 +14,7 @@ fi
 if [ ! -d "$DEVENV_PATH"/cardano-node ]; then
   git clone git@github.com:tweag/cardano-node.git ${DEVENV_PATH}/cardano-node
   pushd ${DEVENV_PATH}/cardano-node > /dev/null
-  git checkout 905fcac607bac02e8e2438f649c507c5c00307b7
+  git checkout aaf6a09109e976e5caf6920e22d3f55b5df0a3eb
   popd > /dev/null
 fi
 
@@ -46,6 +46,7 @@ cat << 'EOF' >> "$DEVENV_PATH"/run-testnet.sh
 
 set -e
 export CARDANO_NODE=$(find "$PWD" -type f -executable -name "cardano-node" -print -quit)
+export CARDANO_TRACER=$(find "$PWD" -type f -executable -name "cardano-tracer" -print -quit)
 nix run ../.#testnet $1
 EOF
 
