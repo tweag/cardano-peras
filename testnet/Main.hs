@@ -343,6 +343,12 @@ processes:
       sync-nodes:
         condition: process_completed_successfully
 
+  cardano-tracer-stdout:
+    command: "tail -f ./#{env_TESTNET_WORK_DIR}/logs/cardano-tracer.stdout.log"
+    depends_on:
+      cardano-testnet:
+        condition: process_healthy
+
 #{nodeLogProcessAll}
 
 |]
