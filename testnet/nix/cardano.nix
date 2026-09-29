@@ -44,5 +44,6 @@ in
   cardano-node = cardanoNodeExe "cardano-node";
   cardano-cli = cardanoNodeExe "cardano-cli";
   cardano-testnet = cardanoNodeExe "cardano-testnet";
+  cardano-tracer = cardanoNodeExe "cardano-tracer";
   cardano-node-chairman = cardanoNodeExe "cardano-node-chairman";
 }

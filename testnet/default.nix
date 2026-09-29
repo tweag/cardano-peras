@@ -14,6 +14,7 @@ let
     cardano.cardano-node
     cardano.cardano-cli
     cardano.cardano-testnet
+    cardano.cardano-tracer
     cardano.cardano-node-chairman
     pkgs.process-compose
     pkgs.curl
@@ -45,6 +46,7 @@ let
     runtimeInputs = extraInputs;
     runtimeEnv = {
       TESTNET_BIN = "${testnetExe}/bin/testnet";
+      CARDANO_TRACER = "${cardano.cardano-tracer}/bin/cardano-tracer";
       # Include scenarios for `nix run`
       TESTNET_SCENARIOS_DIR = "${./scenarios}";
     };

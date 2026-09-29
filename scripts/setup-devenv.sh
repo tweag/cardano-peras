@@ -46,7 +46,6 @@ cat << 'EOF' >> "$DEVENV_PATH"/run-testnet.sh
 
 set -e
 export CARDANO_NODE=$(find "$PWD" -type f -executable -name "cardano-node" -print -quit)
-export CARDANO_TRACER=$(find "$PWD" -type f -executable -name "cardano-tracer" -print -quit)
 nix run ../.#testnet $1
 EOF
 
