@@ -11,12 +11,21 @@ else
   mkdir -p ${DEVENV_PATH}
 fi
 
-if [ ! -d "$DEVENV_PATH"/cardano-node ]; then
+CARDANO_NODE_SHA="aaf6a09109e976e5caf6920e22d3f55b5df0a3eb"
+
+# Checkout cardano-node if we haven't already.
+if [ ! -d "${DEVENV_PATH}/cardano-node" ]; then
   git clone git@github.com:tweag/cardano-node.git ${DEVENV_PATH}/cardano-node
-  pushd ${DEVENV_PATH}/cardano-node > /dev/null
-  git checkout aaf6a09109e976e5caf6920e22d3f55b5df0a3eb
-  popd > /dev/null
 fi
+
+# Make sure cardano-node has CARDANO_NODE_SHA as an ancestor. If not, the
+# starting the testnet will fail, so we must check out that commit.
+pushd ${DEVENV_PATH}/cardano-node > /dev/null
+git fetch origin
+if ! git merge-base --is-ancestor "${CARDANO_NODE_SHA}" HEAD; then
+  git checkout "${CARDANO_NODE_SHA}"
+fi
+popd > /dev/null
 
 if [ ! -d "$DEVENV_PATH"/ouroboros-consensus ]; then
   git clone git@github.com:tweag/ouroboros-consensus.git ${DEVENV_PATH}/ouroboros-consensus
