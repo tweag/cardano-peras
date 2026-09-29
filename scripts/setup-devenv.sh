@@ -21,7 +21,10 @@ fi
 # Make sure cardano-node has CARDANO_NODE_SHA as an ancestor. If not, the
 # starting the testnet will fail, so we must check out that commit.
 pushd ${DEVENV_PATH}/cardano-node > /dev/null
-git fetch origin
+# Only fetch if we don't already have the pinned commit locally.
+if ! git cat-file -e "${CARDANO_NODE_SHA}^{commit}" 2> /dev/null; then
+  git fetch origin
+fi
 if ! git merge-base --is-ancestor "${CARDANO_NODE_SHA}" HEAD; then
   git checkout "${CARDANO_NODE_SHA}"
 fi
