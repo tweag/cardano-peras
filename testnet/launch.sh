@@ -14,6 +14,16 @@ if [ -z "$TESTNET_BIN" ]; then
 fi
 echo "Using TESTNET_BIN=$TESTNET_BIN"
 
+# Ensure CARDANO_TRACER is set.
+if [ -z "${CARDANO_TRACER:-}" ]; then
+    if CARDANO_TRACER=$(command -v cardano-tracer); then
+        export CARDANO_TRACER
+    else
+        echo "Warning: CARDANO_TRACER is not set and cardano-tracer was not found on PATH." >&2
+    fi
+fi
+echo "Using CARDANO_TRACER=${CARDANO_TRACER:-<unset>}"
+
 TESTNET_SCENARIOS_DIR="${TESTNET_SCENARIOS_DIR:-scenarios}"
 
 usage() {

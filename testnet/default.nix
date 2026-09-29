@@ -39,6 +39,7 @@ let
       cabal = { };
     };
     buildInputs = extraInputs;
+    CARDANO_TRACER = "${cardano.cardano-tracer}/bin/cardano-tracer";
   };
 
   app = pkgs.writeShellApplication {
