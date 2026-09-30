@@ -313,9 +313,9 @@ processes:
       toxiproxy-server:
         condition: process_healthy
 
-  hard-fork-dijkstra:
-    command: "#{testnetCmd} network hard-fork-dijkstra"
-    disabled: true
+#  hard-fork-dijkstra:
+#    command: "#{testnetCmd} network hard-fork-dijkstra"
+#    disabled: true
 
   chairman:
     command: "#{testnetCmd} network chairman"
