@@ -41,6 +41,7 @@ let
 
 in
 {
+  deps = deps;
   cardano-node = cardanoNodeExe "cardano-node";
   cardano-cli = cardanoNodeExe "cardano-cli";
   cardano-testnet = cardanoNodeExe "cardano-testnet";

@@ -101,4 +101,5 @@ in
 {
   devShell = shell;
   package = app;
+  deps = cardano.deps;
 }

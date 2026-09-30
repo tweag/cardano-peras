@@ -2,16 +2,16 @@
 
 set -e
 
-DEVENV_PATH="devenv"
-
 if [ -d "$DEVENV_PATH" ]; then
   echo "Devenv path exists at ./${DEVENV_PATH}, checking repos..." >&2
 else
-  echo "Setting up Peras devenv at ./${DEVENV_PATH}"
+  echo "Setting up Peras devenv at ./${DEVENV_PATH} with
+  cardano-node:${CARDANO_NODE_SHA}
+  ouroboros-consensus:${OUROBOROS_CONSENSUS_SHA}
+"
+
   mkdir -p ${DEVENV_PATH}
 fi
-
-CARDANO_NODE_SHA="aaf6a09109e976e5caf6920e22d3f55b5df0a3eb"
 
 # Checkout cardano-node if we haven't already.
 if [ ! -d "${DEVENV_PATH}/cardano-node" ]; then
@@ -33,7 +33,7 @@ popd > /dev/null
 if [ ! -d "$DEVENV_PATH"/ouroboros-consensus ]; then
   git clone git@github.com:tweag/ouroboros-consensus.git ${DEVENV_PATH}/ouroboros-consensus
   pushd ${DEVENV_PATH}/ouroboros-consensus > /dev/null
-  git checkout 7b8ee9bb54fc4359a1e96d9920eda5b70917ef88
+  git checkout "${OUROBOROS_CONSENSUS_SHA}"
   popd > /dev/null
 fi
 
