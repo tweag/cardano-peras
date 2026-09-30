@@ -38,6 +38,10 @@
           name = "setup-devenv";
           runtimeInputs = [pkgs.gnused pkgs.git];
           runtimeEnv = {
+            DEVENV_PATH = "devenv";
+            CARDANO_NODE_SHA = "${testnet.deps.cardano-node.rev}";
+            # the current pin of the peras/the-big-pr
+            OUROBOROS_CONSENSUS_SHA = "7b8ee9bb54fc4359a1e96d9920eda5b70917ef88";
           };
           text = builtins.readFile ./scripts/setup-devenv.sh;
         };
