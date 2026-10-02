@@ -7,12 +7,12 @@ Finally, \cref{sec:vote cert alternatives} presents a discussion about alternati
 \subsection{Vote diffusion mini-protocol}%
 \label{sec:vote-diffusion}
 
-\paragraph{Requirements.}
-Diffusion of votes takes place between caught-up nodes in every Peras round.
-The core requirement is that all honest pools observe a quorum before the end of a round, as long as votes with weight of at least \perasQuorum{} have been cast for the same block in that round.
+% \paragraph{Requirements.}
+% Diffusion of votes takes place between caught-up nodes in every Peras round.
+% The core requirement is that all honest pools observe a quorum before the end of a round, as long as votes with weight of at least \perasQuorum{} have been cast for the same block in that round.
 
-Concretely, assuming $\perasN = 1000$ and a vote size of $\qty{164}{\byte}$ (\cref{fig:protocol parameters,fig:vote cert metrics}), the total size of the votes of a round is $\perasN \cdot \qty{164}{\byte} = \qty{164}{\kilo\byte}$, which needs to be diffused within $\perasRoundSlots = 90$ slots/seconds.
-This is a more relaxed timeliness constraint compared to block diffusion, where blocks of size up to $\qty{90}{\kilo\byte}$ need to be diffused within $\lesssim \Delta = 5$ slots/seconds.
+% Concretely, assuming $\perasN = 1000$ and a vote size of $\qty{164}{\byte}$ (\cref{fig:protocol parameters,fig:vote cert metrics}), the total size of the votes of a round is $\perasN \cdot \qty{164}{\byte} = \qty{164}{\kilo\byte}$, which needs to be diffused within $\perasRoundSlots = 90$ slots/seconds.
+% This is a more relaxed timeliness constraint compared to block diffusion, where blocks of size up to $\qty{90}{\kilo\byte}$ need to be diffused within $\lesssim \Delta = 5$ slots/seconds.
 
 \paragraph{Using object diffusion.}
 
@@ -22,26 +22,22 @@ In particular, we want:
 \begin{description}
 \item[\argfont{object}]
   A Peras vote.
-\item[\argfont{id}]
+\item[\argfont{objectId}]
   A vote ID, i.e.\ a pair of a round number and an identifier for a committee seat of that round, determining the pool identity.
 
   Concretely, in scheme described in~\cite{peras-cert-report}, this is either the hash of the cold key of the voting pool, or (as an optimization) an index into the stake distribution.
-\item[\argfont{objectIds}, \argfont{responseToIds}]
-  A list of \argfont{id}s. Correspondingly, \argfont{objectIds} is the identity function.
-\item[\argfont{initialPayload}]
-  No payload is necessary; only votes near the current round of the system are ever diffused.
 \end{description}
 
-The server advertises the vote IDs of the votes it has received for the current round (sorted by weight in decreasing order), cf.~\cref{sec:votes certs from the past}.
-Votes for older rounds are not advertised, cf.~\cref{sec:votes certs from the past}.
-Additionally, it serves the votes corresponding to the unacknowledged vote IDs.
+The server advertises the vote IDs of the votes it has received for the current round, cf.~\cref{sec:votes certs from the past}.
+\thomas{This is not true, right? "Votes for older rounds are not advertised, cf.~\cref{sec:votes certs from the past}"}
+Additionally, it serves the votes corresponding to the advertised vote IDs that haven't been acknowledged yet.
 
 We now describe the dynamics of an honest node engaging as the client in vote diffusion with its peers, assuming that it is caught-up.
 \begin{itemize}
 \item
   The node continually requests more vote IDs from its peers (with a limit on unacknowledged votes), using non-blocking or blocking requests depending on whether there are outstanding unacknowledged votes.
 \item
-  The client disconnects from the server if the round of the vote ID is from the future or the past (modulo some acceptable clock skew), cf.~\cref{sec:votes certs from the future,sec:votes certs from the past}.
+  The client disconnects from the server if the round of the vote ID is from the future or the past (modulo some acceptable clock skew), cf.~\cref{sec:votes certs from the future,sec:votes certs from the past}. \thomas{TODO: Not done yet in the implem; should probably happen in ObjectPoolWriter's implem}
 \item
   At the beginning of a Peras round, the node will start receiving lots of new vote IDs for that round from all of its (honest) peers.
   For each such vote ID, the node will ask one peer (or a small number in parallel) out of the peers that offered this vote ID for the corresponding vote, relying on protocol-level timeouts for a prompt delivery (or otherwise disconnecting from the peer).
@@ -49,25 +45,28 @@ We now describe the dynamics of an honest node engaging as the client in vote di
   By limiting the number of votes that are being downloaded in parallel, the traffic is implicitly spread out over the first few seconds of the round, bounding the spike of network activity.
 
   This strategy naturally handles adversarial vote equivocation, cf.~\cref{sec:attack equivocations}.
-\item
-  The client stops downloading votes as soon as it has votes with weight of at least \perasQuorum{}.
-  However, it still continues to offer these vote IDs/votes during the round, as it can be more efficient for downstream peers to download a few remaining votes to observe a quorum by themselves instead of downloading a certificate.
+% \item
+  % The client stops downloading votes as soon as it has votes with weight of at least \perasQuorum{}.
+  % However, it still continues to offer these vote IDs/votes during the round, as it can be more efficient for downstream peers to download a few remaining votes to observe a quorum by themselves instead of downloading a certificate.
 \item
   The client always checks that the votes indeed correspond to the advertised vote IDs, and that the votes are in fact valid, and disconnects from the offending peer otherwise.
   Together with the fact that the number of votes per round is bounded by the size of the Peras committee, this bounds the work of the client.
 \end{itemize}
-The node does not send requests for vote IDs or votes while it is syncing (in particular, it could not even validate them at this point), which can be determined by the Genesis State Machine \parencite{genesis-implementation-documentation} or a more ad-hoc criterion like the proximity of the chain tip to the current wall-clock time.
+The node does not send requests for vote IDs or votes while it is syncing (in particular, it could not even validate them at this point), which can be determined by the Genesis State Machine \parencite{genesis-implementation-documentation} or a more ad-hoc criterion like the proximity of the chain tip to the current wall-clock time. \thomas{TODO: not yet implemented}
 
 This protocol shares several similarities with Tx-Submission, and we anticipate that the implementation can benefit from the insights of the design in \texttt{cardano-node}.
 In particular, the IOE Network team has been reworking the inbound side of Tx-Submission\footnote{\url{https://github.com/IntersectMBO/ouroboros-network/pull/4887}} to more efficiently download transactions from different peers (avoiding repeated downloads).
 
-Finally, we mention that nodes that do not intend to participate in relaying traffic through the Cardano network (for example certain wallets or nodes used by dApp developers) can reduce bandwidth requirements both for them and their upstream peers by requesting certificates (\cref{sec:certificate-diffusion}) instead of votes.
+Finally, we mention that nodes that do not intend to participate in relaying traffic through the Cardano network (for example certain wallets or nodes used by dApp developers) can reduce bandwidth requirements both for them and their upstream peers by requesting only certificates (\cref{sec:certificate-diffusion}) but no votes.
 We propose to add an appropriate configuration flag to control this behavior, either causing the node to always request votes, or to only request votes if the node has inbound peers, or to not request votes at all (downloading just certificates instead).
-Alternatively, we can let votes flow from downstream nodes to upstream nodes (just like transactions), automatically preventing nodes with no downstream connections from receiving votes.
+Alternatively, we could let votes flow from downstream nodes to upstream nodes (just like transactions), automatically preventing nodes with no downstream connections from receiving votes.
 
 \paragraph{Separate topology for vote diffusion.}
 
-Discussions with the IOG Networking team gave rise to the idea of having a separate network with a different topology tuned for vote diffusion instead of header/block diffusion.
+Discussions with the IOG Networking team raised the idea of using a separate network with a different topology
+that is tuned specifically for vote diffusion. This idea was discussed at the time but was not pursued further.
+We include this section for the historical reasons, and that it can give a rise to the later protocol optimizations.
+
 Concretely, the P2P network layer of cardano-node establishes a network topology by selecting peers based on a variety of factors, including performance metrics for fast header/block delivery, which would need to be adapted to vote diffusion.
 
 Vote diffusion exhibits different characteristics and requirements:
@@ -89,14 +88,14 @@ Diffusion of certificates is required both for syncing (\ref{enumi:cert diffusio
   The Cardano implementation of Ouroboros Genesis \parencite{genesis-implementation-documentation} requires that syncing nodes are always connected to at least one honest peer.
 (This requirement is called the \enquote{honest availability assumption}.)
 In practice, this is guaranteed by connecting to a sufficient number of appropriately sampled peers.
-To reduce the load on these peers (and for a more efficient use of resources generally), downloading the same certificates from multiple peers must be avoided.%
+%To reduce the load on these peers (and for a more efficient use of resources generally), downloading the same certificates from multiple peers must be avoided.%
 %
-\footnote{We find this motivation in other parts of Ouroboros. For instance, as part of the Cardano Genesis implementation, we ensured that both block bodies and headers were downloaded only once.\cite{genesis-implementation-documentation}}
+%\footnote{We find this motivation in other parts of Ouroboros. For instance, as part of the Cardano Genesis implementation, we ensured that both block bodies and headers were downloaded only once.\cite{genesis-implementation-documentation}}
 \item\label{enumi:cert diffusion:caught up}
   Additionally, diffusing certificates even between caught-up nodes is necessary in certain cases involving adversarial activity, such as late votes (\cref{sec:votes certs from the past}) and equivocation attacks (\cref{sec:attack equivocations}).
 \end{enumerate}
 
-We note that certificates can also be diffused in blocks (in order to coordinate the end of a cooldown); this is orthogonal to the discussion in this section.
+We note that certificates can occasionally be diffused in blocks too (in order to coordinate the end of a cooldown); this is orthogonal to the discussion in this section.
 
 \paragraph{Using object diffusion.}
 
@@ -106,29 +105,14 @@ In particular, we want:
 \begin{description}
 \item [\argfont{object}]
   A certificate.
-\item [\argfont{id}]
+\item [\argfont{objectId}]
   A Peras round number.
-\item [\argfont{objectIds}, \argfont{responseToIds}]
-  In its simplest form, a list of Peras round numbers, and the identity function.
-
-  As an optimization, compact/compressed representations are possible, for example
-  \begin{itemize}
-  \item
-    a round followed by a bitset for the subsequent rounds, indicating whether a certificate is present, or
-  \item
-    a round followed by a run-length encoding of the subsequent rounds.
-    This is motivated by the observation that in Peras, rounds are (not) successful in larger runs, either because all rounds are successful due to sufficient honest votes, and if not, a lengthy cooldown period (with no successful rounds to due honest abstention) of unsuccessful rounds.
-  \end{itemize}
-  The \argfont{responseToIds} function is then decoding this compact representation.
-\item [\argfont{initialPayload}]
-  A Peras round number.
-
-  Partially synced/recently caught-up peers can use this to receive certificates starting from the first round for which they do not yet have a certificate, avoiding the transfer of older, already-downloaded data.\footnote{
-  This is conceptually analogous to \msg{MsgFindIntersect} in the ChainSync protocol.}
 \end{description}
 
-An honest server answers requests for more round numbers by sending those for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.%
-\footnote{The resulting sequence of round numbers is \emph{almost} monotonically increasing, with a possible exception once the client has (almost) caught-up, see~\cref{sec:cert monotonicity}.}
+It may be desirable for the client to send the peras round number corresponding to the beginning of their validation window (or any equivalent piece of information) as part of their \MsgInit{} payload, so that the server doesn't advertise them certificates that they wouldn't be able to validate.
+
+An honest server answers requests for more certificate IDs (i.e. round numbers) by sending the round numbers for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.%
+\footnote{The resulting sequence of round numbers is \emph{almost} monotonically increasing, with a possible exception, see~\cref{sec:cert monotonicity}.}
 At any time, it will serve the certificates corresponding to unacknowledged round numbers, while enforcing an upper bound on the this quantity.
 
 This design leverages the fact that there can only be at most one certificate per round, which allows us to elide data like the point of the block that is being certified/boosted, justifying the use of round numbers as certificate IDs.
@@ -143,13 +127,12 @@ We now give a high-level description of the envisioned dynamics of this protocol
   For every round number that is advertised by at least one peer, the corresponding certificates are downloaded from the peers via \MsgRequestObjs{} (as a first step, a singular designated peer which a simple batching strategy could be used; but more sophisticated strategies, similar to the existing BlockFetch logic are conceivable).
   The client uses protocol-level pipelining to avoid round-trip delays and to make full use of the available bandwidth.
 \item
-  As the node is eventually done catching up, its peers run out of certificates to serve, and the node will start sending \MsgRequestObjIdsB{} instead.\footnote{
-  In particular, an incomplete/empty reply to \MsgRequestObjIdsNB{} is analogous to \msg{MsgAwaitReply} in the ChainSync protocol.}
-  Usually, it will receive one new round number per peer every \perasRoundSlots{} slots, but given that the node now participates in vote diffusion, it is not necessary to actually download the certificate.
+  As the node is eventually done catching up, its peers run out of certificates to serve, and the node will start sending \MsgRequestObjIdsB{} instead.
+  Usually, the client will receive one new round number per peer every \perasRoundSlots{} slots, but given that the node now participates in vote diffusion, it may not be necessary to actually download the certificate.
 
   An exception is the scenario where the node has downloaded all votes for a round without observing a quorum, but still received this round number via the certificate diffusion protocol.
   In this case, the node will download the certificate via certificate diffusion.
-  This can only happen due to adversarial activity like vote equivocation, see \cref{sec:attack equivocations}.
+  This should theoretically only happen due to adversarial activity like vote equivocation, see \cref{sec:attack equivocations}.
 \end{itemize}
 
 Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enforcing appropriate timeouts and a monotonicity property on the advertised round numbers:
@@ -159,48 +142,51 @@ Clients can ensure progress in this protocol w.r.t.\ adversarial servers by enfo
 \item\label{enumi:cert diffusion monotonicity}
   The sequence of round numbers sent by the server must increase \emph{almost} monotonically, as honest nodes (acting as servers) can observe the certificate for round $r$ before the one for round $r-1$ in edge cases, see~\cref{sec:cert monotonicity}.
 
-  This almost-monotonicity requirement can be enforced implicitly by an appropriate leaky token bucket (also see~\ref{enumi:cert diffusion timeouts}) via an approach analogous to the \enquote{Limit on Patience}, the mechanism used in the Cardano Genesis implementation \parencite{genesis-implementation-documentation} to guarantee progress in ChainSync while syncing.
+  % NOTE: this commented section will be replaced by a strict monotonicity requirement in the future version of this document.
+  % This almost-monotonicity requirement can be enforced implicitly by an appropriate leaky token bucket (also see~\ref{enumi:cert diffusion timeouts}) via an approach analogous to the \enquote{Limit on Patience}, the mechanism used in the Cardano Genesis implementation \parencite{genesis-implementation-documentation} to guarantee progress in ChainSync while syncing.
 
-  In short, the idea is to make sure that the server sends round numbers higher than anything it has sent before at a minimum rate on average, or that the server advertises that it has no more certificates.
-  An honest server will have no trouble in doing that, as it will only ever send round numbers in non-monotonic order when the client is almost caught-up.
-  Once it is caught-up, this mechanism can be disabled, just like the Limit on Patience.
+  % In short, the idea is to make sure that the server sends round numbers higher than anything it has sent before at a minimum rate on average, or that the server advertises that it has no more certificates.
+  % An honest server will have no trouble in doing that, as it will only ever send round numbers in non-monotonic order when the client is almost caught-up.
+  % Once it is caught-up, this mechanism can be disabled, just like the Limit on Patience.
 \end{enumerate}
 
-Finally, we note that in order to conclude that a round \emph{does} have a corresponding certificate, it is enough to download such a cert from any peer, while concluding that there is \emph{no} certificate for a round $r$ requires information from \emph{all} peers (in the form of advertising a certificate for a round sufficiently larger than $r$ as per~\ref{enumi:cert diffusion monotonicity}, or by the peer indicating that they have no more certificates at the moment).
+% Finally, we note that in order to conclude that a round \emph{does} have a corresponding certificate, it is enough to download such a cert from any peer, while concluding that there is \emph{no} certificate for a round $r$ requires information from \emph{all} peers (in the form of advertising a certificate for a round sufficiently larger than $r$ as per~\ref{enumi:cert diffusion monotonicity}, or by the peer indicating that they have no more certificates at the moment).
 
 \subsection{Alternatives}\label{sec:vote cert alternatives}
 
 We briefly discuss two alternatives to the design of vote and certificate diffusion presented above.
 \begin{itemize}
-\item
-  One could combine vote and certificate diffusion into one custom protocol.
-  This would allow for some optimizations, such as responding with a certificate when a client asks for a vote that it subsumes, and could make certain interactions between the vote and certificate clients explicit.
+% \item
+%   One could combine vote and certificate diffusion into one custom protocol.
+%   This would allow for some optimizations, such as responding with a certificate when a client asks for a vote that it subsumes, and could make certain interactions between the vote and certificate clients explicit.
 
-  However, the separation of votes and certificates actually allows the individual protocols to be simpler and more focused, and the aforementioned optimization does not seem relevant in practice, in particular as one still needs synchronization between the clients of different peers.
+%   However, the separation of votes and certificates actually allows the individual protocols to be simpler and more focused, and the aforementioned optimization does not seem relevant in practice, in particular as one still needs synchronization between the clients of different peers.
 
-  Also, there is an advantage in reusing object-diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) due to its similarity to the existing Tx-Submission protocol, and the planned use for Mithril \parencite{dmq-cip} and Ouroboros Leios.
+%   Also, there is an advantage in reusing object-diffusion mini-protocol (\cref{sec:object-diffusion-protocol}) due to its similarity to the existing Tx-Submission protocol, and the planned use for Mithril \parencite{dmq-cip} and Ouroboros Leios.
 \item
   Certificate diffusion could use \emph{two} protocols similar to how chains are diffused in Cardano.
   Concretely, the first protocol would be similar to ChainSync and diffuse just certificate IDs (i.e.\ round numbers) and the second protocol would be an instantiation of BlockFetch with certificate IDs instead of block points and certificates instead of blocks.
 
   However, this approach seems overly complicated for the purpose of certificate diffusion.
   The primary motivation for having separate ChainSync and BlockFetch protocols is the \emph{header-body split} \parencite{shelley-data-diffusion-networking}, and ChainSync is specifically designed for stateful chain following, whereas certificates do not have an inherent chain structure (despite voting for blocks on a block chain).
+\item
+  Certificate diffusion could use \emph{two} protocols, with one specific for batch-syncing of historical certificates; while the other would be specialized to the dynamic of diffusing new certs that have just been created among caught-up nodes. The motivation would be to take advantage of the very different dynamics of these two tasks (the former is high throughput, high latency, while the latter is low throughput, low latency, with data being exchange very sporadically, every 90s)
 \end{itemize}
 
-Furthermore, there are options to improve vote diffusion by already \emph{partially} aggregating votes before the final certificates are created, such that nodes do not need to aggregate certificates out of votes themselves, but can save both bandwidth and computational power by reusing partial certificates they received.
+There have been discussions to improve vote diffusion by already \emph{partially} aggregating votes before the final certificates are created, such that nodes do not need to aggregate certificates out of votes themselves, but this seems difficult/impossible due to linearization taking place when signatures are aggregated, at least with a scheme like BLS (so aggregating signatures in two sets, and then aggregating the two aggregates themselves doesn't give the same result as aggregating all the signatures together at once, c.f. \cref{sec:crypto votes agg}).
 
-One option (used for example by Ethereum, see \cite{eth-horn-signature-collection}) is to form a number of subnets (via pub/sub topics), with every pool joining only one of these for diffusing their vote.
-Every subnet has a number of elected aggregators (more than one for resilience against adversaries) which combine the votes of their subnet into partial certificates (attestations) and relay those to a global topic for everyone to observe.
+% One option (used for example by Ethereum, see \cite{eth-horn-signature-collection}) is to form a number of subnets (via pub/sub topics), with every pool joining only one of these for diffusing their vote.
+% Every subnet has a number of elected aggregators (more than one for resilience against adversaries) which combine the votes of their subnet into partial certificates (attestations) and relay those to a global topic for everyone to observe.
 
-A first observation is that the current Cardano networking stack does not support setting up topologies only covering small subsets of all nodes which are necessary for this scheme.
-This is by design; \cite{shelley-data-diffusion-networking} discusses pub/sub systems, and among other problems, it notes that the concept of topics that are only subscribed to by a small relative fraction of all nodes is not useful for Ouroboros Praos, as both blocks and transactions need to be diffused to all pools.
-Therefore, further research and work would be needed here.
+% A first observation is that the current Cardano networking stack does not support setting up topologies only covering small subsets of all nodes which are necessary for this scheme.
+% This is by design; \cite{shelley-data-diffusion-networking} discusses pub/sub systems, and among other problems, it notes that the concept of topics that are only subscribed to by a small relative fraction of all nodes is not useful for Ouroboros Praos, as both blocks and transactions need to be diffused to all pools.
+% Therefore, further research and work would be needed here.
 
-Furthermore, with the vote and certificate schemes currently under consideration (\cref{sec:crypto votes agg}), partial certificates of non-disjoint parties (which is common in the scenario above) can not be merged without further increasing the size of the certificate.
-Also, there is additional complexity in determining how to best \enquote{pack} these partial certificates, see e.g.\ \cite{eth-attestation-aggregation-heuristics}.
-There \emph{are} \enquote{nicely mergeable} schemes that would avoid this downside, see \cref{sec:crypto votes agg}, however, they are still in early stages of research.
+% Furthermore, with the vote and certificate schemes currently under consideration (\cref{sec:crypto votes agg}), partial certificates of non-disjoint parties (which is common in the scenario above) can not be merged without further increasing the size of the certificate.
+% Also, there is additional complexity in determining how to best \enquote{pack} these partial certificates, see e.g.\ \cite{eth-attestation-aggregation-heuristics}.
+% There \emph{are} \enquote{nicely mergeable} schemes that would avoid this downside, see \cref{sec:crypto votes agg}, however, they are still in early stages of research.
 
-More sophisticated vote diffusion mechanisms with incremental aggregation are described in \cite{begassat2019handel,baloochestani2024iniva}, but they require significant additional complexity related to forming an appropriate tree-based topology for their scheme.
+% More sophisticated vote diffusion mechanisms with incremental aggregation are described in \cite{begassat2019handel,baloochestani2024iniva}, but they require significant additional complexity related to forming an appropriate tree-based topology for their scheme.
 
 %%% Local Variables:
 %%% mode: latex

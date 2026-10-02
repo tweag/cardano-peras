@@ -84,6 +84,8 @@ This is relevant in particular as it allows them to trigger a cooldown phase.
 
 \subsection{Density reduction via boost-induced rollbacks}\label{sec:density reduction via boost-induced rollbacks}
 
+\thomas{Note: this attack is way less likely now that votes must reach quorum in the first $\Delta$ slots of a round for the round to be considered successful}
+
 We now describe an adversarial strategy that results in the honest historical chain to have low density, but high weight, i.e.\ in the extreme case, there is one boosted block per Peras round, with every voting round being successful.
 In that case, a simple (private) fork purely made out of adversarial blocks has a good chance to have higher density (but significantly lower weight) than the honest chain.
 

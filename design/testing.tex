@@ -7,13 +7,13 @@ We exclude considerations of testing the cryptographic scheme underlying votes a
 We describe how the components of the Peras architecture (both new and modified ones) can be tested.
 
 \begin{itemize}
-\item
-  The IOE Consensus team is currently collaborating with the IOE Formal Methods team in establishing \emph{conformance tests} for header validation, comparing the actual implementation to the formal specification in Agda \parencite{chapman2024applying}.
-  We advise to consider similar tests for ensuring the correctness of vote and certificate validation.
+% \item
+%   The IOE Consensus team is currently collaborating with the IOE Formal Methods team in establishing \emph{conformance tests} for header validation, comparing the actual implementation to the formal specification in Agda \parencite{chapman2024applying}.
+%   We advise to consider similar tests for ensuring the correctness of vote and certificate validation.
 \item
   To test the enriched chain selection algorithm which accounts for weighted chains via boosted blocks, it is natural to modify the existing state machine test in lock-step style, which uses property tests to ensure the equivalence to a simple model implementation.
 
-  Similarly, we recommend state machine tests for the PerasVoteDB and the PerasCertDB\@.
+  Similarly, we recommend state machine tests for the PerasVoteDB and the PerasCertDB.
   In case of the latter, explicit fault injection can be used to check for appropriate behavior under e.g.~disk corruption that are otherwise hard to test.
 \item
   The modification to the Cardano Genesis implementation (using weight to compare candidate chains) can be checked by adapting the existing extensive test suite for Genesis.

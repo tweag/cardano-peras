@@ -19,7 +19,7 @@ Various components that currently consider chain \emph{length} must instead cons
 
   When Peras is not in a cooldown phase, this means that the length of the volatile suffix decreases from \kcp{} blocks to
   \[ \left\lceil \frac{\kcp }{1 + \frac{\perasBoost}{\perasRoundSlots \cdot \asc}} \right\rceil = 499 \]
-  blocks in expectation, assuming no adversary and full honest participation, as well as $\perasBoost = 15$, $\asc = 1/20$ and $\kcp = 2160$.
+  blocks in expectation, assuming no adversary and full honest participation, as well as $\perasBoost = 15$, $\asc = 1/20$ and $\kcp = 2160$.\thomas{TODO: this uses Praos $\kcp$, while it's supposed to get 1.5x bigger with Peras. This must be updated}
 
   As a consequence, and because we only need to store ledger states for each volatile block and the immutable tip, fewer ledger states need to be stored in that case.
   However, this expected to only result in a small gain in efficiency, as ledger states corresponding to subsequent blocks only differ by a small amount in relation to the total size, and existing implementations exploit this fact by using implicit structural sharing or by explicitly maintaining these diffs.
@@ -29,7 +29,7 @@ Various components that currently consider chain \emph{length} must instead cons
 
   Concretely, the \emph{Genesis Density Disconnection} governor needs to be revised to become aware of certificates.
   In general, disconnecting from one of two peers offering competing historical chains requires definite knowledge of all certificates in rounds that can boost a block in the first \sgen{} slots after their intersection.
-  We achieve this via the \perasBlockMaxSlots{} parameter (establishing an upper bound on the maximum relative age of a block that a certificate can boost) and the discussion of progress of certificate diffusion in \cref{sec:certificate-diffusion}.
+  We achieve this via the \perasBlockMaxSlots{} parameter (establishing an upper bound on the maximum relative age of a block that a certificate can boost) and the discussion of progress of certificate diffusion in \cref{sec:certificate-diffusion}. Notably, the validation window for Peras certificates must be at least $\sgen + \perasBlockMaxSlots$ so that all relevant certificates can be downloaded and validated before we take a \emph{Genesis Density Disconnection} decision.
 \item[BlockFetch decision logic]
   The BlockFetch decision logic is responsible for downloading blocks corresponding to candidate header chains that are preferable to the current selection.
   The comparison between candidate header chains and the current selection needs to take weight into account.
@@ -52,7 +52,7 @@ Various components that currently consider chain \emph{length} must instead cons
   As block counting is a part of ledger validation, it is not possible to directly change this rule to use weight instead, as the set of certificates is not available in this context, and it is not desirable to make block validation dependent on external data like certificates.
 
   It is conceivable that a more fine-grained analysis could result in the probability to have less than \kcp{} blocks (or an appropriately increased quantity) to still be acceptably low for this purpose, such that the HFC can continue to use block counting.
-  We also note that block counting has been under closer scrutiny and been subject of discussions to potentially replace it for other, unrelated reasons.
+  We also note that block counting has been under closer scrutiny and been subject of discussions to potentially replace it for other, unrelated reasons.\thomas{We already have an issue for this, but IIRC it is rather vague, so we should include in the issue's body what this paragraph says}
 \end{description}
 
 

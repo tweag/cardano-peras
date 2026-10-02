@@ -11,24 +11,19 @@ Potentially, one could add a simple protocol that reports the weight on top of a
 
 We do not see a strong use case for exposing votes as a node-to-client protocol; monitoring tools for Peras can likely use the node-to-node protocol directly.
 
-\subsection{Lighter chain syncing and following}\label{sec:lighter chain syncing following}
+% \subsection{Lighter chain syncing and following}\label{sec:lighter chain syncing following}
 
-Peras enables more lightweight chain syncing and following under optimistic conditions, i.e.\ when Peras is not in a cooldown period.
-Observing a valid Peras certificate boosting a block $B$ implies in particular that at least one honest node fully validated and selected $B$.
-Therefore, when adopting $B$ or any of its predecessors, it is sound to skip cryptographic checks like signature verification as well as script execution, as these do not influence the resulting ledger state, saving the bulk of the CPU work necessary to fully validate them.%
-\footnote{We note that this optimization is conflicting with the Devoted BlockFetch logic introduced in the Ouroboros Genesis implementation \parencite{genesis-implementation-documentation}, which currently assumes that a syncing node can download blocks from honest nodes more quickly than it can validate them.}
+% Peras enables more lightweight chain syncing and following under optimistic conditions, i.e.\ when Peras is not in a cooldown period.
+% Observing a valid Peras certificate boosting a block $B$ implies in particular that at least one honest node fully validated and selected $B$.
+% Therefore, when adopting $B$ or any of its predecessors, it is sound to skip cryptographic checks like signature verification as well as script execution, as these do not influence the resulting ledger state, saving the bulk of the CPU work necessary to fully validate them.%
+% \footnote{We note that this optimization is conflicting with the Devoted BlockFetch logic introduced in the Ouroboros Genesis implementation \parencite{genesis-implementation-documentation}, which currently assumes that a syncing node can download blocks from honest nodes more quickly than it can validate them.}
 
-Here, Peras certificates play the same role as endorsement certificates in Leios, see~\cite[Section 4.4.2]{leios-design-goals-concepts}.
+% Here, Peras certificates play the same role as endorsement certificates in Leios, see~\cite[Section 4.4.2]{leios-design-goals-concepts}.
 
 \subsection{Key registration period}
 
 Votes and certificates will require pool operators to register new cryptographic keys, cf.\ \cref{sec:realizing votes certs}.
 As Peras is ineffective (due to its cooldown periods) until a significant number of SPOs have done so, we propose to only enable Peras after another (intra-era) hard fork.
-
-However, nodes can already create (if the pool owner registered a key on chain) and relay votes during this period, without the resulting certificates (if any) actually taking any effect.
-More generally, it is possible to already enable all aspects of Peras \emph{except} the weighted aspect of chain selection.
-
-This allows to monitor the dynamics and various statistics of Peras as well as to catch potential bugs in the \enquote{real world} before going fully live.
 
 \subsection{KES agent integration}
 

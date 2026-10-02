@@ -41,8 +41,8 @@ Adding new protocol parameters to the Cardano Ledger \parencite{shelley-ledger-s
     \perasHealingFactor{} & n.a. & \healfact & $\geq 1$ & $\checkmark$ \\
 
     \perasHealingSlots{} & \unit{\slot} & \Theal & $\Theal = \healfact \cdot \frac{B}{\asc}$ & ✘ \\
-    \perasCertMaxRounds{} & round & $A$ & $A = \lceil \frac{\Theal + \Tcq}{U} \rceil$ & ✘ \\
-    \perasCooldownRounds{} & round & $K$ & $K = \lceil \frac{\Theal + \Tcq + \Tcp}{U} \rceil + 1$ & ✘ \\
+    \perasCertMaxRounds{} & round & $A$ & $A = \left\lceil \frac{\Theal + \Tcq}{U} \right\rceil$ & ✘ \\
+    \perasCooldownRounds{} & round & $K$ & $K = \left\lceil \frac{\Theal + \Tcq + \Tcp}{U} \right\rceil + 1$ & ✘ \\
     \perasIgnoranceRounds{} & round & $R$ & $R = A$ & ✘ \\
     \perasQuorumBase{} & n.a. & \tauBase & \num{0.75} & ✘ \\
     \perasQuorumSafetyMargin{} & n.a. & \tauMargin & 0 to $1-\tauBase$ & $\checkmark$ \\
