@@ -2,6 +2,8 @@
 
 For context, we list existing (Praos/Genesis) protocol parameters in~\cref{fig:praos protocol parameters}.
 
+Note that the value of \kcp{} and all the other params that depend on it should be increased when Peras is used \thomas{Find source why}.
+
 \begin{table}[h]
   \centering
   \begin{tabular}{c c c c}
@@ -22,7 +24,7 @@ The Peras protocol is influenced by various new protocol parameters, also see~\c
 The values of these parameters are not yet final, and justifying their values (especially the ones related to cooldowns) is out of scope for this document.
 For explicitness and to avoid confusion, we use a relatively verbose naming scheme.
 The Cardano Ledger allows protocol parameters to be controlled via on-chain governance.
-We indicate whether this flexibility is likely to be useful.
+We indicate whether the parameters are compatible with/would benefit from this flexibility.
 
 Adding new protocol parameters to the Cardano Ledger \parencite{shelley-ledger-specs,cardano-formal-ledger-specs} is a routine change.
 
@@ -32,18 +34,21 @@ Adding new protocol parameters to the Cardano Ledger \parencite{shelley-ledger-s
     \toprule
     Name & Unit & Symbol & Feasible value & Governable? \\
     \midrule
-    \perasRoundSlots{} & \unit{\slot} & $U$ & \num{90} & $\checkmark$ \\
-    \perasBlockMinSlots{} & \unit{\slot} & $L$ & \numrange{30}{900} & $\checkmark$ \\
-    \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $T_{\mathrm{CQ}} = \kcp/\asc$ & ✘ \\
-    \perasHealingSlots{} & \unit{\slot} & \Theal & t.b.d. & ✘ \\
-    \perasIgnoranceRounds{} & round & $R$ & $\lceil (\Theal + \Tcq)/U \rceil$ & ✘ \\
-    \perasCooldownRounds{} & round & $K$ & $\lceil (\Theal + \Tcq + \Tcp)/U \rceil + 1$ & ✘ \\
-    \perasCertMaxRounds{} & round & $A$ & \perasIgnoranceRounds{} & ✘ \\
+    \perasRoundSlots{} & \unit{\slot} & $U$ & $\geq \Delta$, e.g. \num{90} & ✘ \\ % cannot be governed because it is part of EraParams for time-based computations in ouroboros-consensus
     \perasBoost{} & block & $B$ & \num{15} & $\checkmark$ \\
-    \perasQuorum{} & weight & $\tau$ & $3/4$ & ✘ \\
-    \perasN{} & committee seat & $N$ & \numrange{500}{1000} & $\checkmark$ \\
-    \perasVoteSizeLimit{} & \unit{\byte} & n.a. & \qty{200}{\byte} & $\checkmark$ \\
-    \perasCertSizeLimit{} & \unit{\byte} & n.a. & \qty{20}{\kilo\byte} & $\checkmark$ \\
+    \perasBlockMinSlots{} & \unit{\slot} & $L$ &$\geq \Delta$, e.g. \numrange{30}{900} & $\checkmark$ \\
+    \perasBlockMaxSlots{} & \unit{\slot} & n.a. & $L$ to $\Tcq + L$ & ✘ \\ % cannot be governed because its value has impact on the Genesis window.
+    \perasHealingFactor{} & n.a. & \healfact & $\geq 1$ & $\checkmark$ \\
+
+    \perasHealingSlots{} & \unit{\slot} & \Theal & $\Theal = \healfact \cdot \frac{B}{\asc}$ & ✘ \\
+    \perasCertMaxRounds{} & round & $A$ & $A = \lceil \frac{\Theal + \Tcq}{U} \rceil$ & ✘ \\
+    \perasCooldownRounds{} & round & $K$ & $K = \lceil \frac{\Theal + \Tcq + \Tcp}{U} \rceil + 1$ & ✘ \\
+    \perasIgnoranceRounds{} & round & $R$ & $R = A$ & ✘ \\
+    \perasQuorumBase{} & n.a. & \tauBase & \num{0.75} & ✘ \\
+    \perasQuorumSafetyMargin{} & n.a. & \tauMargin & 0 to $1-\tauBase$ & $\checkmark$ \\
+    \perasN{} & committee seats & $n$ & \numrange{500}{1000} & $\checkmark$ \\
+    \\
+    \perasBootstrapRound{} & optional round no. & \Rboot & init to \texttt{SNothing} \\
     \bottomrule
   \end{tabular}
   \caption{New Peras protocol parameters}\label{fig:protocol parameters}
@@ -52,6 +57,8 @@ Adding new protocol parameters to the Cardano Ledger \parencite{shelley-ledger-s
 \begin{description}
 \item[\perasRoundSlots]
   Peras round length, number of slots per Peras round.
+\item[\perasBoost]
+  The extra chain weight that a certificate gives to a block. The unit is actually the weight in block-equivalent; so when $B = 15$, a block with a cert boosting weigh as much as 16 non-boosted blocks.
 \item[\perasBlockMinSlots]
   Peras block selection offset, the minimum age (in slots) of a block to be voted on at the beginning of a Peras round.
 
@@ -61,30 +68,60 @@ Adding new protocol parameters to the Cardano Ledger \parencite{shelley-ledger-s
   The maximum age (in slots) of a block to be voted on at the beginning of a Peras round.
 
   This parameter is new compared to the CIP~\cite{peras-cip}.
-  It is motivated to allow validating votes/certificates ahead of the current chain, especially while syncing.\footnote{
-  We note that the exact details of forecasting are still subject to discussions, in particular pending feedback by the Peras research team, cf.~\url{https://github.com/tweag/cardano-peras/issues/25}.}
+
+  Without it, the theoretical max age of a block being voted for by honest nodes is $\Tcq + L$\footnote{Honest nodes should vote for the most recent block that is at least $L$ slots olds. We know there has been at least one block in the last $\Tcq$ slots. Either this block is strictly younger than $L$, in which case we need to vote for the previous one, up to $\Tcq$ slots further in the past (so at most $\Tcq + L$ from the present); or this block is older than $L$ but younger than $\Tcq$ in which case we can vote for it.}. Since all possible cert boosts must be taken into account for Genesis, it means that the forecasting horizon for validating Peras certs must be $\Tcq + L$ longer than the Genesis window $\gw$.
+
+  With this parameter, we allow to bound the duration between the emission of a block and the possible cert boosting it to a smaller value, so that the forecasting horizon for Peras doesn't need to be extended as much\footnote{Currently, $\gw = \frac{3\kcp}{asc}$ and can technically have a forecasting horizon for Peras up to $\frac{4\kcp}{asc}$. So $\perasBlockMaxSlots = \frac{\kcp}{asc}$ seems to be a reasonable choice that stays close to the theoretical max value while fulfilling technical implementation constraints}.
+
+  Given that this value interacts closely with Genesis logic and forecasting horizon for Peras, it cannot be governed on-chain.
+\item[\perasHealingFactor]
+  Closely tied to \perasHealingSlots. A healing factor of 1 gives a \perasHealingSlots{} corresponding exactly to the number of slots needed for healthy/nominal block production to forge enough blocks to weigh as much as a certificate.
 \item[\perasHealingSlots]
-  The amount of slots needed to heal from a failed Peras voting round, depending on $\perasBoost$.
-  A concrete value has yet to be chosen.
-\item[\perasIgnoranceRounds, \perasCooldownRounds]
-  Lengths of the chain ignorance period and the cooldown period.
+  The amount of slots needed to heal from a failed Peras voting round, depending on \perasHealingFactor{} and $\perasBoost$.
+\item[\perasCertMaxRounds]
+  The maximum age of a certificate to be included in a block. This value is long enough so that even in very degraded network conditions, during which we may only observe one block in $\Tcq$ slots, honest nodes will be able to include the certificate on-chain to synchronize the end of the cooldown period.
+
+  Note that this value gives a lower bound for how long the Peras context necessary for validating certs must be kept in memory (because validity of a block depends on the validity of the cert it contains).
+\item[\perasCooldownRounds, \perasIgnoranceRounds]
+  Lengths of the cooldown period and the chain ignorance period.
   Determine for how long honest nodes will not vote after an unsuccessful Peras round.
 
   We note that \Theal{} needs to be parameterized for a very strong adversary (in order to make up for a late boost/certificate that the adversary might have up their sleeve).
   In contrast, \Tcq{} and \Tcp{} can be parameterized for weaker adversaries (i.e.~\qty{25}{\percent} stake or less), as they are only used to let honest nodes restart voting at the same time, which is not critical for safety.
   See \cref{sec:attack cooldowns} for more details.
-\item[\perasCertMaxRounds]
-  The maximum age of a certificate to be included in a block.
-\item[\perasBoost]
-  The extra chain weight that a certificate gives to a block.
-\item[\perasQuorum]
-  The total weight of votes required to create a certificate, assuming that the total (expected) weight of a committee is $1$.
+
+\item[\perasQuorumBase]
+  Relative share of votes that must be obtained on a same block candidate to consider a voting round to be a success, under idealized settings as per~\cite{badertscher2025peras}.
+\item[\perasQuorumSafetyMargin]
+  Extra share of votes on top of \perasQuorumBase{} that are required to consider a voting round to be a success, to take into account (i) the security loss due to divergences between the idealized setting and the real implementation and (ii) the possible difference between the expected total voting weight and the actual total voting weight for committee selection schemes whose actual total voting weight can only be known \textit{a posteriori} by a node (e.g. when eligibility relies on VRF)
+
 \item[\perasN]
-  The expected number of committee seats, i.e.\ the total number of votes that can be cast per round.
-\item[\perasVoteSizeLimit, \perasCertSizeLimit]
-  Maximum size (in bytes) of Peras votes and certificates.
+  The targeted number of committee seats, i.e.\ the expected number of SPOs (with strictly positive stake) that are eligible to take part in voting. Note that the voting power of each seat is weighted depending on the stake of the eligible SPO and the committee selection scheme being used.
+
+  For some committee selection schemes, the actual number of eligible voters cannot be known in advance by a node (e.g. when voting eligibility relies on VRF).
+% \item[\perasVoteSizeLimit, \perasCertSizeLimit]
+%   Maximum size (in bytes) of Peras votes and certificates.
+
+\item[\perasBootstrapRound]
+  When Peras is enabled for the first time, nodes haven't seen a single certificate yet, neither by vote diffusion/cert diffusion, nor on-chain. It seems reasonable to assume that nodes start in a cooldown state; but voting rules that allow nodes to exit cooldown and start voting again assume the existence of a latest certificate seen on-chain, and use it as a sync point. However in the "initial cooldown" case, such a certificate doesn't exist yet. So it's unclear if these voting rules should trigger.
+
+  The role of this parameter is thus to serve as a fallback sync point to exit the "initial cooldown" when Peras is enabled for the first time.
+
+  In addition, this parameter could be used to re-sync nodes so they start voting again at a same time in the event where honest nodes somehow disagree on what is the latest cert seen on-chain.
 \item[\kcp]
-  The security parameter (reinterpreted to measure weight of chains instead of just blocks) needs to be increased to retain the same security as in pure Praos.
+  The security parameter (reinterpreted to measure weight of chains instead of just length).
+
+  It needs to be increased to retain the same security as in pure Praos,  \thomas{Find source why}
+\item[\perasQuorum]
+  This is not a parameter \textit{per se}, but we refer to it often in the document. It is closely tied to \perasQuorumBase{} and \perasQuorumSafetyMargin{}.
+
+  \perasQuorum{} (with symbol $\tau$) is the cumulative weight of votes required to consider a voting round to be a success (and thus to create a certificate), depending on the round $r$\footnote{Actually the stake distribution used for committee selection doesn't change on a per-round basis but rather a per-epoch basis in the current implementation, similarly to Praos, so $\tau(r)$ has currently the same value for all rounds $r$ of a given epoch}.\\
+  We have
+  \[
+    \tau(r) = (\tauBase + \tauMargin) \cdot \perasTotalVotingWeight(r)
+  \]
+
+  We often refer to this value by $\tau$ (instead of $\tau(r)$) when the round in question can be inferred from the context.
 \end{description}
 
 For a more detailed discussion of the interactions of the various parameters we refer to~\cite{peras-cip}.
