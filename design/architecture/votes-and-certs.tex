@@ -5,17 +5,17 @@ Peras introduces two new entities: \emph{votes} and \emph{certificates}.
 \subsection{Votes}
 
 Peras voting proceeds in rounds, lasting $\perasRoundSlots$ each.
-Every round has an associated \emph{weighted committee} \parencite[Section~4]{gavzi2023fait}, a set of stake pools responsible for voting in this round, together with individual amounts of \emph{voting power}, i.e.\ their \emph{weight} in the committee.
-The exact committee election scheme has not yet been decided, but it must satisfy the following informal properties.
+Every round has an associated \emph{weighted committee} (e.g. \parencite[Section~4]{gavzi2023fait}), a set of stake pools responsible for voting in this round, together with individual amounts of \emph{voting power}, i.e.\ their \emph{weight} in the committee.
+The exact committee election scheme has not yet been decided, but it must satisfy the following informal properties :
 \begin{enumerate}
 \item
   An adversary with total stake $\alpha$ can not get significantly more than $\alpha$ relative weight in any committee.
-  The (expected) weight of a pool in the committee is proportional to its stake.
+  The most obvious way to ensure that is for the voting weight of a pool in the committee to be proportional to its stake up to some error margin $\epsilon$.
 \item
   The (expected) size of the committee can be controlled via the \perasN{} parameter.
 \end{enumerate}
 
-At the start of every Peras round (lasting $\perasRoundSlots$), all of the honest nodes in the corresponding Peras committee will usually vote for a recent block (otherwise, Peras is likely entering a cooldown period).
+At the start of every Peras round (lasting $\perasRoundSlots$), all of the honest nodes in the corresponding Peras committee will vote for a recent block (otherwise, Peras is likely entering a cooldown period).
 Votes are \emph{weighted} according to the weight of the pool that cast them in the committee, which allows for an improved size-security tradeoff compared to unweighted votes (where the same party might be allowed to vote multiple times), cf.~\cite{gavzi2023fait}.
 Under optimistic conditions, votes of total weight of at least \perasQuorum{} are cast for the same block, in which case the round is \emph{successful}.
 
@@ -28,22 +28,24 @@ A vote contains the following data:
 \end{itemize}
 The weight of a vote is implicit here and can be recomputed upon validation.
 
-A vote from round $r$ (starting in slot $s$) for a block in slot $t$ is \emph{valid} under the following conditions.
+A vote from round $r$ (starting in slot $s_{r_{\text{start}}}$) for a block in slot $s_b$ is \emph{valid} under the following conditions.
 \begin{itemize}
 \item
   The cryptographic material must be valid, ensuring that the vote was indeed cast by an eligible pool.
 
   This requires the stake distribution, certain protocol parameters and the epoch nonce.
-  The natural choice is to use the same data that would be used to validate a header for slot $s$.
+  The natural choice is to use the same data that would be used to validate a header for slot $s_{r_{\text{start}}}$.
 \item
-  $s - \perasBlockMaxSlots \le t < s - \perasBlockMinSlots$.
+  $s_b + \perasBlockMinSlots < s_{r_{\text{start}}}$ \quad---\quad block $b$ is old enough to be voted for\\
+  $s_{r_{\text{start}}} < s_b + \perasBlockMaxSlots$ \quad---\quad block $b$ isn't too old to be voted for
 \item
-  The slots $s$ and $t$ are in the same era, or at least, the eras of $s$ and $t$ both support Peras.
+  The slots $s_{r_{\text{start}}}$ and $s_b$ are in the same era, or at least, the eras of $s_{r_{\text{start}}}$ and $s_b$ both support Peras.\thomas{Check if this is true (in channel)}
 \end{itemize}
 
 The cryptographic scheme for votes and certificates \parencite{peras-cert-report} will likely require pools to register new keys, which implies corresponding changes to pool (re-)registration.\footnote{
   This also raises other questions like how to handle pools that did not register these new keys as Peras gets enabled.
   A natural approach is to monitor the chain until pools of sufficient stake have done so, and only then enable Peras, ignoring the remaining pools until they have registered appropriate keys on chain.}
+\thomas{We need to check what is happening when SPOs haven't registered a key. Typically, if a high stake pool has no public key for Peras, does that mean they can't be eligible to vote (so the voting weight is attributed to someone else, which may be a security risk), or does that just mean that some voting weight is lost? --> The answer lies in the implementation for commitee selection probably: https://github.com/tweag/cardano-peras/issues/309}
 
 \subsection{Certificates}\label{sec:certificate generalities}
 
@@ -65,8 +67,7 @@ On the other hand, we assume that \emph{equivocating} certificates, i.e.\ two ce
 \begin{tcolorbox}[title=Assumption]
   For every Peras round, there is at most one block that has a valid certificate in that round.
 \end{tcolorbox}
-This assumption is justified by an appropriate parameterization of \perasQuorum{} and \perasN{}, such that an adversary never attains sufficient weight in the committee to equivocate certificates.\footnote{Future work on the Peras protocol might relax this assumption and hence allow a less conservative parameterization.
-  However, certain design decisions (especially around certificate diffusion) in this document would need to be reconsidered to properly handle equivocating certificates, as we decided not to prematurely complicate the design without a clear picture of the required semantics.}
+This assumption is justified by an appropriate parameterization of \perasQuorum{} and \perasN{}, such that an adversary never attains sufficient weight in the committee to equivocate certificates.
 
 \subsection{Realizing votes and certificates}\label{sec:realizing votes certs}
 
@@ -95,29 +96,27 @@ A vote or certificate is \emph{from the future} if its round has not yet begun a
 We suggest to handle such votes just like \emph{headers} from the future are already being handled:
 \begin{itemize}
 \item
-  Upon receiving a vote or certificate $x$ from the \emph{near} future (which is currently defined to be at most \qty{2}{\s} in the future), an artificial delay is introduced such that $x$ is no longer from the future, after which $x$ is processed further.
-
+  A vote or certificate $x$ from the \emph{near} future (which is currently defined to be at most \qty{2}{\s} in the future) is supposed to be accepted by the node receiving it.
   This rule is motivated by the insight that it would be unreasonable to expect clocks between honest nodes across the world to be perfectly synchronized.
 
-  The artificial delay might not be necessary for Peras votes/certificates as there is, in contrast to headers/blocks, no incentive to diffuse your vote as early as possible (as long as it still arrives within a Peras round).
-  However, using the exact same logic as for headers has a conceptual simplicity.
+  Depending on the implementation, it may be useful to introduce an artificial delay such that $x$ is no longer from the future, so it can be processed normally afterwards, as it is done for headers. That being said, the artificial delay might not be necessary for Peras votes/certificates as there is, in contrast to headers/blocks, no incentive to diffuse your vote as early as possible (as long as it still arrives within a Peras round).
 \item
-  Upon receiving a vote or certificate from the \emph{far} future (defined to be more than \qty{2}{\s} in the future), we immediately disconnect from the sending peer as this constitutes adversarial behavior.
+  Upon receiving a vote or certificate from the \emph{far} future (defined to be more than \qty{2}{\s} in the future), we immediately disconnect from the sending peer as this constitutes adversarial behavior.\thomas{TODO: we should check we have an issue for this, because it's not implemented yet: https://github.com/tweag/cardano-peras/issues/308}
 \end{itemize}
 
 \subsection{Handling votes and certificates from the past}\label{sec:votes certs from the past}
 
-The formal specification of Peras in~\cite{peras-cip} allows to diffuse votes (and hence processes the resulting certificates) that lie far arbitrarily in the past.
-In an actual implementation, this is undesirable, as the node does not maintain the necessary state (e.g.\ arbitrarily old stake distributions) in order to even be able to validate such votes/certificates.
+The formal specification of Peras in~\cite{peras-cip,badertscher2025peras} allows to diffuse votes (and hence to process the resulting certificates) that lie far arbitrarily in the past.
+In an actual implementation, this is probably undesirable\footnote{It actually seems feasible to store all validation contexts in a database so we are always able to validate any certificate no matter how old it is, should the need arise.}, as the node does not maintain by default the necessary state (e.g.\ arbitrarily old stake distributions) in order to even be able to validate such votes/certificates.
 We now describe an approach for resolving this in an actual implementation.
 
 \begin{description}
 \item[Distant past]
-  If a caught-up node observes a vote or certificate for the first time while its round is already from the distant past (i.e.\ more than \Tcp{} slots old), it can safely ignore/discard it, as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection.
+  If a caught-up node observes a vote or certificate whose boosted block is further in the past than the node's immutable tip, it can safely ignore/discard it, as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection. In particular, we know that any cert older than $\Tcq+\perasBlockMaxSlots$ can only affect the already-immutable part of the node's selection; but some younger certs may also boost blocks that are already further in the the immutable tip.
 
   A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
 \item[Near past]
-  In contrast, we handle votes and certificates from the near (i.e., not distant) past by disallowing votes from past rounds (with some tolerance to account for an acceptable clock skew), but still allowing to diffuse such certificates.
+  In contrast, we handle votes and certificates from the near (i.e., not distant) past by disallowing votes from past rounds\thomas{TODO: we should check we have an issue for this, because it's not implemented yet} (with some tolerance to account for an acceptable clock skew), but still allowing to diffuse such certificates.
 
   This is justified by the fact that honestly cast and diffused votes have ample time to be diffused within a Peras round.
   On the other hand, an adversary can delay their votes for some round $r$ arbitrarily, for example such that some honest nodes consider them to have arrived on time for round $r$ and hence observe a quorum, while other honest nodes do not.
@@ -128,19 +127,25 @@ We now describe an approach for resolving this in an actual implementation.
 \end{description}
 
 \subsection{Monotonicity of honestly observed certificates}\label{sec:cert monotonicity}
-For future reference, we observe that an honest nodes observes Peras certificates in \emph{almost} monotonically increasing order of round numbers in the sense below.
 
-If an honest caught-up node observes a certificate for round $r$ but has not yet done so for round $r-1$, this means that
+For future reference, we note that an honest \& caught-up node receives/observes Peras certificates in monotonically increasing order of round numbers, except in rare conditions.
+More specifically, if an out-of-order certificate was received/observed, one of the following is true:
 \begin{itemize}
-\item
-  either a cooldown just ended, during which no honest nodes voted and so no certificate was created for many rounds, so the node has definitely seen all certificates for rounds smaller than $r$,
-\item
-  or other honest nodes voted in round $r$ due to them observing a certificate for round $r-1$ at that point, so it is only a matter of time until the node also receives that certificate (which we can assume to happen before round $r+1$ starts, as $\perasRoundSlots \gg \Delta$, where $\Delta$ is the maximum network delay).
-
-  An adversary with sufficient stake $\alpha > 1-\perasQuorum$ can cause this scenario by withholding its votes during round $r-1$ until closely before the start of round $r$, and then diffusing them only to a subset of the honest nodes in time before round $r$.
-  Also see \cref{sec:attack block creation rule}.
+\item the node is eclipsed;
+\item OR the out-of-order certificate is too old to affect (volatile) chain selection
 \end{itemize}
-In both cases, the sequence ${(r_k)}_{k\in\mathbb{N}}$ of round numbers of certificates observed by an honest node increases \emph{almost} monotonically, i.e.\ $\max_{i<k} r_k \le  r_{k+1} - 1$ for all $k\in\mathbb{N}$.
+
+The proof sketch is the following: if an honest, caught-up node latest cert received/seen is for round $r_{\text{latest}}$, and it now receives/observes a cert for round $r'$.
+If $r' \geq r_{\text{latest}}$ then ordering is preserved. Suppose that $r' < r_{\text{latest}}$ now.
+
+If other honest nodes connected to this peer had seen the certificate for round $r'$ in the first $\Delta$ slots of round $r'$, they would have send it to our peer by now (since $2 \cdot \Delta$ is smaller than the length $U$ of round $r'$)
+
+So either our peer is eclipsed $\square$ \\
+
+Or the other honest nodes connected to this peer haven't seen the certificate for round $r'$ in the first $\Delta$ slots of round $r'$ ((as per rule VR-1A\cite{badertscher2025peras}). And by transitivity, all honest, non-eclipsed nodes haven't seen it either. So they have entered cooldown in round $r' + 1$.
+
+However we have seen a successful voting (and cert) in round $r_{\text{latest}}$ with $r_{\text{latest}} > r'$, so it means the cooldown was over in round $r_{\text{latest}}$. The effective cooldown duration is at least $\text{max}(K, R)$ so at least $\Tcp$. So $r'$ is a round at least $\Tcp$ from $r_{\text{latest}}$, thus at least $\Tcp$ from current time, and the block being boosted by the cert in $r'$ is at least $L$ slots older than the beginning slot of $r'$, so \textit{a fortiori} the block being boosted by the cert in $r'$ is further in the past than the immutable tip $\square$
+% In both cases, the sequence ${(r_k)}_{k\in\mathbb{N}}$ of round numbers of certificates observed by an honest node increases \emph{almost} monotonically, i.e.\ $\max_{i<k} r_k \le  r_{k+1} - 1$ for all $k\in\mathbb{N}$.
 
 %%% Local Variables:
 %%% mode: latex
