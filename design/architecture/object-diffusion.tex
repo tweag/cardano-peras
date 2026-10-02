@@ -249,10 +249,10 @@ server to omit transactions in its response, indicating by doing so that they
 are invalid. This behaviour can be recovered by using transaction {\em options}
 as \argfont{object}s.}
 
-The client must ensure that the total size of the object batch it requests does not
-exceed the protocol's size limits. In order to do so, the $\argfont{objectIds}$ type
-should contain enough information to infer the size of each object, or the protocol
-should exchange objects with fixed size.%
+% The client must ensure that the total size of the object batch it requests does not
+% exceed the protocol's size limits. In order to do so, the $\argfont{objectIds}$ type
+% should contain enough information to infer the size of each object, or the protocol
+% should exchange objects with fixed size.%
 %
 \footnote{For votes and certificates, we will use the latter. See
 \Cref{sec:certificate-vote-diffusion}.}
@@ -273,7 +273,7 @@ This point holds also if we have requested the objects from other peers, as they
 Finally, note that, if we send \MsgRequestObjIdsB{} while there are messages in the pipeline that are not \MsgRequestObjs, then we might receive new ids that we will not be able to process (with this server) until the server gets new ones.
 
 We believe that this rule covers all the use cases one might have of this protocol.
-Variations from this rule for specific protocols would domain knowledge that for sure we will not need specific objects, but then nothing prevents us, in such a case, from first acknowledging those objects with a \MsgRequestObjIdsNB, and only then send \MsgRequestObjIdsB{} if the answer was empty.
+% Variations from this rule for specific protocols would domain knowledge that for sure we will not need specific objects, but then nothing prevents us, in such a case, from first acknowledging those objects with a \MsgRequestObjIdsNB, and only then send \MsgRequestObjIdsB{} if the answer was empty.
 
 \subsubsection{Orchestration}
 
@@ -287,36 +287,37 @@ depends on a large variety of parameters, specific to each parameterization of t
 \begin{itemize}
   \item the latency/throughput constraints,
   \item the expected network load,
-  \item the quality of each node-to-node connection.
+  \item the quality of each node-to-node connection,
+  \item the distribution of objects that each peer advertise; given that we can download a limited number of objects at once from each peer.
 \end{itemize}
 
-This is related to metrics collected by the existing Network implementation for peer churning, as well as dedicated scoring for the upcoming centralized inbound Tx-Submission logic.
+The tree first points are related to metrics collected by the existing Network implementation for peer churning. We also invite the reader to look at the centralized inbound Tx-Submission v2 logic that implement a similar strategy.
 
-\subsubsection{Use-case specific functions}
+% \subsubsection{Use-case specific functions}
 
-As the object diffusion protocol is generic, its implementation may benefit from having specific key functions where use-case specific behavior is implemented.
-This would allow code sharing between implementations.
-We identify the following use-case specific functions:
+% As the object diffusion protocol is generic, its implementation may benefit from having specific key functions where use-case specific behavior is implemented.
+% This would allow code sharing between implementations.
+% We identify the following use-case specific functions:
 
-In the server:
-\begin{itemize}
-  \item $\argfont{initialise}$, consuming \argfont{initialPayload}.
-  \item $\argfont{nextIds}$ to retrieve the ids of objects it can serve, when receiving \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{}.
-  \item $\argfont{idsToObjects}$ to retrieve objects given their ids, when receiving \MsgRequestObjs{}.
-\end{itemize}
+% In the server:
+% \begin{itemize}
+%   \item $\argfont{initialise}$, consuming \argfont{initialPayload}.
+%   \item $\argfont{nextIds}$ to retrieve the ids of objects it can serve, when receiving \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{}.
+%   \item $\argfont{idsToObjects}$ to retrieve objects given their ids, when receiving \MsgRequestObjs{}.
+% \end{itemize}
 
-In the client:
-\begin{itemize}
-  \item $\argfont{onRecvId}$ to add object ids to the FIFO, and to reward/penalize their peer depending on how much time they took and/or how many ids they sent.
-  \item $\argfont{onRecvObject}$ to register new objects in the database.
-  \item $\argfont{objectStatus}$ to retrieve data about an object, given its id.
-  Typical data may include the expected size of the object, and whether it has been/should be requested from the server to which this client instance of the mini-protocol is connected.
-  Reasons for no longer wanting to retrieve an object could be that it has already been retrieved from another peer, has been considered invalid, or has been superseded (for instance, if the object is a vote, but a certificate for the same round has already been received).
-  In any case, this hook should provide enough information to decide whether to acknowledge the object's id when sending the next \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{} to the server.
-\end{itemize}
+% In the client:
+% \begin{itemize}
+%   \item $\argfont{onRecvId}$ to add object ids to the FIFO, and to reward/penalize their peer depending on how much time they took and/or how many ids they sent.
+%   \item $\argfont{onRecvObject}$ to register new objects in the database.
+%   \item $\argfont{objectStatus}$ to retrieve data about an object, given its id.
+%   Typical data may include the expected size of the object, and whether it has been/should be requested from the server to which this client instance of the mini-protocol is connected.
+%   Reasons for no longer wanting to retrieve an object could be that it has already been retrieved from another peer, has been considered invalid, or has been superseded (for instance, if the object is a vote, but a certificate for the same round has already been received).
+%   In any case, this hook should provide enough information to decide whether to acknowledge the object's id when sending the next \MsgRequestObjIdsB{} or \MsgRequestObjIdsNB{} to the server.
+% \end{itemize}
 
-It may be possible to have a fully generic implementation of the object diffusion mini-protocol, where the use-case specific behavior is entirely contained in the key functions above.
-In that case, those could be provided as hooks to the generic implementation.
+% It may be possible to have a fully generic implementation of the object diffusion mini-protocol, where the use-case specific behavior is entirely contained in the key functions above.
+% In that case, those could be provided as hooks to the generic implementation.
 
 %%% Local Variables:
 %%% mode: latex

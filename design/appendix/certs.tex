@@ -46,7 +46,7 @@ In addition, we have the following requirements/goals:
 \item
   The cryptographic operations of creating and verifying votes and certificates shall be as fast as possible.
 
-  Concretely, votes need to be diffused within $\perasRoundSlots \approx \qty{90}{\s}$ in a gossip network using validated forwarding, where they will be validated many times. Signing and verification durations of less than \qty{10}{\milli\s} are definitely sufficient for this purpose.
+  Concretely, votes need to be diffused within $\Delta$ slots in a gossip network using validated forwarding, where they will be validated many times. Signing and verification durations of less than \qty{10}{\milli\s} are definitely sufficient for this purpose.
 
   On the other hand, certificates only need to be validated while syncing as well as when they are in a block body, which is only done very rarely by honest nodes, namely during a cooldown period, but can happen more often due to adversarial activity, cf.~\cref{sec:block body analysis}.
   Certificates can be trivially validated in parallel to checking the ledger rules, so certificates should not take much longer than validating (large) blocks.
@@ -121,7 +121,7 @@ It is trivial to transform an unweighted scheme $F$ into a weighted one via aggr
   Also note that deterministically-assigned seats do not require eligibility proofs, even if $F$ does.
 
   $\operatorname{wFA}^{\operatorname{LS}}$%
-  \footnote{Note that there are some minor unresolved questions around $\operatorname{wFA}^{\operatorname{LS}}$, namely that as written in \cite{gavzi2023fait}, it can not be implemented using private randomness, and \cite{gavzi2023fait} does not provide a way to analyze its concrete security (beyond being not worse than $\operatorname{LS}$).}
+  %\footnote{Note that there are some minor unresolved questions around $\operatorname{wFA}^{\operatorname{LS}}$, namely that as written in \cite{gavzi2023fait}, it can not be implemented using private randomness, and \cite{gavzi2023fait} does not provide a way to analyze its concrete security (beyond being not worse than $\operatorname{LS}$).}
   is analyzed in \cite{peras-cert-report}, which concludes that committee sizes of \numrange{500}{1000} result in roughly \qty{80}{\percent} deterministic/persistent committee seats.
   Note that it is possible to simply force a given percentage of seats to be assigned deterministically (with potentially suboptimal effects on the size-security-tradeoff of the scheme).
 
@@ -144,6 +144,10 @@ Further potential options for eligibility sampling are:
   An advantage of this approach is that we get perfect security as long as the adversary has at most $\alpha$ stake.
   A disadvantage is that due to the complete determinism, very small pools never get a chance to participate in voting (and in particular will never get rewards).
   For the same reason, larger pools might be consistently over-/underrepresented compared to their underlying stake.
+\item
+  The Leios implementation team proposes a very simple committee election scheme (so called \emph{truncation}) where voters are selected by decreasing stake order until the cumulative stake of voters reach a specified value (e.g. 99\% of the total stake). This scheme is deterministic, and allows no overrepresentation (if we consider that the stake of non-selected pools corresponds to "abstaining" votes, so does not get attributed to other voters), or a small, bounded, proportionally distributed overrepresentation (if we consider that the stake of non-selected pools is redistributed proportionally in voting weight to the eligible voters, e.g. that each voter get a voting weight equal to 100/99\textsuperscript{th} of its stake); making it resilient against adaptative attackers. This schemes also benefits from very small certificates (since there are no eligibility proofs to carry).
+
+  However, the downside is that this scheme is not fair (low-stake pools under the cutoff threshold have no chance at all to become voters), which might be an issue if/when rewards are added to Peras\footnote{For this reason, researchers have argued against it for long-term plans for Peras}.
 \end{enumerate}
 
 \subsection{Cryptographic schemes for votes and vote aggregation}\label{sec:crypto votes agg}
@@ -185,12 +189,12 @@ When using $\operatorname{LS}$ (potentially as a fallback scheme), votes and cer
 Individual eligibility proofs are naturally provided by verifiable random functions (VRFs), such as ECVRF \parencite{goldberg2023vrf_rfc9381}, which is already used by Cardano for block leader election, or VRFs based on unique signatures such as BLS \parencite{boneh2004short}.
 
 For certificates, eligibility proofs for all (non-deterministically assigned) signers need to be present.
-The simplest but least efficient option is to concatenate VRF proofs, which is currently deployed by Mithril (\cref{sec:mithril}).
-More efficient options are for example described in \cite[Section 5.3]{chaidos2024mithril} and \cite{fleischhacker2024jackpot}.
+It may be possible to concatenate VRF proofs, c.f. what is currently deployed by Mithril (\cref{sec:mithril}).
+More efficient options are also described in \cite[Section 5.3]{chaidos2024mithril} and \cite{fleischhacker2024jackpot}.
 
 \subsection{Candidate schemes}
 
-Based on the above, we are currently considering to use $\operatorname{wFA}^{\operatorname{IID}}$ or $\operatorname{wFA}^{\operatorname{LS}}$ with Pixel signatures (and concatenating eligibility proofs in the case of $\operatorname{wFA}^{\operatorname{LS}}$), achieving fair eligibility, security against adaptive adversaries (good, but not quite optimal in the case of $\operatorname{wFA}^{\operatorname{IID}}$), forward secrecy and accountability, as well as reasonable vote and certificate sizes and computational efficiency of their operations.
+Based on the above, we are currently considering to use $\operatorname{wFA}^{\operatorname{LS}}$ with Pixel signatures, achieving fair eligibility, security against adaptive adversaries, forward secrecy and accountability, as well as reasonable vote and certificate sizes and computational efficiency of their operations.
 
 %%% Local Variables:
 %%% mode: latex
