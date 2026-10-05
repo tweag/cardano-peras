@@ -55,10 +55,17 @@ fi
 if [ ! -f "$DEVENV_PATH"/run-testnet.sh ]; then
 cat << 'EOF' >> "$DEVENV_PATH"/run-testnet.sh
 #!/usr/bin/env bash
-
 set -e
-export CARDANO_NODE=$(find "$PWD" -type f -executable -name "cardano-node" -print -quit)
-nix run ../.#testnet $1
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    CARDANO_NODE=$(find "$PWD" -type f \( -perm -u+x -o -perm -g+x -o -perm -o+x \) -name cardano-node -print -quit)
+else
+    CARDANO_NODE=$(find "$PWD" -type f -executable -name cardano-node -print -quit)
+fi
+
+
+export CARDANO_NODE
+nix run ../.#testnet "$1"
 EOF
 
 chmod +x "$DEVENV_PATH"/run-testnet.sh
