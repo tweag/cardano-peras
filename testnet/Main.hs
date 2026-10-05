@@ -13,6 +13,7 @@ import Data.Function ((&))
 import Data.List qualified as List
 import Data.Scientific qualified as Scientific
 import Data.Text qualified as Text
+import GHC.Exts (fromList)
 
 import Options.Applicative hiding (str)
 import Streamly.Console.Stdio qualified as Console
@@ -216,6 +217,15 @@ setExperimentalHardForksEnabled = do
                 else config'
     writeJsonFile configurationYamlFile config''
 
+-- | Set a default tracing backend of @Stdout HumanFormatColoured@ on the
+-- generated node configuration.
+setDefaultTraceBackend :: IO ()
+setDefaultTraceBackend = do
+    config <- readJsonFile configurationYamlFile
+    let backends = Array $ fromList [String "Stdout HumanFormatColoured"]
+    writeJsonFile configurationYamlFile $
+        setPath ["TraceOptions", "", "backends"] backends config
+
 changeEpochLength :: Int -> IO ()
 changeEpochLength secs = do
     genesis <- readJsonFile shelleyGenesisFile
@@ -257,6 +267,7 @@ createTestnetConfig = do
     changeSlotLength env_GENESIS_SLOT_LENGTH_SECONDS
     redistributeStake
     setExperimentalHardForksEnabled
+    setDefaultTraceBackend
     ports <- portsIO
     -- We only replace neighbors of node 1 with proxies for partitioning node 1
     replaceNeighboursWithProxy ports 1
