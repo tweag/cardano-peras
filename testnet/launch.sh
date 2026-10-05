@@ -36,12 +36,15 @@ usage() {
 }
 
 runTestnet() {
-    scenarioName="${1:-vanilla}"
-    scenarioFile="$TESTNET_SCENARIOS_DIR/$scenarioName.yaml"
-    if [ ! -f "$scenarioFile" ]; then
-        echo "Unknown scenario '$scenarioName': $scenarioFile does not exist." >&2
-        usage
-        exit 1
+    scenarioArg="${1:-vanilla}"
+    scenarioFile="$scenarioArg"
+    if [ ! -f "$scenarioArg" ]; then
+      scenarioFile="$TESTNET_SCENARIOS_DIR/$scenarioArg.yaml"
+      if [ ! -f "$scenarioFile" ]; then
+          echo "Unknown scenario '$scenarioArg': $scenarioFile does not exist." >&2
+          usage
+          exit 1
+      fi
     fi
     echo "Using scenario: $scenarioFile"
     export TESTNET_SCENARIO="$scenarioFile"
