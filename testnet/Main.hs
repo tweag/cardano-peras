@@ -273,13 +273,16 @@ createTestnetConfig = do
     replaceNeighboursWithProxy ports 1
     mapM_ (flip (replaceNeighbourWithProxy ports) 1) [2..env_CARDANO_TESTNET_NUM_NODES]
 
-startLocalTestnet :: IO ()
-startLocalTestnet = do
+startLocalTestnet :: PrometheusConfig -> IO ()
+startLocalTestnet cfg = do
     runCmd
         (cardanoTestnet <> " cardano")
-        [ opt "node-env" env_TESTNET_WORK_DIR
-        , flg "enable-tracer"
-        ]
+        ( [ opt "node-env" env_TESTNET_WORK_DIR
+          , flg "enable-tracer"
+          , opt "prometheus-listen-address" $ prometheusListenIP cfg
+          ]
+            <> foldMap (pure . opt "prometheus-listen-port") (prometheusListenPort cfg)
+        )
         & Console.putChunks
 
 clean :: IO ()
@@ -398,7 +401,7 @@ main = do
     setEnvIfDoesNotExist "CARDANO_NODE" "cardano-node"
 
     case cmd of
-        StartLocalTestnet -> startLocalTestnet
+        StartLocalTestnet -> startLocalTestnet $ scenarioConfigPrometheus scenarioConfig
         Clean -> clean
         Populate PCTriggerTest -> testScriptTrigger
         Populate PCEscrow -> escrow

@@ -11,6 +11,7 @@ module Scenario (
   FaultAction (..),
   LatencyDirection (..),
   Observability (..),
+  PrometheusConfig (..),
   loadScenario,
   scenarioConfig,
   env_TESTNET_SCENARIO_DEFAULT,
@@ -20,9 +21,12 @@ import Control.Monad (when)
 import Data.Aeson (FromJSON (..), withObject, withText, (.!=), (.:), (.:?))
 import Data.Aeson.KeyMap qualified as KeyMap
 import Data.Aeson.Types (Parser)
+import Data.IP (IP)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
+import Data.Text qualified as T
 import Data.Yaml qualified as Yaml
+import Text.Read (readMaybe)
 import System.Environment (lookupEnv)
 import System.IO.Unsafe (unsafePerformIO)
 import System.FilePath ((</>))
@@ -153,6 +157,22 @@ instance FromJSON Observability where
   parseJSON = withObject "Observability" $ \v ->
       Observability <$> v .:? "trace_filters" .!= []
 
+data PrometheusConfig = PrometheusConfig
+  { prometheusListenIP :: IP
+  , prometheusListenPort :: Maybe Int
+  }
+  deriving (Show, Eq)
+
+instance FromJSON PrometheusConfig where
+  parseJSON = withObject "PrometheusConfig" $ \v -> do
+    mIpText <- v .:? "ip" :: Parser (Maybe Text)
+    listenIP <- case mIpText of
+      Nothing -> pure (read "127.0.0.1")
+      Just ipText -> case readMaybe (T.unpack ipText) of
+        Just ip -> pure ip
+        Nothing -> fail $ "prometheus.ip: invalid IP address " <> show ipText
+    PrometheusConfig listenIP <$> v .:? "port"
+
 data ScenarioConfig = ScenarioConfig
   { scenarioConfigName :: Text
   , scenarioConfigDescription :: Maybe Text
@@ -160,6 +180,7 @@ data ScenarioConfig = ScenarioConfig
   , scenarioConfigGenesis :: GenesisConfig
   , scenarioConfigFaults :: [FaultAction]
   , scenarioConfigObservability :: Observability
+  , scenarioConfigPrometheus :: PrometheusConfig
   }
   deriving (Show, Eq)
 
@@ -179,6 +200,7 @@ instance FromJSON ScenarioConfig where
       <*> v .: "genesis"
       <*> v .:? "faults" .!= []
       <*> v .:? "observability" .!= Observability []
+      <*> v .:? "prometheus" .!= PrometheusConfig (read "127.0.0.1") Nothing
 
 loadScenario :: FilePath -> IO ScenarioConfig
 loadScenario path = do
