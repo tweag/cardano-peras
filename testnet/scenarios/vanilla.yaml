@@ -30,3 +30,8 @@ observability:
   trace_filters:
     - TraceObjectDiffusion
     - PerasVoteDbEvent
+
+prometheus:
+  ip: 127.0.0.1
+  # port: 9090  # Uncomment this line to set an explicit port.
+
