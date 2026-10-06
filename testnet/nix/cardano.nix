@@ -11,8 +11,8 @@ let
     cardano-node = {
       owner = "tweag";
       repo = "cardano-node";
-      rev = "ac379de5efa51615e71005feadbf113ef6e19153";
-      sha256 = "sha256-UTn7kbsXpaFueEE55dwyApz/ApEzut35ObE0TerpAPM=";
+      rev = "984b5ac3dfb6eab414c2df15e6f1cea635693775";
+      sha256 = "sha256-KksNwv4a0KsaEU3QK65EolFoeM/0j1ARbfHIftmsQrM=";
       fetchSubmodules = true;
     };
   };
