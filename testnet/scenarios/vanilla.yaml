@@ -2,14 +2,14 @@
 #
 scenario:
   name: vanilla
-  description: "3 SPOs, 2 relays, even stake, no faults"
+  description: "6 SPOs, 2 relays, even stake, no faults"
 
 topology:
   magic: 42
   groups:
     - name: pools
       role: spo
-      count: 3
+      count: 6
 
     - name: relays
       role: relay
@@ -17,21 +17,20 @@ topology:
 
 genesis:
   epoch_length_slots: 120
-  slot_length_seconds: 0.1
+  slot_length_seconds: 0.2
   security_param_k: 5
   active_slot_coeff_f: 0.05
-  num_dreps: 3
+  num_dreps: 6
   max_lovelace_supply: 100000020000000
   start_directly_in_dijkstra: true
 
 faults: []
 
-observability:
-  trace_filters:
-    - TraceObjectDiffusion
-    - PerasVoteDbEvent
+observability: {}
+#  trace_filters:
+#    - TraceObjectDiffusion
+#    - PerasVoteDbEvent
 
 prometheus:
   ip: 127.0.0.1
   # port: 9090  # Uncomment this line to set an explicit port.
-
