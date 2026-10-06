@@ -19,7 +19,7 @@ topology:
 
 genesis:
   epoch_length_slots: 120
-  slot_length_seconds: 0.1
+  slot_length_seconds: 0.2
   security_param_k: 5
   active_slot_coeff_f: 0.05
   num_dreps: 4 # must be >= total SPO pool count (3 core + 1 edge)
@@ -28,7 +28,4 @@ genesis:
 
 faults: []
 
-observability:
-  trace_filters:
-    - TraceObjectDiffusion
-    - PerasVoteDbEvent
+observability: {}
