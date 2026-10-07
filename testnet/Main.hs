@@ -224,7 +224,8 @@ setDefaultTraceBackend = do
     config <- readJsonFile configurationYamlFile
     let backends = Array $ fromList [String "Stdout HumanFormatColoured"]
     writeJsonFile configurationYamlFile $
-        setPath ["TraceOptions", "", "backends"] backends config
+        setPath ["TraceOptions", "", "severity"] (String "Notice") $
+            setPath ["TraceOptions", "", "backends"] backends config
 
 changeEpochLength :: Int -> IO ()
 changeEpochLength secs = do
