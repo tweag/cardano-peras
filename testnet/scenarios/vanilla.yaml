@@ -1,4 +1,5 @@
-# 3 SPO nodes + 2 relay nodes, stake split evenly by cardano-testnet itself.
+# 6 SPO nodes (1/2, 1/4, 1/8, 1/16, 1/32, 1/32)
+# + 2 relay nodes, stake split evenly by cardano-testnet itself.
 #
 scenario:
   name: vanilla
@@ -7,16 +8,32 @@ scenario:
 topology:
   magic: 42
   groups:
-    - name: pools
+    - name: pool16
       role: spo
-      count: 6
-
+      count: 1
+      stake: 22500004500000
+    - name: pool8
+      role: spo
+      count: 1
+      stake: 11250002250000
+    - name: pool4
+      role: spo
+      count: 1
+      stake: 5625001125000
+    - name: pool2
+      role: spo
+      count: 1
+      stake: 2812500562500
+    - name: pool1
+      role: spo
+      count: 2
+      stake: 2812500562500
     - name: relays
       role: relay
       count: 2
 
 genesis:
-  epoch_length_slots: 120
+  epoch_length_slots: 360
   slot_length_seconds: 0.2
   security_param_k: 5
   active_slot_coeff_f: 0.05
