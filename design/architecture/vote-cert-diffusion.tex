@@ -29,7 +29,7 @@ In particular, we want:
 \end{description}
 
 The server advertises the vote IDs of the votes it has received for the current round, cf.~\cref{sec:votes certs from the past}.
-\thomas{This is not true, right? "Votes for older rounds are not advertised, cf.~\cref{sec:votes certs from the past}"}
+% \thomas{This is not true, right? "Votes for older rounds are not advertised, cf.~\cref{sec:votes certs from the past}"}
 Additionally, it serves the votes corresponding to the advertised vote IDs that haven't been acknowledged yet.
 
 We now describe the dynamics of an honest node engaging as the client in vote diffusion with its peers, assuming that it is caught-up.
@@ -37,7 +37,7 @@ We now describe the dynamics of an honest node engaging as the client in vote di
 \item
   The node continually requests more vote IDs from its peers (with a limit on unacknowledged votes), using non-blocking or blocking requests depending on whether there are outstanding unacknowledged votes.
 \item
-  The client disconnects from the server if the round of the vote ID is from the future or the past (modulo some acceptable clock skew), cf.~\cref{sec:votes certs from the future,sec:votes certs from the past}. \thomas{TODO: Not done yet in the implem; should probably happen in ObjectPoolWriter's implem}
+  The client disconnects from the server if the round of the vote ID is from the future or the past (modulo some acceptable clock skew), cf.~\cref{sec:votes certs from the future,sec:votes certs from the past}. %\thomas{TODO: Not done yet in the implem; should probably happen in ObjectPoolWriter's implem}
 \item
   At the beginning of a Peras round, the node will start receiving lots of new vote IDs for that round from all of its (honest) peers.
   For each such vote ID, the node will ask one peer (or a small number in parallel) out of the peers that offered this vote ID for the corresponding vote, relying on protocol-level timeouts for a prompt delivery (or otherwise disconnecting from the peer).
@@ -52,7 +52,7 @@ We now describe the dynamics of an honest node engaging as the client in vote di
   The client always checks that the votes indeed correspond to the advertised vote IDs, and that the votes are in fact valid, and disconnects from the offending peer otherwise.
   Together with the fact that the number of votes per round is bounded by the size of the Peras committee, this bounds the work of the client.
 \end{itemize}
-The node does not send requests for vote IDs or votes while it is syncing (in particular, it could not even validate them at this point), which can be determined by the Genesis State Machine \parencite{genesis-implementation-documentation} or a more ad-hoc criterion like the proximity of the chain tip to the current wall-clock time. \thomas{TODO: not yet implemented}
+The node does not send requests for vote IDs or votes while it is syncing (in particular, it could not even validate them at this point), which can be determined by the Genesis State Machine \parencite{genesis-implementation-documentation} or a more ad-hoc criterion like the proximity of the chain tip to the current wall-clock time. % \thomas{TODO: not yet implemented}
 
 This protocol shares several similarities with Tx-Submission, and we anticipate that the implementation can benefit from the insights of the design in \texttt{cardano-node}.
 In particular, the IOE Network team has been reworking the inbound side of Tx-Submission\footnote{\url{https://github.com/IntersectMBO/ouroboros-network/pull/4887}} to more efficiently download transactions from different peers (avoiding repeated downloads).
