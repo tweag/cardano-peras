@@ -217,12 +217,12 @@ setExperimentalHardForksEnabled = do
                 else config'
     writeJsonFile configurationYamlFile config''
 
--- | Set a default tracing backend of @Stdout HumanFormatUncoloured@ on the
+-- | Set a default tracing backend of @Stdout HumanFormatColoured@ on the
 -- generated node configuration.
 setDefaultTraceBackend :: IO ()
 setDefaultTraceBackend = do
     config <- readJsonFile configurationYamlFile
-    let backends = Array $ fromList [String "Stdout HumanFormatUncoloured"]
+    let backends = Array $ fromList [String "Stdout HumanFormatColoured"]
     writeJsonFile configurationYamlFile $
         setPath ["TraceOptions", "", "backends"] backends config
 
@@ -398,7 +398,7 @@ processes:
       failure_threshold: 5
 
   vlagent:
-    command: "vlagent -fileCollector.glob='devnet-env/logs/**/*.log' -remoteWrite.url=http://127.0.0.1:9428/insert/native"
+    command: "vlagent -fileCollector.glob='devnet-env/logs/**/node.json' -remoteWrite.url=http://127.0.0.1:9428/insert/native"
     depends_on:
       victoria-logs:
         condition: process_healthy
