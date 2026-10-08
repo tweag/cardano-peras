@@ -217,12 +217,12 @@ setExperimentalHardForksEnabled = do
                 else config'
     writeJsonFile configurationYamlFile config''
 
--- | Set a default tracing backend of @Stdout HumanFormatColoured@ on the
+-- | Set a default tracing backend of @Stdout HumanFormatUncoloured@ on the
 -- generated node configuration.
 setDefaultTraceBackend :: IO ()
 setDefaultTraceBackend = do
     config <- readJsonFile configurationYamlFile
-    let backends = Array $ fromList [String "Stdout HumanFormatColoured"]
+    let backends = Array $ fromList [String "Stdout HumanFormatUncoloured"]
     writeJsonFile configurationYamlFile $
         setPath ["TraceOptions", "", "backends"] backends config
 
@@ -296,6 +296,24 @@ setup = do
     clean
     createPopulateConfig
     createTestnetConfig
+    generateScraperConfig $ scenarioConfigPrometheus scenarioConfig
+
+-- | Generate the @scraper.yaml@ used by victoria-metrics at runtime, based on
+-- the prometheus endpoint configured in the active scenario. When no port is
+-- set, no scraper config is written (victoria-metrics is not started either).
+generateScraperConfig :: PrometheusConfig -> IO ()
+generateScraperConfig cfg =
+    case prometheusListenPort cfg of
+        Nothing -> pure ()
+        Just port -> do
+          let sIP = show (prometheusListenIP cfg)
+              sPort = show port
+          writeFile "scraper.yaml" [str|
+scrape_configs:
+  - job_name: "cardano-tracer"
+    http_sd_configs:
+      - url: 'http://#{sIP}:#{sPort}/targets'
+|]
 
 -- TODO: Add a dependency between cardano-testnet and server
 stdoutComposeYaml :: String -> String -> IO ()
@@ -363,10 +381,50 @@ processes:
       cardano-testnet:
         condition: process_healthy
 
+#{victoriaMetricsProcess}
+
+  victoria-logs:
+    command: "victoria-logs"
+    depends_on:
+      cardano-testnet:
+        condition: process_healthy
+    readiness_probe:
+      exec:
+        command: "curl -sf http://127.0.0.1:9428/"
+      initial_delay_seconds: 1
+      period_seconds: 2
+      timeout_seconds: 1
+      success_threshold: 1
+      failure_threshold: 5
+
+  vlagent:
+    command: "vlagent -fileCollector.glob='devnet-env/logs/**/*.log' -remoteWrite.url=http://127.0.0.1:9428/insert/native"
+    depends_on:
+      victoria-logs:
+        condition: process_healthy
+
 #{nodeLogProcessAll}
 
 |]
   where
+    victoriaMetricsProcess =
+        case prometheusListenPort $ scenarioConfigPrometheus scenarioConfig of
+            Nothing -> ""
+            Just _ -> [str|
+  victoria-metrics:
+    command: "victoria-metrics -promscrape.config=scraper.yaml"
+    depends_on:
+      cardano-testnet:
+        condition: process_healthy
+    readiness_probe:
+      exec:
+        command: "curl -sf http://127.0.0.1:8428/"
+      initial_delay_seconds: 1
+      period_seconds: 2
+      timeout_seconds: 1
+      success_threshold: 1
+      failure_threshold: 5
+|]
     traceFilterPattern =
         List.intercalate "|" (Text.unpack <$> observabilityTraceFilters (scenarioConfigObservability scenarioConfig))
     nodeLogProcess i0 =

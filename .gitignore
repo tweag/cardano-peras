@@ -327,3 +327,8 @@ testnet/dist-newstyle/
 testnet/devnet-env/
 testnet/work/
 testnet/local-config/
+
+
+### Victoria Metrics ###
+victoria-metrics-data/
+victoria-logs-data/

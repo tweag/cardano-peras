@@ -27,6 +27,9 @@ let
     pkgs.jq
     pkgs.toxiproxy
     pkgs.gnused
+    pkgs.victoriametrics
+    pkgs.victorialogs
+    pkgs.vlagent
   ];
 
   isAarch64Linux = system == "aarch64-linux";
