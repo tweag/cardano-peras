@@ -39,13 +39,13 @@ A vote from round $r$ (starting in slot $s_{r_{\text{start}}}$) for a block in s
   $s_b + \perasBlockMinSlots < s_{r_{\text{start}}}$ \quad---\quad block $b$ is old enough to be voted for\\
   $s_{r_{\text{start}}} < s_b + \perasBlockMaxSlots$ \quad---\quad block $b$ isn't too old to be voted for
 \item
-  The slots $s_{r_{\text{start}}}$ and $s_b$ are in the same era, or at least, the eras of $s_{r_{\text{start}}}$ and $s_b$ both support Peras.\thomas{Check if this is true (in channel)}
+  The slots $s_{r_{\text{start}}}$ and $s_b$ are in the same era, or at least, the eras of $s_{r_{\text{start}}}$ and $s_b$ both support Peras. % \thomas{Check if this is true (in channel)}
 \end{itemize}
 
 The cryptographic scheme for votes and certificates \parencite{peras-cert-report} will likely require pools to register new keys, which implies corresponding changes to pool (re-)registration.\footnote{
   This also raises other questions like how to handle pools that did not register these new keys as Peras gets enabled.
   A natural approach is to monitor the chain until pools of sufficient stake have done so, and only then enable Peras, ignoring the remaining pools until they have registered appropriate keys on chain.}
-\thomas{We need to check what is happening when SPOs haven't registered a key. Typically, if a high stake pool has no public key for Peras, does that mean they can't be eligible to vote (so the voting weight is attributed to someone else, which may be a security risk), or does that just mean that some voting weight is lost? --> The answer lies in the implementation for commitee selection probably: https://github.com/tweag/cardano-peras/issues/309}
+% \thomas{We need to check what is happening when SPOs haven't registered a key. Typically, if a high stake pool has no public key for Peras, does that mean they can't be eligible to vote (so the voting weight is attributed to someone else, which may be a security risk), or does that just mean that some voting weight is lost? --> The answer lies in the implementation for commitee selection probably: https://github.com/tweag/cardano-peras/issues/309}
 
 \subsection{Certificates}\label{sec:certificate generalities}
 
@@ -101,7 +101,7 @@ We suggest to handle such votes just like \emph{headers} from the future are alr
 
   Depending on the implementation, it may be useful to introduce an artificial delay such that $x$ is no longer from the future, so it can be processed normally afterwards, as it is done for headers. That being said, the artificial delay might not be necessary for Peras votes/certificates as there is, in contrast to headers/blocks, no incentive to diffuse your vote as early as possible (as long as it still arrives within a Peras round).
 \item
-  Upon receiving a vote or certificate from the \emph{far} future (defined to be more than \qty{2}{\s} in the future), we immediately disconnect from the sending peer as this constitutes adversarial behavior.\thomas{TODO: we should check we have an issue for this, because it's not implemented yet: https://github.com/tweag/cardano-peras/issues/308}
+  Upon receiving a vote or certificate from the \emph{far} future (defined to be more than \qty{2}{\s} in the future), we immediately disconnect from the sending peer as this constitutes adversarial behavior. % \thomas{TODO: we should check we have an issue for this, because it's not implemented yet: https://github.com/tweag/cardano-peras/issues/308}
 \end{itemize}
 
 \subsection{Handling votes and certificates from the past}\label{sec:votes certs from the past}
@@ -116,7 +116,8 @@ We now describe an approach for resolving this in an actual implementation.
 
   A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
 \item[Near past]
-  In contrast, we handle votes and certificates from the near (i.e., not distant) past by disallowing votes from past rounds\thomas{TODO: we should check we have an issue for this, because it's not implemented yet} (with some tolerance to account for an acceptable clock skew), but still allowing to diffuse such certificates.
+  In contrast, we handle votes and certificates from the near (i.e., not distant) past by disallowing votes from past rounds (with some tolerance to account for an acceptable clock skew), but still allowing to diffuse such certificates.
+  % \thomas{TODO: we should check we have an issue for this, because it's not implemented yet}
 
   This is justified by the fact that honestly cast and diffused votes have ample time to be diffused within a Peras round.
   On the other hand, an adversary can delay their votes for some round $r$ arbitrarily, for example such that some honest nodes consider them to have arrived on time for round $r$ and hence observe a quorum, while other honest nodes do not.

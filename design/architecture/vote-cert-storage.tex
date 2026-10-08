@@ -9,7 +9,9 @@ As soon as the PerasVoteDB contains votes with weight of at least \perasQuorum, 
 We propose to store these votes in memory only; not persisting its state to disk.
 Restarting a node is realistically going to take longer than \perasRoundSlots{}, so any persisted votes would become stale immediately after a restart.
 
-Votes of previous rounds should be discarded/garbage collected; we should probably keep only the votes of the current round (and possibly the previous one as well, depending on how slightly late votes are handled).\thomas{This was part of the original peras-design; but didn't we decide at some point that votes wouldn't have expiration date except when we cannot longer validate them?}
+Votes of previous rounds should be discarded/garbage collected; we should probably keep only the votes of the current round (and possibly the previous one as well, depending on how slightly late votes are handled).
+
+%\thomas{This was part of the original peras-design; but didn't we decide at some point that votes wouldn't have expiration date except when we cannot longer validate them?}
 
 \section{Certificate storage (PerasCertDB)}\label{sec:cert db}
 
