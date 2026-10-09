@@ -65,6 +65,7 @@ executable testnet
   build-depends:
     , base
     , filepath
+    , containers
     , optparse-applicative
     , streamly-core
     , streamly-process
