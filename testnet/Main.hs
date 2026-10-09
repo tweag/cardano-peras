@@ -224,7 +224,8 @@ setDefaultTraceBackend = do
     config <- readJsonFile configurationYamlFile
     let backends = Array $ fromList [String "Stdout HumanFormatColoured"]
     writeJsonFile configurationYamlFile $
-        setPath ["TraceOptions", "", "backends"] backends config
+        setPath ["TraceOptions", "", "severity"] (String "Notice") $
+            setPath ["TraceOptions", "", "backends"] backends config
 
 changeEpochLength :: Int -> IO ()
 changeEpochLength secs = do
@@ -398,7 +399,7 @@ processes:
       failure_threshold: 5
 
   vlagent:
-    command: "vlagent -fileCollector.glob='devnet-env/logs/**/node.json' -remoteWrite.url=http://127.0.0.1:9428/insert/native"
+    command: "vlagent -fileCollector.glob='devnet-env/logs/**/node.json' -remoteWrite.url=http://127.0.0.1:9428/insert/native -fileCollector.msgField=ns -fileCollector.timeField=at -fileCollector.streamFields=ns,sev"
     depends_on:
       victoria-logs:
         condition: process_healthy

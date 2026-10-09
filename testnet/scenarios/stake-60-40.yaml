@@ -18,7 +18,7 @@ topology:
       count: 2
 
 genesis:
-  epoch_length_slots: 120
+  epoch_length_slots: 180
   slot_length_seconds: 0.2
   security_param_k: 5
   active_slot_coeff_f: 0.05
