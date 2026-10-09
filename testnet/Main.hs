@@ -11,8 +11,11 @@ module Main (main) where
 import Data.Aeson (Value (..))
 import Data.Function ((&))
 import Data.List qualified as List
+import Data.Map qualified as Map
 import Data.Scientific qualified as Scientific
 import Data.Text qualified as Text
+import Data.Text.Encoding qualified as Text.Encoding
+import Data.Yaml qualified as Yaml
 import GHC.Exts (fromList)
 
 import Options.Applicative hiding (str)
@@ -327,6 +330,7 @@ processes:
 
   cardano-testnet:
     command: "#{testnetCmd} start-local-testnet"
+    #{environmentBlock}
     depends_on:
       setup:
         condition: process_completed_successfully
@@ -407,6 +411,22 @@ processes:
 
 |]
   where
+    environmentBlock :: String
+    environmentBlock =
+      case Map.toList $ scenarioConfigEnvironment scenarioConfig of
+        [] -> ""
+        pairs ->
+          unlines $ "environment:" : do
+            (k, v) <- pairs
+            pure
+              $ mappend "      - "
+              $ Text.unpack
+              $ Text.strip
+              $ Text.Encoding.decodeUtf8
+              $ Yaml.encode
+              $ k <> "=" <> show v
+
+    victoriaMetricsProcess :: String
     victoriaMetricsProcess =
         case prometheusListenPort $ scenarioConfigPrometheus scenarioConfig of
             Nothing -> ""
@@ -425,8 +445,12 @@ processes:
       success_threshold: 1
       failure_threshold: 5
 |]
+
+    traceFilterPattern :: String
     traceFilterPattern =
         List.intercalate "|" (Text.unpack <$> observabilityTraceFilters (scenarioConfigObservability scenarioConfig))
+
+    nodeLogProcess :: Int -> String
     nodeLogProcess i0 =
       let i = show i0
           node = nodeName i0
@@ -437,6 +461,8 @@ processes:
       cardano-testnet:
         condition: process_healthy
 |]
+
+    nodeLogProcessAll :: String
     nodeLogProcessAll =
         unlines $ nodeLogProcess <$> [1..env_CARDANO_TESTNET_NUM_NODES]
 
