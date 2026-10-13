@@ -41,7 +41,7 @@
             DEVENV_PATH = "devenv";
             CARDANO_NODE_SHA = "${testnet.deps.cardano-node.rev}";
             # the current pin of the peras/the-big-pr
-            OUROBOROS_CONSENSUS_SHA = "7b8ee9bb54fc4359a1e96d9920eda5b70917ef88";
+            OUROBOROS_CONSENSUS_SHA = "6268610e8ffa809f0c7de9ad8a36deec0c796f3e";
           };
           text = builtins.readFile ./scripts/setup-devenv.sh;
         };

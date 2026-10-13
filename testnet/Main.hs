@@ -280,7 +280,7 @@ startLocalTestnet cfg = do
         (cardanoTestnet <> " cardano")
         ( [ opt "node-env" env_TESTNET_WORK_DIR
           , flg "enable-tracer"
-          , opt "prometheus-listen-address" $ prometheusListenIP cfg
+          -- , opt "prometheus-listen-address" $ prometheusListenIP cfg
           ]
             <> foldMap (pure . opt "prometheus-listen-port") (prometheusListenPort cfg)
         )
@@ -307,9 +307,11 @@ name: "testnet-#{scenarioName}"
 processes:
   setup:
     command: "#{testnetCmd} setup"
+    log_location: "setup.log"
 
   cardano-testnet:
     command: "#{testnetCmd} start-local-testnet"
+    log_location: "start-local-testnet.log"
     depends_on:
       setup:
         condition: process_completed_successfully
