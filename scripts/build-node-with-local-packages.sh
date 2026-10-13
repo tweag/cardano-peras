@@ -12,3 +12,5 @@ function reverse {
 }
 
 trap reverse EXIT
+
+cabal build cardano-node
