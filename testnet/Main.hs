@@ -325,7 +325,7 @@ name: "testnet-#{scenarioName}"
 processes:
   setup:
     command: "#{testnetCmd} setup"
-    log_location "./setup.log"
+    log_location: "./setup.log"
 
   cardano-testnet:
     command: "#{testnetCmd} start-local-testnet"
