@@ -13,4 +13,4 @@ function reverse {
 
 trap reverse EXIT
 
-cabal build cardano-node
+cabal build cardano-node || (cabal update && cabal build cardano-node)
