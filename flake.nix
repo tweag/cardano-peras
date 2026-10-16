@@ -31,20 +31,8 @@
 
         dashboard = import ./dashboard { inherit pkgs; };
         demo = import ./demo { inherit pkgs system; };
-        testnet = import ./testnet { inherit pkgs system nixpkgs haskellNix; };
         demo-docker = import ./demo/docker.nix { inherit pkgs demo; };
         design = import ./design { inherit pkgs; };
-        setup-devenv = pkgs.writeShellApplication {
-          name = "setup-devenv";
-          runtimeInputs = [pkgs.gnused pkgs.git];
-          runtimeEnv = {
-            DEVENV_PATH = "devenv";
-            CARDANO_NODE_SHA = "${testnet.deps.cardano-node.rev}";
-            # the current pin of the peras/testnet
-            OUROBOROS_CONSENSUS_SHA = "cea6126ff7ef4f2134ee131500fc649d14ac4b39";
-          };
-          text = builtins.readFile ./scripts/setup-devenv.sh;
-        };
       in
       {
         packages = {
@@ -54,9 +42,7 @@
             demo-docker
             design
             ;
-          testnet = testnet.package;
           default = design;
-          setup-devenv = setup-devenv;
         };
         devShells = {
           inherit
@@ -64,7 +50,6 @@
             demo
             design
             ;
-          testnet = testnet.devShell;
           default = design;
         };
       }
