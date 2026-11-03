@@ -48,6 +48,14 @@
 \newcommand{\txt}[1]{\mintinline{text}{#1}}
 %\newcommand{\TODO}[1]{\textcolor{red}{{\Big #1}}}
 
+%% Long unbreakable tokens (e.g. \perasN, \MsgRequestObjIdsB) can otherwise
+% overflow the margin when no line break is feasible within \tolerance. This
+% allows TeX a final pass with extra stretch to break before them instead.
+% Currently value is a minimum (rounded to half em) that fixes observed bad
+% lines; increase it if needed, as only lines strictly requiring it would
+% apply the wider spacing.
+\setlength{\emergencystretch}{2.5em}
+
 %% Use this for variable names in math mode longer than 1 character
 \newcommand{\mi}[1]{\mathtt{#1}}
 
