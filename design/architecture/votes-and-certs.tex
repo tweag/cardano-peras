@@ -112,7 +112,7 @@ We now describe an approach for resolving this in an actual implementation.
 
 \begin{description}
 \item[Distant past]
-  If a caught-up node observes a vote or certificate whose boosted block is further in the past than the node's immutable tip, it can safely ignore/discard it, as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection. In particular, we know that any cert older than $\Tcq+\perasBlockMaxSlots$ can only affect the already-immutable part of the node's selection; but some younger certs may also boost blocks that are already further in the the immutable tip.
+  If a caught-up node observes a vote or certificate whose boosted block is further in the past than the node's immutable tip, it can safely ignore/discard it, as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection. In particular, any certificate older than $\Tcq+\perasBlockMaxSlots$ is guaranteed to affect only the already-immutable part of the node's selection; however, some younger certificates may also boost blocks that already lie below the immutable tip.
 
   A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
 \item[Near past]
