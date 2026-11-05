@@ -113,7 +113,7 @@ It may be desirable for the client to send the peras round number corresponding 
 
 An honest server answers requests for more certificate IDs (i.e. round numbers) by sending the round numbers for which it has a certificate in ascending order, until the client is caught-up, in which case the server blocks (or returns empty results) until it observes new certificates arising from successful Peras voting rounds.%
 \footnote{The resulting sequence of round numbers is \emph{almost} monotonically increasing, with a possible exception, see~\cref{sec:cert monotonicity}.}
-At any time, it will serve the certificates corresponding to unacknowledged round numbers, while enforcing an upper bound on the this quantity.
+At any time, it will serve the certificates corresponding to unacknowledged round numbers, while enforcing an upper bound on their quantity.
 
 This design leverages the fact that there can only be at most one certificate per round, which allows us to elide data like the point of the block that is being certified/boosted, justifying the use of round numbers as certificate IDs.
 In particular, it does not matter who we download a certificate for a particular round from.
