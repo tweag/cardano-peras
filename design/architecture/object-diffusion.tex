@@ -207,7 +207,7 @@ Conceptually, the server maintains a limited size FIFO of outstanding objects
 per client. (The actual implementation can, of course, use the data structure
 that works best.) The maximum FIFO size is a protocol parameter. The protocol
 guarantees that the client and server agree on the current size of that FIFO and
-on the outstanding object ids. The client can use a variety of heuristics to
+on the outstanding object ids it contains. The client can use a variety of heuristics to
 request object ids and objects. One possible implementation for a client is to
 maintain a FIFO that mirrors the server's FIFO but only contains the object ids
 (and the size of the objects) and not the full objects.
