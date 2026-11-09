@@ -33,7 +33,7 @@ database of objects (e.g., for Tx-Submission, their mempool) between peers:
 The coming subsections give more details on the mini-protocol.
 
 \definecolor{mygreen}{rgb}{0.109804,0.698039,0.341176}
-\definecolor{myblue}{rgb}{0.360784,0.423529,255}
+\definecolor{myblue}{rgb}{0.360784,0.423529, 1}
 
 \usetikzlibrary{automata, positioning, arrows}
 \usetikzlibrary{arrows,calc,matrix,shapes}
@@ -60,38 +60,45 @@ The coming subsections give more details on the mini-protocol.
 
 \newcommand{\StInit}             {\state{StInit}}
 \newcommand{\StIdle}{\state{StIdle}}
-\newcommand{\StBusy}{\state{StBusy}}
 \newcommand{\StDone}{\state{StDone}}
-\newcommand{\StObjIdsBlocking}    {\state{StObjIdsBlocking}}
-\newcommand{\StObjIdsNonBlocking} {\state{StObjIdsNonBlocking}}
+\newcommand{\StObjIdsBlocking}    {\state{StObjIds Blocking}}
+\newcommand{\StObjIdsBlockingR}   {\state{StObjIds Blocking MustReply}}
+\newcommand{\StObjIdsBlockingA}   {\state{StObjIds Blocking CanAwait}}
+\newcommand{\StObjIdsNonBlocking} {\state{StObjIds NonBlocking}}
 \newcommand{\StObjs}              {\state{StObjs}}
 
 \newcommand{\MsgInit}            {\msg{MsgInit}}
-\newcommand{\MsgRequestObjIdsNB}  {\msg{MsgRequestObjIdsNonBlocking}}
-\newcommand{\MsgRequestObjIdsB}   {\msg{MsgRequestObjIdsBlocking}}
+\newcommand{\MsgRequestObjIdsNB}  {\msg{MsgReqObjIds NonBlocking}}
+\newcommand{\MsgRequestObjIdsB}   {\msg{MsgReqObjIds Blocking}}
 \newcommand{\MsgReplyObjIds}      {\msg{MsgReplyObjIds}}
-\newcommand{\MsgRequestObjs}      {\msg{MsgRequestObjs}}
+\newcommand{\MsgRequestObjs}      {\msg{MsgReqObjs}}
 \newcommand{\MsgReplyObjs}        {\msg{MsgReplyObjs}}
 \newcommand{\MsgDone}{\msg{MsgDone}}
+\newcommand{\MsgServerIdle}       {\msg{MsgServerIdle}}
+\newcommand{\MsgAwaitReply}       {\msg{MsgAwaitReply}}
 
 \begin{figure}[h]
   \begin{center}
     \begin{tikzpicture}[->,shorten >=1pt,auto,node distance=4.5cm, semithick, scale=0.9]
       \tikzstyle{every state}=[fill=red,draw=none,text=white]
-      \node[state, mygreen, initial] (I) at (-4,  0) {\StInit};
-      \node[state, mygreen]           (A) at ( 0,  0) {\StIdle};
-      \node[state]                   (B) at (4, 0) {\StDone};
-      \node[state, myblue]          (C) at ( 4, -4) {\StObjIdsBlocking};
-      \node[state, myblue]          (D) at (-4, -4) {\StObjIdsNonBlocking};
-      \node[state, myblue]          (E) at ( 0,  4) {\StObjs};
-      \draw (I)  edge[above]                    node[above]{\MsgInit}                                                 (A);
-      \draw (A)  edge[above]                    node[above]{\MsgDone}                                                 (B);
-      \draw (A)  edge[left, bend left=45]       node[fill = white, anchor = center]{\MsgRequestObjIdsB}               (C);
-      \draw (C)  edge[right, bend left=15]      node[fill = white, anchor = center, above = 2pt]{\MsgReplyObjIds}     (A);
-      \draw (D)  edge[right, bend left=45]      node[fill = white, anchor = center]{\MsgReplyObjIds}                  (A);
-      \draw (A)  edge[right, bend left=15]      node[fill = white, anchor = center, below = 2pt]{\MsgRequestObjIdsNB} (D);
-      \draw (A)  edge[left, bend right=45]      node[fill = white, anchor = center, above = 2pt]{\MsgRequestObjs}     (E);
-      \draw (E)  edge[right,bend right=45]      node[fill = white, anchor = center, below = 2pt]{\MsgReplyObjs}       (A);
+      \node[state, mygreen, initial] (I) at (-6,  0) {\StInit};
+      \node[state, mygreen]          (A) at ( 0,  0) {\StIdle};
+      \node[state]                   (B) at ( 6,  0) {\StDone};
+      \node[state, myblue]           (C) at ( 6, -4) {\StObjIdsBlockingA};
+      \node[state, myblue]           (F) at ( 2, -6) {\StObjIdsBlockingR};
+      \node[state, myblue]           (D) at (-6, -5) {\StObjIdsNonBlocking};
+      \node[state, myblue]           (E) at ( 0,  4) {\StObjs};
+      \draw (D) edge[bend left=30]  node[fill = white, anchor = center]{\MsgReplyObjIds}  (A);
+      \draw (A) edge[bend left=15]  node[fill = white, below = 16pt]{\MsgRequestObjIdsNB} (D);
+      \draw (A) edge[bend right=45] node[fill = white, above = 2pt]{\MsgRequestObjs}      (E);
+      \draw (E) edge[bend right=45] node[fill = white, below = 2pt]{\MsgReplyObjs}        (A);
+      \draw (I) edge                node[above]{\MsgInit}                                 (A);
+      \draw (A) edge                node[above]{\MsgDone}                                 (B);
+      \draw (A) edge[bend left=30]  node[fill = white, right = -28pt]{\MsgRequestObjIdsB} (C);
+      \draw (C) edge[bend left=15]  node[fill = white, right = -6pt]{\MsgAwaitReply}      (F);
+      \draw (F) edge[bend left=30]  node[fill = white, left = -18pt]{\MsgServerIdle}      (A);
+      \draw (C) edge[bend left=5]   node[fill = white, above = -6pt]{\MsgReplyObjIds}     (A);
+      \draw (F)edge[bend right=5]   node[fill = white, right = -16pt]{\MsgReplyObjIds}    (A);
     \end{tikzpicture}
   \end{center}
   \caption{Object diffusion state machine}%
