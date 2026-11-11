@@ -10,7 +10,7 @@ database of objects (e.g., for Tx-Submission, their mempool) between peers:
 \begin{itemize}
 \item
   Clients and server maintain the knowledge of a queue of objects of which the server has knowledge and the client presumably does not.
-  Importantly, the queue is of bounded size, and the maximal size is a hardcoded parameter of the
+  Importantly, the queue is of bounded size, and the maximal size is a fixed parameter of the
   implementation.
   The objects are represented by {\em identifiers}, typically orders of magnitude smaller than the objects themselves.
 
@@ -129,19 +129,14 @@ They are notions that need to be made concrete for each implementation of the pr
 
 \begin{description}
 \item [\argfont{object}] The abstract type of objects diffused by the protocol.
-\item [\argfont{id}] Identifier that uniquely identifies an object.
-\item [\argfont{objectIds}] An opaque type returned by the server when asked for object ids.
-  It is not explicitly a list of $\argfont{id}$, because the server may want to add metadata to the ids, and/or run a compression scheme to limit the size of its response.
-\item [\argfont{responseToIds}] A function with type $\argfont{objectIds} \rightarrow [\argfont{id}]$.
-\item [\argfont{initialPayload}] An abstract payload that helps initialise the state of the server.
-  For instance, a slot number before which the client does not care about the objects.
+\item [\argfont{objectId}] Identifier that uniquely identifies an object.
 \end{description}
 
 \subsection{Protocol messages}
 
 \begin{description}
-\item [\MsgInit{} {\((\argfont{initialPayload})\)}]
-      Initial message of the protocol, with its payload.
+\item [\MsgInit{}]
+      Initial message of the protocol.
 
 \item [\MsgRequestObjIdsNB{} {$(\argfont{ack},\argfont{req})$}]
       The client asks for up to \argfont{req} new object ids and acknowledges \argfont{ack} old ids.
@@ -151,14 +146,15 @@ They are notions that need to be made concrete for each implementation of the pr
       The client asks for up to \argfont{req} new object ids and acknowledges \argfont{ack} old ids.
       The server will block until new objects are available.
 
-\item [\MsgReplyObjIds{} {$(\argfont{objectIds})$}]
+\item [\MsgReplyObjIds{} {$([\argfont{objectId}])$}]
       The server replies with the ids of its available objects.
-      In the blocking case, the reply is guaranteed to contain enough information to build at least one object id with \argfont{responseToIds}.
+      In the blocking case, the reply is guaranteed to contain at least one object id.
       In the non-blocking case, the reply may not contain any actual data.
 
-\item [\MsgRequestObjs{} {$([\argfont{id}])$}]
-      The client requests objects by sending a list of object ids.
-      The total size of the corresponding objects MUST not be bigger than the size limit in bytes.
+\item [\MsgRequestObjs{} {$([\argfont{objectId}])$}]
+      The client requests objects by sending a list of object ids, which MUST be
+      a subset of the ids in the outstanding FIFO and whose length MUST NOT
+      exceed a protocol parameter defined limit.
 
 \item [\MsgReplyObjs{} {$([\argfont{object}])$}]
       The server replies with the list of all the objects that were requested.
@@ -172,7 +168,7 @@ They are notions that need to be made concrete for each implementation of the pr
 
 \begin{table}[h]
   \begin{center}
-    \begin{tabular}{l|l|l|l}
+    \begin{tabular}{l|l|l}
       \header{from state}  & \header{message}    & \header{to state}    \\\hline
       \StInit              & \MsgInit            & \StIdle              \\
       \StIdle              & \MsgRequestObjIdsNB & \StObjIdsNonBlocking \\
@@ -204,7 +200,7 @@ number of object ids, and it can use these object ids to request a batch of
 objects. The client has flexibility in the number of object ids it requests,
 whether to actually download the object and how it batches the download of
 objects. For instance, a downstream node might choose to download an object from
-a subset its upstream peers that shared its id.
+a subset of its upstream peers that shared its id.
 
 The client can also switch between requesting object ids and downloading objects
 at any time. It must, however, observe several constraints that are necessary
@@ -217,7 +213,7 @@ guarantees that the client and server agree on the current size of that FIFO and
 on the outstanding object ids. The client can use a variety of heuristics to
 request object ids and objects. One possible implementation for a client is to
 maintain a FIFO that mirrors the server's FIFO but only contains the object ids
-(and the size of the objects) and not the full objects.
+and not the full objects.
 
 After the client requests new object ids, the server replies with a list of
 object ids and puts these objects in its FIFO. The server may reply with less
@@ -261,8 +257,8 @@ as \argfont{object}s.}
 % should contain enough information to infer the size of each object, or the protocol
 % should exchange objects with fixed size.%
 %
-\footnote{For votes and certificates, we will use the latter. See
-\Cref{sec:certificate-vote-diffusion}.}
+% \footnote{For votes and certificates, we will use the latter. See
+% \Cref{sec:certificate-vote-diffusion}.}
 
 \subsubsection{Blocking vs. non-blocking ids requests}
 
@@ -272,12 +268,15 @@ However, they abandon the agency to the server, preventing the client to request
 
 We propose the following rule to govern this decision:
 
-If the pipeline of that specific client-server pair contains only \MsgRequestObjs{} messages, and these messages span over all the objects in the FIFO that we have not yet obtained, then send \MsgRequestObjIdsB. Otherwise, send \MsgRequestObjIdsNB.
+If the FIFO is empty after sending the next acknowledgment integer, the client
+has nothing better to do than to wait for the server to acquire more object ids;
+in that case it should use a blocking request, in order to avoid polling. The
+rest of the time, the client should prefer non-blocking requests to prevent
+giving agency to the server for too long a time, and being able to download
+objects in the meantime.
 
-Note that this criterion covers the simpler case of empty pipelines and FIFO.
-Note that, if we send \MsgRequestObjIdsB{} while the messages in the pipeline do not cover all of the objects in the FIFO that we are missing, then we might get stuck with ids that we will not be able to process until the server gets new ones.
+Note that, if we send \MsgRequestObjIdsB{} but the FIFO is not empty, then we might get stuck with ids that we will not be able to process until the server gets new ones.
 This point holds also if we have requested the objects from other peers, as they might fail to deliver.
-Finally, note that, if we send \MsgRequestObjIdsB{} while there are messages in the pipeline that are not \MsgRequestObjs, then we might receive new ids that we will not be able to process (with this server) until the server gets new ones.
 
 We believe that this rule covers all the use cases one might have of this protocol.
 % Variations from this rule for specific protocols would domain knowledge that for sure we will not need specific objects, but then nothing prevents us, in such a case, from first acknowledging those objects with a \MsgRequestObjIdsNB, and only then send \MsgRequestObjIdsB{} if the answer was empty.
@@ -295,10 +294,10 @@ depends on a large variety of parameters, specific to each parameterization of t
   \item the latency/throughput constraints,
   \item the expected network load,
   \item the quality of each node-to-node connection,
-  \item the distribution of objects that each peer advertise; given that we can download a limited number of objects at once from each peer.
+  \item the distribution of objects that each peer advertises; given that we can download a limited number of objects at once from each peer.
 \end{itemize}
 
-The tree first points are related to metrics collected by the existing Network implementation for peer churning. We also invite the reader to look at the centralized inbound Tx-Submission v2 logic that implement a similar strategy.
+The three first points are related to metrics collected by the existing Network implementation for peer churning. We also invite the reader to look at the centralized inbound Tx-Submission v2 logic that implements a similar strategy.
 
 % \subsubsection{Use-case specific functions}
 
