@@ -61,7 +61,6 @@ The coming subsections give more details on the mini-protocol.
 \newcommand{\StInit}             {\state{StInit}}
 \newcommand{\StIdle}{\state{StIdle}}
 \newcommand{\StDone}{\state{StDone}}
-\newcommand{\StObjIdsBlocking}    {\state{StObjIds Blocking}}
 \newcommand{\StObjIdsBlockingR}   {\state{StObjIds Blocking MustReply}}
 \newcommand{\StObjIdsBlockingA}   {\state{StObjIds Blocking CanAwait}}
 \newcommand{\StObjIdsNonBlocking} {\state{StObjIds NonBlocking}}
@@ -111,7 +110,8 @@ The coming subsections give more details on the mini-protocol.
       \header{state}       & \header{agency} \\\hline
       \StInit              & \Client \\
       \StIdle              & \Client \\
-      \StObjIdsBlocking    & \Server \\
+      \StObjIdsBlockingA    & \Server \\
+      \StObjIdsBlockingR    & \Server \\
       \StObjIdsNonBlocking & \Server \\
       \StObjs              & \Server \\
     \end{tabular}
@@ -144,12 +144,21 @@ They are notions that need to be made concrete for each implementation of the pr
 
 \item [\MsgRequestObjIdsB{} {$(\argfont{ack},\argfont{req})$}]
       The client asks for up to \argfont{req} new object ids and acknowledges \argfont{ack} old ids.
-      The server will block until new objects are available.
+      The server either replies promptly with at least one object id, or sends \MsgAwaitReply{} if it has no new object ids available.
 
 \item [\MsgReplyObjIds{} {$([\argfont{objectId}])$}]
       The server replies with the ids of its available objects.
-      In the blocking case, the reply is guaranteed to contain at least one object id.
+      In the blocking case (from either \StObjIdsBlockingA{} or \StObjIdsBlockingR{}), the reply is guaranteed to contain at least one object id.
       In the non-blocking case, the reply may not contain any actual data.
+
+\item [\MsgAwaitReply{}]
+      In response to a blocking request, the server informs the client that it has no object ids immediately available and that it will wait for new objects.
+      The server retains agency and must subsequently send either \MsgReplyObjIds{} or \MsgServerIdle{}.
+      This message gives the client a prompt observation that it is caught up with the server.
+
+\item [\MsgServerIdle{}]
+      After \MsgAwaitReply{}, the server informs the client that still no new object ids became available within a bounded wait.
+      Agency returns to the client, which can terminate or immediately issue another blocking request.
 
 \item [\MsgRequestObjs{} {$([\argfont{objectId}])$}]
       The client requests objects by sending a list of object ids, which MUST be
@@ -172,9 +181,12 @@ They are notions that need to be made concrete for each implementation of the pr
       \header{from state}  & \header{message}    & \header{to state}    \\\hline
       \StInit              & \MsgInit            & \StIdle              \\
       \StIdle              & \MsgRequestObjIdsNB & \StObjIdsNonBlocking \\
-      \StIdle              & \MsgRequestObjIdsB  & \StObjIdsBlocking    \\
+      \StIdle              & \MsgRequestObjIdsB  & \StObjIdsBlockingA   \\
       \StObjIdsNonBlocking & \MsgReplyObjIds     & \StIdle              \\
-      \StObjIdsBlocking    & \MsgReplyObjIds     & \StIdle              \\
+      \StObjIdsBlockingA   & \MsgAwaitReply      & \StObjIdsBlockingR   \\
+      \StObjIdsBlockingR   & \MsgServerIdle      & \StIdle              \\
+      \StObjIdsBlockingA   & \MsgReplyObjIds     & \StIdle              \\
+      \StObjIdsBlockingR   & \MsgReplyObjIds     & \StIdle              \\
       \StIdle              & \MsgRequestObjs     & \StObjs              \\
       \StObjs              & \MsgReplyObjs       & \StIdle              \\
       \StIdle              & \MsgDone            & \StDone              \\
@@ -241,8 +253,14 @@ request, in order to avoid polling. The rest of the time, the client might
 prefer non-blocking requests to prevent giving agency to the server for too long
 a time, and being able to download objects in the meantime. The server must
 reply within a small timeout to a non-blocking request, possibly with an empty
-list. A blocking request, on the other hand, waits until at least one object is
-available.
+list. A blocking request, on the other hand, is answered promptly either with at
+least one object id or with \MsgAwaitReply{}. In the latter case, the server
+waits until at least one object is available, in which case it replies with
+\MsgReplyObjIds{}, or until a bounded idle timeout (a parameter of the server)
+expires, in which case it replies with \MsgServerIdle{}. The timeout ensures that
+the server does not keep agency indefinitely; by immediately issuing another
+blocking request, the client keeps waiting continuously for new objects without
+any client-side polling delay.
 
 The client can request any batch of objects from the current FIFO in any order.
 The server must respond with all the requested objects.%
@@ -265,6 +283,8 @@ as \argfont{object}s.}
 When requesting object ids, a client has the choice between emitting a blocking or a non-blocking request.
 Blocking requests are kinder to the network because they avoid round-trips for nothing.
 However, they abandon the agency to the server, preventing the client to request objects in the meantime.
+This is mitigated by the bounded idle timeout after which the server returns agency with \MsgServerIdle{}.
+In addition, \MsgAwaitReply{} lets the client promptly learn that it is caught up with the server, without waiting for the blocking request to complete.
 
 We propose the following rule to govern this decision:
 
