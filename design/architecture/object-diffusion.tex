@@ -163,7 +163,10 @@ They are notions that need to be made concrete for each implementation of the pr
 \item [\MsgRequestObjs{} {$([\argfont{objectId}])$}]
       The client requests objects by sending a list of object ids, which MUST be
       a subset of the ids in the outstanding FIFO and whose length MUST NOT
-      exceed a protocol parameter defined limit.
+      exceed a protocol parameter defined limit. Each protocol instantiation MUST
+      bound the encoded size of an object and choose this count limit so that
+      the complete \MsgReplyObjs{} message, including encoding overhead, fits
+      within the protocol's reply byte limit.
 
 \item [\MsgReplyObjs{} {$([\argfont{object}])$}]
       The server replies with the list of all the objects that were requested.
