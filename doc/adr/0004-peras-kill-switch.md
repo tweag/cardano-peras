@@ -55,6 +55,6 @@ sync (Genesis integration is out of scope for the MVP).
 certificates added to ChainDB, VoteDB or CertDB, and the NodeKernel log
 showing Peras disabled.
 4. The signal-based reload remains possible future work (#2461).
-5. Terminology: `PerasFlag` is the runtime switch. `PerasEnabled` is a
-different, era-dependent wrapper in consensus parameters and is not the
-switch.
+5. Terminology: the operator sets `PerasEnabled` in the node configuration,
+which turns the internal `PerasFlag` on or off. A different `PerasEnabled`
+in the consensus parameters is unrelated.
