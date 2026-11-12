@@ -112,7 +112,7 @@ We now describe an approach for resolving this in an actual implementation.
 
 \begin{description}
 \item[Distant past]
-  If a caught-up node observes a vote or certificate whose boosted block is further in the past than the node's immutable tip, it can safely ignore/discard it, as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection. In particular, we know that any cert older than $\Tcp-\perasBlockMinSlots$ can only affect the already-immutable part of the node's selection; but some younger certs may also boost blocks that are already further in the the immutable tip.
+  If a caught-up node observes a vote or certificate whose boosted block is further in the past than the node's immutable tip, it can safely ignore/discard it, as such votes and certificates can only affect (and hence further strengthen compared to alternative chains) the common prefix of the honest nodes, i.e.\ the already-immutable part of their selection. In particular, any certificate older than $\Tcp-\perasBlockMinSlots$ is guaranteed to affect only the already-immutable part of the node's selection; however, some younger certificates may also boost blocks that already lie below the immutable tip.
 
   A consequence of this rule is that two honest caught-up nodes can differ harmlessly in whether they have seen a certificate for a historical round, namely when an adversary diffuses certain votes/certificates very late, such that some honest nodes still store a particular certificate for an old (but still just young enough) round, but other nodes ignore it as it is already (barely) too old.
 \item[Near past]
@@ -143,7 +143,7 @@ If other honest nodes connected to this peer had seen the certificate for round 
 
 So either our peer is eclipsed $\square$ \\
 
-Or the other honest nodes connected to this peer haven't seen the certificate for round $r'$ in the first $\Delta$ slots of round $r'$ ((as per rule VR-1A\cite{badertscher2025peras}). And by transitivity, all honest, non-eclipsed nodes haven't seen it either. So they have entered cooldown in round $r' + 1$.
+Or the other honest nodes connected to this peer haven't seen the certificate for round $r'$ in the first $\Delta$ slots of round $r'$ (as per rule VR-1A\cite{badertscher2025peras}). And by transitivity, all honest, non-eclipsed nodes haven't seen it either. So they have entered cooldown in round $r' + 1$.
 
 However we have seen a successful voting (and cert) in round $r_{\text{latest}}$ with $r_{\text{latest}} > r'$, so it means the cooldown was over in round $r_{\text{latest}}$. The effective cooldown duration is at least $\text{max}(K, R)$ so at least $\Tcp$. So $r'$ is a round at least $\Tcp$ from $r_{\text{latest}}$, thus at least $\Tcp$ from current time, and the block being boosted by the cert in $r'$ is at least $L$ slots older than the beginning slot of $r'$, so \textit{a fortiori} the block being boosted by the cert in $r'$ is further in the past than the immutable tip $\square$
 % In both cases, the sequence ${(r_k)}_{k\in\mathbb{N}}$ of round numbers of certificates observed by an honest node increases \emph{almost} monotonically, i.e.\ $\max_{i<k} r_k \le  r_{k+1} - 1$ for all $k\in\mathbb{N}$.
