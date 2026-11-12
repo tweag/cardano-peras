@@ -288,12 +288,11 @@ In addition, \MsgAwaitReply{} lets the client promptly learn that it is caught u
 
 We propose the following rule to govern this decision:
 
-If the FIFO is empty after sending the next acknowledgment integer, the client
-has nothing better to do than to wait for the server to acquire more object ids;
-in that case it should use a blocking request, in order to avoid polling. The
-rest of the time, the client should prefer non-blocking requests to prevent
-giving agency to the server for too long a time, and being able to download
-objects in the meantime.
+Before sending a blocking request, the client must collect and account for all
+outstanding pipelined replies. If the FIFO is then empty after applying the next
+acknowledgment integer, the client should use a blocking request to avoid polling.
+Otherwise, it should prefer non-blocking requests to avoid giving agency to the
+server for too long and to remain able to download outstanding objects.
 
 Note that, if we send \MsgRequestObjIdsB{} but the FIFO is not empty, then we might get stuck with ids that we will not be able to process until the server gets new ones.
 This point holds also if we have requested the objects from other peers, as they might fail to deliver.
