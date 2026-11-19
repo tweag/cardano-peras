@@ -14,6 +14,12 @@ A `KillSwitch` is a machanism that node operators can use to restrict or
 fully disable Peras protocol. Kill-switch is expected to be used only
 during disaster scenarios, related to Peras.
 
+The lowest-risk boundary is therefore to disable active components, including vote
+forging, VoteDB, the synchronization database, and aggregation, while retaining
+the network protocols. The node must still diffuse and return the votes
+and certificates it knows about, and retain access to the Peras state needed
+for chain selection and synchronization.
+
 Fully disabling Peras carries a risk on a network where Peras is active:
 
 1. Peras-aware and Peras-unaware nodes use different chain selection rules.
@@ -24,11 +30,8 @@ Fully disabling Peras carries a risk on a network where Peras is active:
 2. During synchronization, a node must remain aware of the Peras state,
  including certificates that affect chain weight and selection.
 
-The lowest-risk boundary is therefore to disable active components, including vote
-forging, VoteDB, the synchronization database, and aggregation, while retaining
-the network protocols. The node must still diffuse and return the votes
-and certificates it knows about, and retain access to the Peras state needed
-for chain selection and synchronization.
+Those risks never-the-less are not meaningful in the case of the disaster,
+where network substantionaly misbehaves or observes a unintended fork.
 
 Peras is already gated by the `PerasFlag` feature flag (cardano-base #547,
 read by consensus #1780 and network #5202). Without the flag, the Peras
@@ -58,6 +61,12 @@ Due to a timing constraints the nuclear option provides a better guarantees
 and will be sooner be useful.
 
 ## Decision
+
+First we implement an option that is applicable in a case of a major disaster
+related to the Peras misbehavior or unintended interactions with other network
+protocol, where the only reasonable solution is to disable Peras and wait for
+the protocol fix. In this case the different behaviour in Peras enabled and 
+Peras disabled nodes does not matter, as Peras is misbehaving.
 
 We will provide the kill switch as a startup setting. An operator enables or
 disables Peras in the node's startup configuration.
