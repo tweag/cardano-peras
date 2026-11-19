@@ -4,7 +4,7 @@ Date: 2026-11-11
 
 ## Status
 
-Superceded by [5. peras-kill-switch](0005-peras-kill-switch.md)
+Superseded by [5. peras-kill-switch](0005-peras-kill-switch.md)
 
 ## Context
 
