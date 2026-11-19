@@ -10,20 +10,23 @@ Supersedes [4. Peras kill switch](0004-peras-kill-switch.md)
 
 ## Context
 
-A kill switch lets node operators stop active Peras participation if it
-misbehaves, without halting the node or the network.
+A `KillSwitch` is a machanism that node operators can use to restrict or
+fully disable Peras protocol. Kill-switch is expected to be used only
+during disaster scenarios, related to Peras.
 
 Fully disabling Peras carries a risk on a network where Peras is active:
 
 1. Peras-aware and Peras-unaware nodes use different chain selection rules.
- Their selections can diverge, increasing the risk of a hard fork. A
+ Peras-aware node with Peras disabled will use the same chain selection rules,
+ but it will miss latest certificates, that are used for a selection.
+ Their selection results can diverge, increasing the risk of a hard fork. A
  Peras-aware node must treat a non-Peras-conformant node as malicious.
 2. During synchronization, a node must remain aware of the Peras state,
  including certificates that affect chain weight and selection.
 
 The lowest-risk boundary is therefore to disable active components, including vote
 forging, VoteDB, the synchronization database, and aggregation, while retaining
-the network protocols. The node must still diffuse and return the object keys
+the network protocols. The node must still diffuse and return the votes
 and certificates it knows about, and retain access to the Peras state needed
 for chain selection and synchronization.
 
@@ -39,7 +42,7 @@ enables Peras. This option interferes with the `PerasEnabled` flag.
 During early stages, other development teams want to have a way to completely
 disable Peras, to remove any effects of the network.
 
-Alternatives considered:
+Alternative implementations considered:
 
 1. Stop everything (the "nuclear option"): disable all Peras functionalities,
    including the network protocols. This option can be considered as a way
@@ -51,17 +54,16 @@ Alternatives considered:
 Previous decision favoured a passive option as the main one, but additional
 integration requirements showed that this option is valuable only during the
 late integration step and should be aligned with the node developer teams.
+Due to a timing constraints the nuclear option provides a better guarantees
+and will be sooner be useful.
 
 ## Decision
 
 We will provide the kill switch as a startup setting. An operator enables or
-disables active Peras participation in the node's startup configuration. The
-setting is read when the node starts, so the node must be restarted for a change
-to take effect.
+disables active Peras participation in the node's startup configuration.
 
-When disabled, a nuclear option applies that includes disabling of the
-vote forging, VoteDB, the synchronization database, and
-aggregation must be stopped, peras network protocols are no longer announced
+When disabled, a nuclear option applies: that includes disabling of the
+vote forging, and the peras network protocols are no longer announced
 in the node to node communication.
 The node must continue to use Peras-aware chain selection and have access to
 the state required for synchronization.
