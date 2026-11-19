@@ -60,7 +60,7 @@ and will be sooner be useful.
 ## Decision
 
 We will provide the kill switch as a startup setting. An operator enables or
-disables active Peras participation in the node's startup configuration.
+disables Peras in the node's startup configuration.
 
 When disabled, a nuclear option applies: that includes disabling of the
 vote forging, and the peras network protocols are no longer announced
