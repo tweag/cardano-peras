@@ -10,93 +10,107 @@ Supersedes [4. Peras kill switch](0004-peras-kill-switch.md)
 
 ## Context
 
-A `KillSwitch` is a machanism that node operators can use to restrict or
-fully disable Peras protocol. Kill-switch is expected to be used only
+A `KillSwitch` is a mechanism that node operators can use to restrict or
+fully disable Peras protocol. A Kill-switch is expected to be used only
 during disaster scenarios, related to Peras.
 
-The lowest-risk boundary is therefore to disable active components, including vote
-forging, VoteDB, the synchronization database, and aggregation, while retaining
-the network protocols. The node must still diffuse and return the votes
-and certificates it knows about, and retain access to the Peras state needed
-for chain selection and synchronization.
+Peras is a protocol that impacts chain selection directly, so disabling it
+requires careful consideration of the consequences.
+Notably, Peras-aware and Peras-unaware nodes use different chain selection rules.
+A Peras-aware node with Peras disabled will use the same chain selection rules
+as other Peras-aware nodes, but it will miss the latest certificates, that are
+used for chain selection. Thus its selection results can diverge as well,
+increasing the risk of a (hard) fork. For that reason, a Peras-aware node should
+treat a non-Peras-conformant node as adversarial.
 
-Fully disabling Peras carries a risk on a network where Peras is active:
+The lowest-risk boundary is therefore to only disable active components
+[Option 1], i.e. vote forging and the voting thread, while retaining the Peras
+network protocols. This way, the node will still diffuse and return the votes
+and certificates it knows about, and retain access to the Peras state needed for
+getting the same chain selection results as other Peras-aware nodes. If enough
+nodes stop participating actively, then Peras will be effectively disabled on
+the network, while preserving a consistent chain selection among all nodes.
 
-1. Peras-aware and Peras-unaware nodes use different chain selection rules.
- Peras-aware node with Peras disabled will use the same chain selection rules,
- but it will miss latest certificates, that are used for a selection.
- Their selection results can diverge, increasing the risk of a hard fork. A
- Peras-aware node must treat a non-Peras-conformant node as malicious.
-2. During synchronization, a node must remain aware of the Peras state,
- including certificates that affect chain weight and selection.
+On the other hand, fully disabling Peras (both voting and network protocols)
+[Option 2] carries a risk if it is done by a node on its own, on a network where
+Peras is active: this node risks diverging from the rest of the network, and
+missing historical data that are important for future syncing nodes. Those risks
+are nevertheless negligible in the case of the disaster, where network
+substantially misbehaves or observes an unintended fork.
 
-Those risks never-the-less are not meaningful in the case of the disaster,
-where network substantionaly misbehaves or observes a unintended fork.
+**Considered Options:**
 
-Peras is already gated by the `PerasFlag` feature flag (cardano-base #547,
-read by consensus #1780 and network #5202). Without the flag, the Peras
-mini-protocols are not initialized and the vote-forging thread is not started.
-That behavior does not meet the passive-mode requirements above on a
-Peras-enabled network.
 
-There is an additional option for the network `ExperimentalProtocols` that
-enables Peras. This option interferes with the `PerasEnabled` flag.
+1. Passive mode: disable only the active components (voting thread),
+   but keep all passive ones (network protocols and certificate inclusion)
+   enabled.
+2. Disable everything: disable all Peras functionalities,
+   including the network protocols and certificate inclusion. This option can be
+   considered as a way to disable Peras on the network in case major rework is
+   needed.
 
-During early stages, other development teams want to have a way to completely
-disable Peras, to remove any effects of the network.
+In its current state of development, Peras is already gated by the `PerasFlag`
+feature flag (cardano-base #547, read by consensus #1780 and network #5202).
+Without the flag, the Peras mini-protocols are not initialized and the
+vote-forging thread is not started. Certificate inclusion is also disabled.
+That behavior meets the _disable everything_ requirements but does not meet the
+passive mode requirements.
 
-Alternative implementations considered:
+There is also an existing Cardano option, `ExperimentalProtocols`, that also
+allows/prevents the initialization of certain network protocols, including Peras
+ones. However, unlike `PerasFlag`, this one doesn't have any impact on the
+voting thread.
 
-1. Stop everything (the "nuclear option"): disable all Peras functionalities,
-   including the network protocols. This option can be considered as a way
-   to disable Peras on the network in case major rework is needed.
-2. Passive mode: additional mode for Peras that allows to disable only active
-   (voting) thread, but keep all passive: network protocols and certificate
-   inclusion active.
+These two flags/options are justified by the need of other development teams to
+have a way to completely disable Peras and remove any effects on the network.
 
-Previous decision favoured a passive option as the main one, but additional
-integration requirements showed that this option is valuable only during the
-late integration step and should be aligned with the node developer teams.
-Due to a timing constraints the nuclear option provides a better guarantees
-and will be sooner be useful.
+Previous ADR (0004) favoured the passive mode as the main kill-switch to be
+delivered. However, recent integration requirements showed that the _disable 
+everything_ fit the immediate needs of the development teams, while the passive
+mode wouldn't be enough for their use cases. Due to timing constraints, it thus
+seems reasonable to deliver the _disable everything_ kill-switch first.
 
 ## Decision
 
-First we implement an option that is applicable in a case of a major disaster
-related to the Peras misbehavior or unintended interactions with other network
-protocol, where the only reasonable solution is to disable Peras and wait for
-the protocol fix. In this case the different behaviour in Peras enabled and 
-Peras disabled nodes does not matter, as Peras is misbehaving.
+We will first implement the kill-switch applicable in a case of a major disaster
+related to Peras misbehaving or having unintended interactions with other
+network protocols, where the only reasonable solution is to disable all Peras
+functionalities and wait for a protocol fix [Option 2]. In this particular case,
+the possibly different behavior between Peras-enabled and Peras-disabled nodes
+is of lesser concern.
 
-We will provide the kill switch as a startup setting. An operator enables or
-disables Peras in the node's startup configuration.
+This kill switch will be provided as a node startup setting. An operator enables
+or disables Peras in the node's startup configuration.
 
-When disabled, a nuclear option applies: that includes disabling of the
-vote forging, and the peras network protocols are no longer announced
-in the node to node communication.
-The node must continue to use Peras-aware chain selection and have access to
-the state required for synchronization.
+When disabled, vote forging, cert inclusion are turned off. Peras network
+protocols are no longer announced in the node-to-node communication, and hence
+not initialized either.
+The node continues to use Peras chain selection, but will not obtain the newest
+certificates, so it will effectively behave from that point like a Praos node
+w.r.t chain selection.
 
 ### UX Improvements
 
-The original signal-based design would re-read credential files on SIGHUP and
-enable or disable vote forging without a node restart (consensus #2461 and a
-work-in-progress node change). Supporting signal-based restart requires careful
-resource lifecycle management: no references that retain access to resources
-such as BLS keys may remain after the affected components are stopped. This
-requires more precise implementation and integration with Leios and consensus
-code.
+The original signal-based design for passive mode would re-read credential files
+on SIGHUP, in order to enable or disable vote forging without a node restart
+(consensus #2461 and a work-in-progress node change). Supporting signal-based
+restart requires careful resource lifecycle management: no references should
+retain access to resources such as BLS keys after the affected components are
+stopped. This requires deeper investigation and integration with Leios and
+consensus code.
 
 ## Consequences
 
-1. A node restart is required to change the setting. It cannot be toggled
-while the node is running.
-2. Verification must establish that, with Peras disabled, voting and aggregation
- stop and the Peras network protocols are not announced.
-3. The operator-facing `PerasEnabled` setting must implement this nuclear
- option behavior.
-4. The divergence risk described in Context remains when Peras is disabled on
- a Peras-active network. This is accepted: the setting is intended for a
+With Option 2 being adopted:
+
+1. A node restart is required to change the
+   setting. It cannot be toggled while the node is running.
+1. Verification must establish that, with Peras disabled, voting and cert
+   inclusion stop and the Peras network protocols are not announced.
+1. The operator-facing `PerasEnabled` setting must implement this _disable
+   everything_ option behavior.
+1. The divergence risk described in Context remains when Peras is disabled on
+ a Peras-active network. This is acceptable: the setting is intended for a
  severe Peras failure, after which Peras should not be re-enabled without a
- code change, and a node with Peras disabled behaves much like a node running
- an earlier version without Peras.
+ code change. In this situation, a node with Peras disabled behaves much like a
+ node running an earlier version without Peras.
